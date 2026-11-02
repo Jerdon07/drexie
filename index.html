@@ -9,13 +9,31 @@
       content="Meet Drexie Jaira Litaoen, a BSIT student majoring in ERP at the University of the Cordilleras."
     >
     <title>Drexie Jaira Litaoen — Business meets technology</title>
+    <!-- Decide synchronously, before first paint, whether the WebGL intro will run.
+         Skipped for reduced-motion users and for repeat views in the same session.
+         The 9s timeout is a failsafe: a broken intro must never leave the page hidden. -->
+    <script>
+      (() => {
+        try {
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const seen = sessionStorage.getItem('introSeen') === '1';
+          if (reduced || seen) return;
+          const root = document.documentElement;
+          root.classList.add('intro-pending');
+          window.setTimeout(() => root.classList.remove('intro-pending'), 9000);
+        } catch (error) { /* storage blocked: show the page normally */ }
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="intro.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js" defer></script>
     <script src="script.js" defer></script>
     <script src="monolith.js" defer></script>
+    <script src="intro.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <button class="intro-skip" type="button" hidden>Skip intro</button>
 
     <div class="ambient-icons" aria-hidden="true">
       <canvas class="ambient-canvas"></canvas>

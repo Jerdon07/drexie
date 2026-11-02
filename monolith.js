@@ -61,6 +61,7 @@
     { color: 0x8be4ff, x: -.014 },
     { color: 0xc3a3ff, x: .014 },
   ];
+  const edgeLines = [];
   dispersionEdges.forEach(({ color, x }) => {
     const edge = new THREE.LineSegments(
       shellEdges,
@@ -73,6 +74,7 @@
     );
     edge.position.x = x;
     artifact.add(edge);
+    edgeLines.push(edge);
   });
 
   const core = new THREE.Group();
@@ -189,6 +191,19 @@
   const rimLight = new THREE.PointLight(0x9c75ff, 22, 10);
   rimLight.position.set(2.4, -.7, -1.8);
   scene.add(rimLight);
+
+  // Handles for intro.js (and any future scene choreography).
+  portfolioThree.monolith = {
+    scene,
+    camera,
+    root,
+    artifact,
+    shell,
+    glassMaterial,
+    edges: edgeLines,
+    core,
+    coreGlow,
+  };
 
   const targetRotation = { x: 0, y: 0 };
   const rotationVelocity = { x: 0, y: 0 };

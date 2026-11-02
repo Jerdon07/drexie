@@ -1,0 +1,42 @@
+/* Intro gating. `intro-pending` is set by the inline script in <head>
+   and removed by script.js on the `intro:reveal` event. */
+html.intro-pending { overflow: hidden; }
+
+.intro-pending .site-header,
+.intro-pending .hero-copy,
+.intro-pending .hero-art > *:not(.monolith-stage),
+.intro-pending .hero-side-label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-skip {
+  position: fixed;
+  z-index: 40;
+  right: 24px;
+  bottom: 24px;
+  padding: 11px 18px 13px;
+  overflow: hidden;
+  border: 1px solid #b6a8ff63;
+  border-radius: 999px;
+  background: #ffffff0b;
+  color: #e0dfff;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  transition: background .2s ease, color .2s ease;
+}
+.intro-skip::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--p, 0) * 100%);
+  height: 2px;
+  background: linear-gradient(90deg, #a895ff, #83d9ff);
+  content: '';
+}
+.intro-skip:hover { background: #8067eb; color: #fff; }
+.intro-skip:focus-visible { outline: 2px solid #83d9ff; outline-offset: 3px; }

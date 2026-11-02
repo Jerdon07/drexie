@@ -40,11 +40,22 @@ if (profilePhoto && photoPlaceholder) {
   }
 }
 
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+// Hero reveal. If the Three.js intro is running (`intro-pending`, set in <head>),
+// the reveal waits for its `intro:reveal` event. Otherwise it plays immediately.
+const rootElement = document.documentElement;
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const revealHero = () => {
+  // One synchronous swap: no frame where content is visible before its animation starts.
+  if (!reducedMotionQuery) rootElement.classList.add('intro-playing');
+  rootElement.classList.remove('intro-pending');
+};
+
+if (rootElement.classList.contains('intro-pending')) {
+  window.addEventListener('intro:reveal', revealHero, { once: true });
+} else if (!reducedMotionQuery) {
   window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(() => {
-      document.documentElement.classList.add('intro-playing');
-    });
+    window.requestAnimationFrame(revealHero);
   });
 }
 
@@ -70,6 +81,7 @@ if (ambientMount && ambientCanvas && window.THREE) {
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
     const renderCallbacks = new Set();
+    const frameHooks = new Set(); // run once per frame, BEFORE anything renders
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const iconData = [
       { symbol: '▦', label: 'ERP SYSTEMS', x: .08, y: .16, color: '#b7a5ff' },
@@ -130,7 +142,11 @@ if (ambientMount && ambientCanvas && window.THREE) {
         anchorY: data.y,
         phase: index * 1.37,
         drift: .12 + (index % 3) * .035,
+        baseX: 0,
         baseY: 0,
+        offsetX: 0, // animated by intro.js
+        offsetY: 0,
+        opacity: .72,
       };
       sprite.scale.set(1.22, 1.22, 1);
       scene.add(sprite);
@@ -154,6 +170,7 @@ if (ambientMount && ambientCanvas && window.THREE) {
       icons.forEach((sprite) => {
         sprite.position.x = (sprite.userData.anchorX - .5) * viewWidth;
         sprite.position.y = (.5 - sprite.userData.anchorY) * viewHeight;
+        sprite.userData.baseX = sprite.position.x;
         sprite.userData.baseY = sprite.position.y;
       });
     };
@@ -167,6 +184,8 @@ if (ambientMount && ambientCanvas && window.THREE) {
     window.portfolioThree = {
       THREE,
       renderer,
+      icons,
+      frameHooks,
       addRenderCallback(callback) {
         renderCallbacks.add(callback);
         callback(0);
@@ -181,11 +200,16 @@ if (ambientMount && ambientCanvas && window.THREE) {
       }
 
       if (!reducedMotion) {
+        frameHooks.forEach((hook) => hook(time));
+
         const seconds = time * .001;
         icons.forEach((sprite) => {
-          sprite.position.y = sprite.userData.baseY
-            + Math.sin(seconds * .45 + sprite.userData.phase) * sprite.userData.drift;
-          sprite.material.rotation = Math.sin(seconds * .28 + sprite.userData.phase) * .08;
+          const data = sprite.userData;
+          sprite.position.x = data.baseX + data.offsetX;
+          sprite.position.y = data.baseY + data.offsetY
+            + Math.sin(seconds * .45 + data.phase) * data.drift;
+          sprite.material.opacity = data.opacity;
+          sprite.material.rotation = Math.sin(seconds * .28 + data.phase) * .08;
         });
       }
 
