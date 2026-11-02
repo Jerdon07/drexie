@@ -315,7 +315,7 @@
     const shellT = clamp01((t - b.shellStart) / b.shellLength);
     const shellE = ease.outCubic(shellT);
     m.shell.visible = shellT > 0;
-    m.glassMaterial.opacity = shellE;
+    m.glassMaterial.opacity = m.glassRest.opacity * shellE;
     m.edges.forEach((edge) => { edge.material.opacity = m.edgeOpacity * shellE; });
     m.artifact.scale.setScalar(0.55 + 0.45 * ease.outBack(shellT));
     m.layout.spin = INTRO.spinTurns * (1 - shellE); // spins in, decelerates into the idle sway
@@ -374,8 +374,8 @@
     geometry.dispose();
     pointsMaterial.dispose();
 
-    m.glassMaterial.transparent = false;
-    m.glassMaterial.opacity = 1;
+    m.glassMaterial.transparent = m.glassRest.transparent;
+    m.glassMaterial.opacity = m.glassRest.opacity;
     m.glassMaterial.needsUpdate = true;
     m.shell.visible = true;
     m.edges.forEach((edge) => { edge.material.opacity = m.edgeOpacity; });

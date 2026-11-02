@@ -62,6 +62,10 @@ if (rootElement.classList.contains('intro-pending')) {
 const ambientMount = document.querySelector('.ambient-icons');
 const ambientCanvas = document.querySelector('.ambient-canvas');
 
+if (!window.THREE) {
+  console.warn('Three.js did not load (blocked or offline?); the page falls back to the static layout.');
+}
+
 if (ambientMount && ambientCanvas && window.THREE) {
   const THREE = window.THREE;
   let renderer;
@@ -108,7 +112,18 @@ if (ambientMount && ambientCanvas && window.THREE) {
       context.strokeStyle = `${color}66`;
       context.lineWidth = 2;
       context.beginPath();
-      context.roundRect(32, 24, 192, 208, 28);
+      if (typeof context.roundRect === 'function') {
+        context.roundRect(32, 24, 192, 208, 28);
+      } else {
+        // Fallback for iOS < 16, Chrome < 99, Firefox < 112: without it the whole scene silently dies.
+        const [x, y, w, h, r] = [32, 24, 192, 208, 28];
+        context.moveTo(x + r, y);
+        context.arcTo(x + w, y, x + w, y + h, r);
+        context.arcTo(x + w, y + h, x, y + h, r);
+        context.arcTo(x, y + h, x, y, r);
+        context.arcTo(x, y, x + w, y, r);
+        context.closePath();
+      }
       context.stroke();
       context.fillStyle = `${color}12`;
       context.fill();
@@ -196,6 +211,18 @@ if (ambientMount && ambientCanvas && window.THREE) {
       },
     };
 
+    // One misbehaving hook must not kill the animation loop for everyone else.
+    const runHooks = (hooks, time) => {
+      hooks.forEach((hook) => {
+        try {
+          hook(time);
+        } catch (error) {
+          console.error('A Three.js frame hook failed and was removed.', error);
+          hooks.delete(hook);
+        }
+      });
+    };
+
     const render = (time = 0) => {
       if (document.hidden) {
         window.requestAnimationFrame(render);
@@ -203,7 +230,7 @@ if (ambientMount && ambientCanvas && window.THREE) {
       }
 
       if (!reducedMotion) {
-        frameHooks.forEach((hook) => hook(time));
+        runHooks(frameHooks, time);
 
         const seconds = time * .001;
         icons.forEach((sprite) => {
@@ -215,7 +242,7 @@ if (ambientMount && ambientCanvas && window.THREE) {
           sprite.material.rotation = Math.sin(seconds * .28 + data.phase) * .08;
         });
 
-        lateHooks.forEach((hook) => hook(time));
+        runHooks(lateHooks, time);
       }
 
       renderer.render(scene, camera);

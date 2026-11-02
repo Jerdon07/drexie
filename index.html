@@ -16,7 +16,8 @@
       (() => {
         try {
           const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          const seen = sessionStorage.getItem('introSeen') === '1';
+          // `?intro` forces a replay (handy for testing and for showing the intro to someone).
+          const seen = sessionStorage.getItem('introSeen') === '1' && !/[?&]intro\b/.test(location.search);
           if (reduced || seen) return;
           const root = document.documentElement;
           root.classList.add('intro-pending');
@@ -26,7 +27,8 @@
     </script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="intro.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js" defer></script>
+    <!-- Self-hosted Three.js r149: no third-party CDN to be blocked, down, or out of sync. -->
+    <script src="vendor/three.min.js" defer></script>
     <script src="script.js" defer></script>
     <script src="monolith.js" defer></script>
     <script src="hub.js" defer></script>

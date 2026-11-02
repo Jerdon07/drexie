@@ -1,4 +1,4 @@
-(() => {
+const initMonolith = () => {
   const stage = document.querySelector('.monolith-stage');
   const portfolioThree = window.portfolioThree;
 
@@ -64,6 +64,19 @@
     envMapIntensity: 1.35,
   });
   if ('dispersion' in glassMaterial) glassMaterial.dispersion = .08;
+
+  // Transmission is the least portable thing here: it needs WebGL2 and an extra full-scene render
+  // pass, which phones pay for in battery and frame rate (and some GPUs render it black).
+  // Phones and WebGL1 get tinted translucent glass instead; the stack is small there anyway.
+  const cheapGlass = !renderer.capabilities.isWebGL2
+    || (window.matchMedia('(pointer: coarse)').matches && window.innerWidth <= 900);
+  const glassRest = cheapGlass ? { transparent: true, opacity: .32 } : { transparent: false, opacity: 1 };
+  if (cheapGlass) {
+    glassMaterial.transmission = 0;
+    glassMaterial.depthWrite = false;
+  }
+  glassMaterial.transparent = glassRest.transparent;
+  glassMaterial.opacity = glassRest.opacity;
 
   // Thin glass vanishes without an outline, so the edges carry more weight than before.
   const EDGE_OPACITY = .6;
@@ -244,6 +257,7 @@
     artifact,
     shell: stack,
     glassMaterial,
+    glassRest, // what the glass settles to once the intro is over
     edges: edgeLines,
     edgeOpacity: EDGE_OPACITY,
     core,
@@ -358,4 +372,13 @@
   };
 
   addRenderCallback(render);
-})();
+};
+
+// If anything in the monolith fails on some device, degrade to the icons-only page
+// (intro.js sees no `monolith` handle and reveals the hero immediately) instead of dying silently.
+try {
+  initMonolith();
+} catch (error) {
+  console.error('The monolith failed to initialise; continuing without it.', error);
+  if (window.portfolioThree) delete window.portfolioThree.monolith;
+}
