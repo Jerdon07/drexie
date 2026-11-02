@@ -82,6 +82,7 @@ if (ambientMount && ambientCanvas && window.THREE) {
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
     const renderCallbacks = new Set();
     const frameHooks = new Set(); // run once per frame, BEFORE anything renders
+    const lateHooks = new Set(); // run after icon positions are final, right before render
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const iconData = [
       { symbol: '▦', label: 'ERP SYSTEMS', x: .08, y: .16, color: '#b7a5ff' },
@@ -185,7 +186,9 @@ if (ambientMount && ambientCanvas && window.THREE) {
       THREE,
       renderer,
       icons,
+      scene,
       frameHooks,
+      lateHooks,
       addRenderCallback(callback) {
         renderCallbacks.add(callback);
         callback(0);
@@ -211,6 +214,8 @@ if (ambientMount && ambientCanvas && window.THREE) {
           sprite.material.opacity = data.opacity;
           sprite.material.rotation = Math.sin(seconds * .28 + data.phase) * .08;
         });
+
+        lateHooks.forEach((hook) => hook(time));
       }
 
       renderer.render(scene, camera);

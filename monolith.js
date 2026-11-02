@@ -15,91 +15,103 @@
   const artifact = new THREE.Group();
   root.add(artifact);
   scene.add(root);
+  // Looking slightly down on the stack so each layer reads as a plate, not an edge-on line.
+  artifact.rotation.set(.5, .62, 0);
 
-  const shape = new THREE.Shape();
-  shape.moveTo(-.48, -1.12);
-  shape.lineTo(.48, -1.12);
-  shape.lineTo(.38, 1.12);
-  shape.lineTo(-.38, 1.12);
-  shape.closePath();
+  // ---- The ERP stack: four glass layers with one core running through them ----
+  const roundedRect = (width, height, radius) => {
+    const outline = new THREE.Shape();
+    const x = -width / 2;
+    const y = -height / 2;
+    outline.moveTo(x + radius, y);
+    outline.lineTo(x + width - radius, y);
+    outline.quadraticCurveTo(x + width, y, x + width, y + radius);
+    outline.lineTo(x + width, y + height - radius);
+    outline.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    outline.lineTo(x + radius, y + height);
+    outline.quadraticCurveTo(x, y + height, x, y + height - radius);
+    outline.lineTo(x, y + radius);
+    outline.quadraticCurveTo(x, y, x + radius, y);
+    return outline;
+  };
 
-  const shellGeometry = new THREE.ExtrudeGeometry(shape, {
-    depth: .72,
+  const plateGeometry = new THREE.ExtrudeGeometry(roundedRect(1.15, .85, .12), {
+    depth: .06,
     bevelEnabled: true,
-    bevelSegments: 5,
+    bevelSegments: 3,
     steps: 1,
-    bevelSize: .09,
-    bevelThickness: .09,
-    curveSegments: 12,
+    bevelSize: .02,
+    bevelThickness: .02,
+    curveSegments: 8,
   });
-  shellGeometry.center();
+  plateGeometry.rotateX(-Math.PI / 2); // extrude along y: the plate lies flat
+  plateGeometry.center();
 
   const glassMaterial = new THREE.MeshPhysicalMaterial({
     color: 0xaeb8ff,
     metalness: 0,
-    roughness: .05,
-    transmission: .95,
-    thickness: 1.1,
+    roughness: .08,
+    transmission: .9,
+    thickness: .3,
     ior: 1.5,
-    iridescence: .12,
+    iridescence: .15,
     iridescenceIOR: 1.3,
     iridescenceThicknessRange: [120, 240],
     clearcoat: .8,
     clearcoatRoughness: .04,
     attenuationColor: new THREE.Color(0x776bff),
-    attenuationDistance: 3.2,
+    attenuationDistance: 1.6,
     envMapIntensity: 1.35,
   });
   if ('dispersion' in glassMaterial) glassMaterial.dispersion = .08;
 
-  const shell = new THREE.Mesh(shellGeometry, glassMaterial);
-  artifact.add(shell);
-
-  const shellEdges = new THREE.EdgesGeometry(shellGeometry, 24);
-  // WebGL in this Three.js release lacks spectral dispersion, so offset edge tints add a subtle prism fringe.
-  const dispersionEdges = [
-    { color: 0x8be4ff, x: -.014 },
-    { color: 0xc3a3ff, x: .014 },
+  // Thin glass vanishes without an outline, so the edges carry more weight than before.
+  const EDGE_OPACITY = .6;
+  const plateEdges = new THREE.EdgesGeometry(plateGeometry, 24);
+  // Offset edge tints fake a subtle prism fringe (this Three.js release has no spectral dispersion).
+  const edgeTints = [
+    { material: new THREE.LineBasicMaterial({ color: 0x8be4ff, transparent: true, opacity: EDGE_OPACITY, depthWrite: false }), x: -.012 },
+    { material: new THREE.LineBasicMaterial({ color: 0xc3a3ff, transparent: true, opacity: EDGE_OPACITY, depthWrite: false }), x: .012 },
   ];
+
   const edgeLines = [];
-  dispersionEdges.forEach(({ color, x }) => {
-    const edge = new THREE.LineSegments(
-      shellEdges,
-      new THREE.LineBasicMaterial({
-        color,
-        transparent: true,
-        opacity: .38,
-        depthWrite: false,
-      }),
-    );
-    edge.position.x = x;
-    artifact.add(edge);
-    edgeLines.push(edge);
+  const stack = new THREE.Group();
+  artifact.add(stack);
+  const plates = [-.78, -.26, .26, .78].map((y) => {
+    const plate = new THREE.Group();
+    plate.position.y = y;
+    plate.userData.baseY = y;
+    plate.add(new THREE.Mesh(plateGeometry, glassMaterial));
+    edgeTints.forEach(({ material, x }) => {
+      const line = new THREE.LineSegments(plateEdges, material);
+      line.position.x = x;
+      plate.add(line);
+      edgeLines.push(line);
+    });
+    stack.add(plate);
+    return plate;
   });
 
+  // ---- The core: sits in the middle gap; a beam passes through every layer ----
   const core = new THREE.Group();
-  core.position.z = .16;
   artifact.add(core);
 
-  const coreGeometry = new THREE.IcosahedronGeometry(.49, 3);
-  const coreWire = new THREE.LineSegments(
-    new THREE.EdgesGeometry(coreGeometry),
+  core.add(new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(.2, 2)),
     new THREE.LineBasicMaterial({
       color: 0xd3f2ff,
       transparent: true,
       opacity: .98,
       blending: THREE.AdditiveBlending,
     }),
-  );
-  core.add(coreWire);
+  ));
 
-  const coreRings = [
-    { radius: .38, rotation: [Math.PI / 2, 0, 0], color: 0x83d9ff },
-    { radius: .44, rotation: [.35, .9, .2], color: 0xb69bff },
-  ];
-  coreRings.forEach(({ radius, rotation, color }) => {
+  [
+    { radius: .16, rotation: [Math.PI / 2, 0, 0], color: 0x83d9ff },
+    { radius: .2, rotation: [.35, .9, .2], color: 0xb69bff },
+  ].forEach(({ radius, rotation, color }) => {
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(radius, .008, 8, 72),
+      new THREE.TorusGeometry(radius, .006, 8, 72),
       new THREE.MeshBasicMaterial({
         color,
         transparent: true,
@@ -112,13 +124,25 @@
     core.add(ring);
   });
 
-  const particleCount = 1100;
+  // The vertical beam: data flowing through every layer. Symmetric around y, so spinning the core is seamless.
+  core.add(new THREE.Mesh(
+    new THREE.CylinderGeometry(.007, .007, 1.7, 8),
+    new THREE.MeshBasicMaterial({
+      color: 0x83d9ff,
+      transparent: true,
+      opacity: .55,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }),
+  ));
+
+  const particleCount = 500;
   const particlePositions = new Float32Array(particleCount * 3);
   const particleColors = new Float32Array(particleCount * 3);
   const violet = new THREE.Color(0xb9a2ff);
   const blue = new THREE.Color(0x75dfff);
   for (let index = 0; index < particleCount; index += 1) {
-    const radius = Math.cbrt(Math.random()) * .45;
+    const radius = Math.cbrt(Math.random()) * .24;
     const theta = Math.random() * Math.PI * 2;
     const z = (Math.random() * 2) - 1;
     const planarRadius = Math.sqrt(1 - (z * z));
@@ -138,7 +162,7 @@
   core.add(new THREE.Points(
     particleGeometry,
     new THREE.PointsMaterial({
-      size: .052,
+      size: .03,
       vertexColors: true,
       transparent: true,
       opacity: 1,
@@ -149,7 +173,7 @@
   ));
 
   const coreGlow = new THREE.Mesh(
-    new THREE.SphereGeometry(.28, 24, 24),
+    new THREE.SphereGeometry(.14, 24, 24),
     new THREE.MeshBasicMaterial({
       color: 0x9875ff,
       transparent: true,
@@ -192,17 +216,39 @@
   rimLight.position.set(2.4, -.7, -1.8);
   scene.add(rimLight);
 
-  // Handles for intro.js (and any future scene choreography).
+  // Layout: the stack starts CENTERED in the stage (intro) and glides to a "dock" flush
+  // with the stage's right edge. The dock is computed from the visible width, so it can
+  // never fall outside the stage, whatever the screen size. `dock` 0 = centered, 1 = docked.
+  const introPending = document.documentElement.classList.contains('intro-pending');
+  const layout = {
+    dock: introPending ? 0 : 1,
+    dockTarget: introPending ? 0 : 1,
+    dockX: 0,
+    centerScale: 1,
+    dockScale: 1,
+    spin: 0, // extra yaw (radians), driven by intro.js while the stack spins in
+    rippleAge: 10, // seconds since a data pulse hit the core; hub.js resets it to 0
+  };
+  const HALF_SHAPE_WIDTH = .72; // half-diagonal of a plate (~.69) plus margin
+  const lerp = (from, to, amount) => from + (to - from) * amount;
+  const applyLayout = () => {
+    root.position.set(layout.dockX * layout.dock, lerp(0, .28, layout.dock), 0);
+    root.scale.setScalar(lerp(layout.centerScale, layout.dockScale, layout.dock));
+  };
+
+  // Handles for intro.js, hub.js and any future scene choreography.
   portfolioThree.monolith = {
     scene,
     camera,
     root,
     artifact,
-    shell,
+    shell: stack,
     glassMaterial,
     edges: edgeLines,
+    edgeOpacity: EDGE_OPACITY,
     core,
     coreGlow,
+    layout,
   };
 
   const targetRotation = { x: 0, y: 0 };
@@ -214,9 +260,14 @@
     if (!bounds.width || !bounds.height) return;
     camera.aspect = bounds.width / bounds.height;
     camera.updateProjectionMatrix();
-    root.position.set(window.innerWidth > 760 ? 2.2 : 1.75, .28, 0);
-    const scale = Math.min(bounds.height / 390, 1.12) * (window.innerWidth > 760 ? .58 : .65);
-    root.scale.setScalar(scale);
+    const isDesktop = window.innerWidth > 760;
+    const fit = Math.min(bounds.height / 390, 1.12);
+    layout.centerScale = fit * 1.05;
+    // Docked beside the photo, so it has to fit the free strip on phones.
+    layout.dockScale = fit * (isDesktop ? .8 : .5);
+    const halfVisibleWidth = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z * camera.aspect;
+    layout.dockX = Math.max(0, halfVisibleWidth - HALF_SHAPE_WIDTH * layout.dockScale - .05);
+    applyLayout();
   };
 
   const updatePointer = (event) => {
@@ -243,13 +294,27 @@
     const delta = Math.min((time - previousTime) / 1000, .05);
     previousTime = time;
 
+    if (layout.dock !== layout.dockTarget) {
+      layout.dock += (layout.dockTarget - layout.dock) * (1 - Math.exp(-delta * 2.2));
+      if (Math.abs(layout.dockTarget - layout.dock) < .001) layout.dock = layout.dockTarget;
+      applyLayout();
+    }
+
     if (!reducedMotion) {
       const seconds = time / 1000;
-      artifact.position.y = Math.sin(seconds * .8) * .075;
-      artifact.rotation.y += delta * .24;
-      artifact.rotation.x = Math.sin(seconds * .38) * .045;
+      artifact.position.y = Math.sin(seconds * .8) * .06;
+      // A slow sway keeps the stack readable; a constant spin would just be decoration.
+      artifact.rotation.x = .5 + Math.sin(seconds * .3) * .04;
+      artifact.rotation.y = .62 + Math.sin(seconds * .4) * .38 + layout.spin;
       core.rotation.y -= delta * .42;
-      core.rotation.x += delta * .19;
+
+      // A data pulse reached the core: each layer lifts in turn, bottom to top.
+      layout.rippleAge += delta;
+      plates.forEach((plate, index) => {
+        const local = layout.rippleAge - index * .08;
+        const bump = local > 0 && local < .55 ? Math.sin((local / .55) * Math.PI) : 0;
+        plate.position.y = plate.userData.baseY + bump * .05;
+      });
 
       const spring = 18;
       const damping = 8;
@@ -280,8 +345,13 @@
         bounds.width,
         bounds.height,
       );
+      // Don't wipe the icon scene (links, pulses, icons) that was just drawn under the stage;
+      // clear depth only so the glass renders cleanly on top of it.
+      renderer.autoClear = false;
+      renderer.clearDepth();
       renderer.render(scene, camera);
     } finally {
+      renderer.autoClear = true;
       renderer.setScissorTest(false);
       renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
     }

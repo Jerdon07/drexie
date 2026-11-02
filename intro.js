@@ -1,16 +1,19 @@
 /*
- * intro.js — ~5s Three.js intro: chaos -> order.
+ * intro.js — ~5s Three.js intro: chaos -> order, across the WHOLE viewport.
  *
- *  0.0-0.8s  scattered particles fade in and drift
- *  0.8-2.4s  particles spiral in and form the "DJ" initials
+ *  0.0-0.8s  particles fade in across the entire screen and drift
+ *  0.8-2.4s  they spiral in and form the "DJ" initials, centered on the screen
  *  2.4-3.0s  hold the initials (shimmer)
- *  3.0-4.0s  initials collapse into the monolith core; ERP icons streak in
+ *  3.0-3.55s initials collapse into the core of the stack (at the stage center)
+ *  2.8-4.0s  ERP icons streak in toward the same point
  *  3.7s      HTML hero reveal fires (intro:reveal)
- *  3.9-5.0s  glass shell materializes, core flashes, icons burst back out
+ *  3.9-5.0s  glass layers materialize while spinning in, core flashes, icons burst out
+ *  4.25s     the stack glides from the stage center to its dock
  *  5.0s      cleanup (intro:done)
  *
- * Runs on the shared clock in script.js (portfolioThree.frameHooks), so there is
- * exactly one timeline. Every tunable lives in INTRO below.
+ * The particles live in their own full-viewport orthographic scene, rendered after the
+ * stage pass, so they are not clipped to the monolith's scissor rectangle. Runs on the
+ * shared clock in script.js (portfolioThree.frameHooks): exactly one timeline.
  */
 (() => {
   const html = document.documentElement;
@@ -33,17 +36,21 @@
     return;
   }
 
-  const { THREE, frameHooks, icons, monolith: m } = api;
+  const { THREE, renderer, frameHooks, icons, monolith: m } = api;
+  const VIEW_H = 10; // same ortho height as the icon camera in script.js
+  const isNarrow = innerWidth <= 760;
 
   const INTRO = {
     duration: 5.0,
     reveal: 3.7,
     skipSpeed: 8,
-    particleCount: 2600,
-    particleSize: 0.04,
-    textWorldWidth: 4.2,
+    particleCount: isNarrow ? 1800 : 3400,
+    particlePx: 2.4, // point size in CSS pixels (scaled by the renderer's pixel ratio)
+    textWidthFraction: isNarrow ? 0.86 : 0.62, // initials width as a share of the viewport width
+    coreRadius: 0.22, // collapse target radius, in monolith-scene units
     iconBaseScale: 1.22,
     iconBaseOpacity: 0.72,
+    spinTurns: 5, // radians of extra yaw the stack sheds while materializing
     camera: { from: 9.4, to: 8 },
     beats: {
       fadeIn: 0.6,
@@ -65,6 +72,7 @@
       coreLength: 0.9,
       flashStart: 3.95,
       flashLength: 0.65,
+      dockStart: 4.25, // the stack glides from the stage center to its docked spot
     },
   };
 
@@ -99,8 +107,8 @@
 
     const data = ctx.getImageData(0, 0, w, h).data;
     const hits = [];
-    for (let y = 0; y < h; y += 2) {
-      for (let x = 0; x < w; x += 2) {
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
         if (data[((y * w) + x) * 4 + 3] > 128) hits.push(x, y);
       }
     }
@@ -116,36 +124,41 @@
     const scale = worldWidth / w;
     for (let i = 0; i < count; i += 1) {
       const k = (i % n) * 2;
-      out[i * 3] = (hits[k] - w / 2) * scale + (Math.random() - 0.5) * 0.015;
-      out[i * 3 + 1] = (h / 2 - hits[k + 1]) * scale + (Math.random() - 0.5) * 0.015;
-      out[i * 3 + 2] = (Math.random() - 0.5) * 0.12;
+      out[i * 3] = (hits[k] - w / 2) * scale + (Math.random() - 0.5) * scale;
+      out[i * 3 + 1] = (h / 2 - hits[k + 1]) * scale + (Math.random() - 0.5) * scale;
+      out[i * 3 + 2] = (Math.random() - 0.5) * 0.4;
     }
     return out;
   };
 
-  // ---- Particle buffers ---------------------------------------------------
+  // ---- Full-viewport particle scene ---------------------------------------
+  const introScene = new THREE.Scene();
+  const introCamera = new THREE.OrthographicCamera(-1, 1, VIEW_H / 2, -VIEW_H / 2, 0.1, 100);
+  introCamera.position.z = 10;
+
+  const viewWidthNow = () => VIEW_H * (innerWidth / innerHeight);
+  const startWidth = viewWidthNow();
+  const textWidth = startWidth * INTRO.textWidthFraction;
+
   const N = INTRO.particleCount;
   const cloud = new Float32Array(N * 3);
-  const core = new Float32Array(N * 3); // unit-sphere offsets, scaled by root scale per frame
+  const core = new Float32Array(N * 3); // unit-sphere offsets, scaled to the core radius per frame
   const delay = new Float32Array(N);
   const phase = new Float32Array(N);
   const positions = new Float32Array(N * 3);
   const colors = new Float32Array(N * 3);
-  const dj = sampleTextToPoints('DJ', N, INTRO.textWorldWidth);
+  const dj = sampleTextToPoints('DJ', N, textWidth);
 
   const violet = new THREE.Color(0xb9a2ff);
   const blue = new THREE.Color(0x75dfff);
   for (let i = 0; i < N; i += 1) {
     const o = i * 3;
-    const theta = Math.random() * Math.PI * 2;
-    const z = Math.random() * 2 - 1;
-    const planar = Math.sqrt(1 - z * z);
-    const reach = 1.6 + Math.random() * 1.6;
-    cloud[o] = planar * Math.cos(theta) * reach * 1.6;
-    cloud[o + 1] = z * reach * 1.1;
-    cloud[o + 2] = planar * Math.sin(theta) * reach * 0.9;
+    // Scattered over the entire screen (a little past the edges so the drift never exposes a gap).
+    cloud[o] = (Math.random() - 0.5) * startWidth * 1.08;
+    cloud[o + 1] = (Math.random() - 0.5) * VIEW_H * 1.08;
+    cloud[o + 2] = (Math.random() - 0.5) * 2;
 
-    const r = Math.cbrt(Math.random()) * 0.45;
+    const r = Math.cbrt(Math.random());
     const t2 = Math.random() * Math.PI * 2;
     const z2 = Math.random() * 2 - 1;
     const p2 = Math.sqrt(1 - z2 * z2);
@@ -165,17 +178,17 @@
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   const pointsMaterial = new THREE.PointsMaterial({
-    size: INTRO.particleSize,
+    size: INTRO.particlePx * Math.min(renderer.getPixelRatio(), 1.5),
     vertexColors: true,
     transparent: true,
     opacity: 0,
-    sizeAttenuation: true,
+    sizeAttenuation: false, // constant pixel size: this is a flat overlay
     depthWrite: false,
     blending: THREE.AdditiveBlending,
   });
   const points = new THREE.Points(geometry, pointsMaterial);
   points.frustumCulled = false; // positions are rewritten every frame
-  m.scene.add(points);
+  introScene.add(points);
 
   // ---- Setup of the real monolith for the intro ---------------------------
   m.glassMaterial.transparent = true;
@@ -185,25 +198,51 @@
   m.core.visible = false;
   m.edges.forEach((edge) => { edge.material.opacity = 0; });
 
+  // ---- Lifecycle state (declared up front; the render callback reads `finished`) ----
+  let elapsed = 0;
+  let previous = null;
+  let speed = 1;
+  let revealed = false;
+  let finished = false;
+  let removeRenderCallback = () => {};
+
   const tmp = new THREE.Vector3();
+  const spot = { x: 0, y: 0, unit: 1 }; // monolith center and scene-unit size, in ortho world units
+
+  // Where the monolith core is on screen, in the intro/icon ortho space.
+  const locateMonolith = () => {
+    const bounds = stage.getBoundingClientRect();
+    const vw = innerWidth;
+    const vh = innerHeight;
+    const viewWidth = viewWidthNow();
+
+    tmp.copy(m.root.position).project(m.camera);
+    const px = bounds.left + ((tmp.x + 1) / 2) * bounds.width;
+    const py = bounds.top + ((1 - tmp.y) / 2) * bounds.height;
+    spot.x = (px / vw - 0.5) * viewWidth;
+    spot.y = (0.5 - py / vh) * VIEW_H;
+
+    const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(m.camera.fov / 2)) * m.camera.position.z;
+    const pxPerSceneUnit = (bounds.height / visibleHeight) * m.root.scale.x;
+    spot.unit = pxPerSceneUnit * (VIEW_H / vh);
+  };
 
   // ---- Per-frame update ---------------------------------------------------
   const updateParticles = (t) => {
     const b = INTRO.beats;
-    const s = m.root.scale.x;
-    const cx = m.root.position.x;
-    const cy = m.root.position.y;
-    const cz = 0.16 * s;
+    const radius = INTRO.coreRadius * spot.unit;
+    const cx = spot.x;
+    const cy = spot.y;
 
     for (let i = 0; i < N; i += 1) {
       const o = i * 3;
       const ph = phase[i];
       const d = delay[i];
 
-      // 1. free-floating cloud
-      let x = cloud[o] + Math.sin(t * 0.9 + ph) * 0.14;
-      let y = cloud[o + 1] + Math.cos(t * 0.7 + ph * 1.3) * 0.14;
-      let z = cloud[o + 2] + Math.sin(t * 0.6 + ph * 0.7) * 0.14;
+      // 1. free-floating cloud, over the whole screen
+      let x = cloud[o] + Math.sin(t * 0.9 + ph) * 0.18;
+      let y = cloud[o + 1] + Math.cos(t * 0.7 + ph * 1.3) * 0.18;
+      let z = cloud[o + 2];
 
       // 2. spiral in to the initials (rotation angle is 0 at both ends: no pops)
       const g = ease.outCubic(clamp01((t - b.gatherStart - d) / b.gatherLength));
@@ -218,23 +257,22 @@
         x = dj[o] + (dx * ca - dy * sa) * k;
         y = dj[o + 1] + (dx * sa + dy * ca) * k;
         z = dj[o + 2] + dz * k;
-        x += Math.sin(t * 3 + ph) * 0.008 * g;
-        y += Math.cos(t * 3.3 + ph) * 0.008 * g;
+        x += Math.sin(t * 3 + ph) * 0.02 * g;
+        y += Math.cos(t * 3.3 + ph) * 0.02 * g;
       }
 
-      // 3. collapse into the core, arcing above/below
+      // 3. collapse from the initials into the core, arcing above/below
       const c = ease.inOutCubic(clamp01((t - b.collapseStart - d * (b.collapseStagger / b.gatherStagger)) / b.collapseLength));
       if (c > 0) {
-        const tx = cx + core[o] * s;
-        const ty = cy + core[o + 1] * s;
-        const tz = cz + core[o + 2] * s;
-        const arc = Math.sin(c * Math.PI) * (0.35 + (ph % 1) * 0.4) * (i % 2 ? 1 : -1);
+        const tx = cx + core[o] * radius;
+        const ty = cy + core[o + 1] * radius;
+        const arc = Math.sin(c * Math.PI) * (0.6 + (ph % 1) * 0.9) * (i % 2 ? 1 : -1);
         x += (tx - x) * c;
         y += (ty - y) * c + arc;
-        z += (tz - z) * c;
+        z += (core[o + 2] * radius - z) * c;
         if (c >= 1) {
-          x += Math.sin(t * 6 + ph) * 0.03 * s;
-          y += Math.cos(t * 6 + ph) * 0.03 * s;
+          x += Math.sin(t * 6 + ph) * 0.05;
+          y += Math.cos(t * 6 + ph) * 0.05;
         }
       }
 
@@ -252,19 +290,6 @@
 
   const updateIcons = (t) => {
     const b = INTRO.beats;
-    const bounds = stage.getBoundingClientRect();
-    const vw = innerWidth;
-    const vh = innerHeight;
-    const viewHeight = 10;
-    const viewWidth = viewHeight * (vw / vh);
-
-    // Screen position of the monolith -> the icon camera's world space.
-    tmp.copy(m.root.position).project(m.camera);
-    const px = bounds.left + ((tmp.x + 1) / 2) * bounds.width;
-    const py = bounds.top + ((1 - tmp.y) / 2) * bounds.height;
-    const tx = (px / vw - 0.5) * viewWidth;
-    const ty = (0.5 - py / vh) * viewHeight;
-
     const approach = ease.inCubic(clamp01((t - b.iconInStart) / b.iconInLength));
     const leave = ease.outCubic(clamp01((t - b.iconOutStart) / b.iconOutLength));
     const toward = approach * (1 - leave);
@@ -272,8 +297,8 @@
 
     icons.forEach((sprite) => {
       const u = sprite.userData;
-      const dx = tx - u.baseX;
-      const dy = ty - u.baseY;
+      const dx = spot.x - u.baseX;
+      const dy = spot.y - u.baseY;
       const curve = Math.sin(toward * Math.PI) * 0.25;
       u.offsetX = dx * toward - dy * curve;
       u.offsetY = dy * toward + dx * curve;
@@ -282,16 +307,18 @@
     });
   };
 
-  const updateMonolith = (t, dt) => {
+  const updateMonolith = (t) => {
     const b = INTRO.beats;
+
+    m.layout.dockTarget = t >= b.dockStart ? 1 : 0;
 
     const shellT = clamp01((t - b.shellStart) / b.shellLength);
     const shellE = ease.outCubic(shellT);
     m.shell.visible = shellT > 0;
     m.glassMaterial.opacity = shellE;
-    m.edges.forEach((edge) => { edge.material.opacity = 0.38 * shellE; });
+    m.edges.forEach((edge) => { edge.material.opacity = m.edgeOpacity * shellE; });
     m.artifact.scale.setScalar(0.55 + 0.45 * ease.outBack(shellT));
-    m.artifact.rotation.y += dt * 7 * (1 - shellE); // spins in, decelerates into the idle rotation
+    m.layout.spin = INTRO.spinTurns * (1 - shellE); // spins in, decelerates into the idle sway
 
     const coreT = clamp01((t - b.coreStart) / b.coreLength);
     m.core.visible = coreT > 0;
@@ -308,42 +335,42 @@
     m.camera.updateMatrixWorld(true);
   };
 
-  const apply = (t, dt) => {
+  const apply = (t) => {
+    const halfW = viewWidthNow() / 2;
+    introCamera.left = -halfW;
+    introCamera.right = halfW;
+    introCamera.updateProjectionMatrix();
+
     updateCamera(t);
+    locateMonolith();
     updateParticles(t);
     updateIcons(t);
-    updateMonolith(t, dt);
+    updateMonolith(t);
     if (skipButton) skipButton.style.setProperty('--p', (t / INTRO.duration).toFixed(3));
   };
 
-  // ---- Lifecycle ----------------------------------------------------------
-  let elapsed = 0;
-  let previous = null;
-  let speed = 1;
-  let revealed = false;
-  let finished = false;
+  // Full-viewport pass: runs after the stage render, so the particles sit on top of everything.
+  const renderIntro = () => {
+    if (finished || document.hidden) return;
+    try {
+      renderer.autoClear = false;
+      renderer.clearDepth();
+      renderer.render(introScene, introCamera);
+    } finally {
+      renderer.autoClear = true;
+    }
+  };
 
+  // ---- Lifecycle ----------------------------------------------------------
   const reveal = () => {
     if (revealed) return;
     revealed = true;
     emit('intro:reveal');
   };
 
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    frameHooks.delete(update); // eslint-disable-line no-use-before-define
-
-    // Restore every property the intro touched to its steady-state value.
-    restoreSteadyState();
-    reveal();
-    if (skipButton) skipButton.hidden = true;
-    try { sessionStorage.setItem('introSeen', '1'); } catch (error) { /* storage blocked: replay next load */ }
-    emit('intro:done');
-  };
-
   const restoreSteadyState = () => {
-    m.scene.remove(points);
+    removeRenderCallback();
+    introScene.remove(points);
     geometry.dispose();
     pointsMaterial.dispose();
 
@@ -351,8 +378,10 @@
     m.glassMaterial.opacity = 1;
     m.glassMaterial.needsUpdate = true;
     m.shell.visible = true;
-    m.edges.forEach((edge) => { edge.material.opacity = 0.38; });
+    m.edges.forEach((edge) => { edge.material.opacity = m.edgeOpacity; });
     m.artifact.scale.setScalar(1);
+    m.layout.spin = 0;
+    m.layout.dockTarget = 1; // a skipped intro still ends docked (the glide finishes on its own)
     m.core.visible = true;
     m.core.scale.setScalar(1);
     m.coreGlow.scale.setScalar(1);
@@ -369,6 +398,18 @@
     });
   };
 
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    frameHooks.delete(update); // eslint-disable-line no-use-before-define
+
+    restoreSteadyState();
+    reveal();
+    if (skipButton) skipButton.hidden = true;
+    try { sessionStorage.setItem('introSeen', '1'); } catch (error) { /* storage blocked: replay next load */ }
+    emit('intro:done');
+  };
+
   function update(time) {
     try {
       if (previous === null) previous = time;
@@ -377,7 +418,7 @@
       elapsed += dt;
 
       const t = Math.min(elapsed, INTRO.duration);
-      apply(t, dt);
+      apply(t);
       if (t >= INTRO.reveal) reveal();
       if (elapsed >= INTRO.duration) finish();
     } catch (error) {
@@ -392,7 +433,8 @@
     if (['Escape', ' ', 'Enter'].includes(event.key)) skip();
   });
 
-  apply(0, 0); // first frame is already in its start state
+  apply(0); // first frame is already in its start state
   if (skipButton) skipButton.hidden = false;
   frameHooks.add(update);
+  removeRenderCallback = api.addRenderCallback(renderIntro);
 })();

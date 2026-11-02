@@ -40,3 +40,7 @@ html.intro-pending { overflow: hidden; }
 }
 .intro-skip:hover { background: #8067eb; color: #fff; }
 .intro-skip:focus-visible { outline: 2px solid #83d9ff; outline-offset: 3px; }
+
+/* The monolith materializes at the stage center first; hold the photo back until it has
+   started gliding to its dock so the photo never covers the payoff. */
+.intro-playing .hero-art > .photo-frame { animation-delay: 1.2s; }
