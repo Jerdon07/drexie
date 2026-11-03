@@ -17,20 +17,17 @@
  */
 (() => {
   const html = document.documentElement;
-  const skipButton = document.querySelector('.intro-skip');
   const stage = document.querySelector('.monolith-stage');
   const api = window.portfolioThree;
   const emit = (name) => window.dispatchEvent(new Event(name));
 
   // Not pending (reduced motion / already seen this session): nothing to do.
   if (!html.classList.contains('intro-pending')) {
-    if (skipButton) skipButton.hidden = true;
     return;
   }
 
   // WebGL or the monolith failed to load: never leave the page hidden.
   if (!api || !api.monolith || !api.frameHooks || !stage) {
-    if (skipButton) skipButton.hidden = true;
     emit('intro:reveal');
     emit('intro:done');
     return;
@@ -346,7 +343,6 @@
     updateParticles(t);
     updateIcons(t);
     updateMonolith(t);
-    if (skipButton) skipButton.style.setProperty('--p', (t / INTRO.duration).toFixed(3));
   };
 
   // Full-viewport pass: runs after the stage render, so the particles sit on top of everything.
@@ -405,7 +401,6 @@
 
     restoreSteadyState();
     reveal();
-    if (skipButton) skipButton.hidden = true;
     try { sessionStorage.setItem('introSeen', '1'); } catch (error) { /* storage blocked: replay next load */ }
     emit('intro:done');
   };
@@ -434,7 +429,6 @@
   });
 
   apply(0); // first frame is already in its start state
-  if (skipButton) skipButton.hidden = false;
   frameHooks.add(update);
   removeRenderCallback = api.addRenderCallback(renderIntro);
 })();
