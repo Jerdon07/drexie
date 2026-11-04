@@ -1,192 +1,28 @@
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#04050c">
-    <meta
-      name="description"
-      content="Meet Drexie Jaira Litaoen, a BSIT student majoring in ERP at the University of the Cordilleras."
-    >
-    <title>Drexie Jaira Litaoen — Business meets technology</title>
-    <script>document.documentElement.classList.replace('no-js', 'js');</script>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Self-hosted Three.js r149 (kept from the previous version of the site). -->
-    <script src="vendor/three.min.js" defer></script>
-    <script src="js/core.js" defer></script>
-    <script src="js/stars.js" defer></script>
-    <script src="js/planets.js" defer></script>
-    <script src="js/rig.js" defer></script>
-    <script src="js/ui.js" defer></script>
-  </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Drexie Jaira Litaoen — The Desk</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+<canvas id="c" aria-label="Interactive 3D desk. Click an object to explore."></canvas>
 
-    <canvas id="scene" aria-hidden="true"></canvas>
-    <div class="vignette" aria-hidden="true"></div>
+<header id="intro" class="ui" hidden><div class="eb">The Desk</div><h1></h1><p class="tag"></p></header>
+<button id="hback" class="btn ui" type="button" inert>← Desk</button>
+<div id="bnav" class="ui" inert>
+  <button class="btn" id="pv" type="button" aria-label="Previous page">‹</button>
+  <span id="pg"></span>
+  <button class="btn" id="nx" type="button" aria-label="Next page">›</button>
+</div>
+<aside id="panel" class="ui" role="dialog" aria-live="polite" inert></aside>
+<nav id="chips" class="ui" aria-label="Desk objects"></nav>
+<div id="tip"></div>
 
-    <div class="loader" id="loader" role="status" aria-live="polite">
-      <div class="loader-orbit" aria-hidden="true"><i></i></div>
-      <p class="loader-title">Preparing the orbit</p>
-      <p class="loader-label" id="loader-label">Opening the viewport</p>
-      <div class="loader-bar" aria-hidden="true"><span></span></div>
-    </div>
-
-    <header class="topbar">
-      <a class="wordmark" href="#home" aria-label="Drexie Jaira Litaoen, home">
-        <span class="wordmark-mark">DJ</span>
-        <span class="wordmark-text">Drexie Jaira Litaoen</span>
-      </a>
-      <nav class="site-nav" aria-label="Main navigation">
-        <a class="nav-link" href="#about">About</a>
-        <a class="nav-link" href="#journey">My journey</a>
-        <a class="nav-cta" href="#connect">Let’s connect <span aria-hidden="true">↗</span></a>
-      </nav>
-    </header>
-
-    <aside class="hud" aria-hidden="true">
-      <span class="hud-index" id="hud-index">01 / 04</span>
-      <span class="hud-name" id="hud-name">Lunar</span>
-      <span class="hud-rail"><i></i></span>
-    </aside>
-
-    <nav class="chapter-nav" id="chapter-nav" aria-label="Chapters"></nav>
-
-    <p class="hint" aria-hidden="true">
-      <span class="hint-pointer">Scroll to explore · Drag to rotate</span>
-      <span class="hint-touch">Swipe to browse</span>
-    </p>
-
-    <div class="settings">
-      <button class="settings-toggle" id="settings-toggle" type="button" aria-expanded="false" aria-controls="settings">
-        <span class="settings-glyph" aria-hidden="true">⚙</span>
-        <span class="sr-only">Scene settings</span>
-      </button>
-      <div class="settings-panel" id="settings" hidden>
-        <p class="settings-title">Scene settings</p>
-        <button class="switch" id="set-ambient" type="button" role="switch" aria-checked="true">
-          <span>Ambient motion</span><i aria-hidden="true"></i>
-        </button>
-        <button class="settings-action" id="set-reset" type="button">Reset positions</button>
-        <button class="switch" id="set-static" type="button" role="switch" aria-checked="false">
-          <span>Static view<small>Browse without the 3D scene</small></span><i aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-
-    <main id="main">
-      <!-- 01 · LUNAR ----------------------------------------------------------->
-      <section class="chapter" id="home" data-chapter data-label="Lunar" data-side="left" aria-labelledby="hero-title">
-        <div class="stick">
-          <div class="panel panel-hero">
-            <p class="eyebrow"><span class="status-dot"></span> BSIT · ERP student</p>
-            <h1 id="hero-title">Drexie<br>Jaira <span>Litaoen.</span></h1>
-            <p class="lead-in">
-              I’m Drexie Jaira Litaoen—a business-minded IT student learning how
-              thoughtful technology can make the way we work better.
-            </p>
-            <div class="actions">
-              <a class="button" href="#about">Get to know me <span aria-hidden="true">↓</span></a>
-              <a class="text-link" href="#journey">Explore my journey <span aria-hidden="true">↗</span></a>
-            </div>
-            <p class="note"><span class="note-line" aria-hidden="true"></span>Curious by nature. Building toward what’s next.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 02 · TERRA ----------------------------------------------------------->
-      <section class="chapter" id="about" data-chapter data-label="Terra" data-side="right" aria-labelledby="about-title">
-        <div class="stick">
-          <div class="panel panel-about">
-            <p class="kicker"><span>01</span> THE PERSON BEHIND THE PURPOSE</p>
-            <h2 id="about-title">A different<br>starting point.<br><span>A clear direction.</span></h2>
-            <div class="about-body">
-              <figure class="portrait">
-                <div class="photo-placeholder" aria-hidden="true"><span>Your photo<br>goes here</span></div>
-                <!-- Uses profile-photo.png when it exists; the placeholder shows until then. -->
-                <img src="profile-photo.png" class="profile-photo" alt="Portrait of Drexie Jaira Litaoen">
-              </figure>
-              <div class="copy">
-                <p class="lead">
-                  I didn’t begin with a background in tech. I began with a question:
-                  <em>how can technology help a business work better?</em>
-                </p>
-                <p>
-                  I’m pursuing a Bachelor of Science in Information Technology,
-                  majoring in Enterprise Resource Planning (ERP) at the University
-                  of the Cordilleras. ERP gives me a way to connect the things I’m
-                  curious about—business operations, people, and the systems that
-                  bring them together.
-                </p>
-                <p>
-                  My family encouraged me to follow the IT path, with older siblings
-                  who had already studied it. I’m making that path my own by focusing
-                  on the space where business needs and technology meet.
-                </p>
-              </div>
-            </div>
-            <ul class="facts">
-              <li><span>My degree</span><strong>BS Information Technology</strong></li>
-              <li><span>My major</span><strong>Enterprise Resource Planning</strong></li>
-              <li><span>My university</span><strong>University of the Cordilleras</strong></li>
-            </ul>
-            <p class="signoff"><b>DJL</b> Learning one system at a time.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 03 · AURELIA --------------------------------------------------------->
-      <section class="chapter" id="journey" data-chapter data-label="Aurelia" data-side="left" aria-labelledby="journey-title">
-        <div class="stick">
-          <div class="panel panel-journey">
-            <p class="kicker"><span>02</span> WHERE I’M HEADED</p>
-            <h2 id="journey-title">Learning today.<br><span>Building for tomorrow.</span></h2>
-            <p class="lead-in">I’m at the beginning of my tech journey, and I’m excited about where it can lead.</p>
-            <ul class="goals">
-              <li class="goal" data-moon="0" tabindex="0" style="--c:#b7a5ff">
-                <span class="goal-num">01 / THE FOUNDATION</span>
-                <h3>Understand the whole system.</h3>
-                <p>Build a strong foundation in ERP and learn how connected systems support real business processes.</p>
-                <span class="goal-foot">IN PROGRESS</span>
-              </li>
-              <li class="goal" data-moon="1" tabindex="0" style="--c:#83d9ff">
-                <span class="goal-num">02 / THE DIRECTION</span>
-                <h3>Grow into SAP &amp; Oracle.</h3>
-                <p>Work toward becoming a developer in enterprise platforms like SAP and Oracle, with curiosity and care.</p>
-                <span class="goal-foot">A FUTURE GOAL</span>
-              </li>
-              <li class="goal" data-moon="2" tabindex="0" style="--c:#f3b4d8">
-                <span class="goal-num">03 / THE PURPOSE</span>
-                <h3>Make technology matter.</h3>
-                <p>Bring business and technology closer together by creating solutions that help people do their work well.</p>
-                <span class="goal-foot">WHY IT MATTERS</span>
-              </li>
-            </ul>
-            <p class="footnote"><span aria-hidden="true">✳</span> Not an expert yet—and that’s exactly why I’m here to learn.</p>
-            <p class="moon-tip" aria-hidden="true"><span class="tip-pointer">Click a moon to link it to its goal</span><span class="tip-touch">Tap a moon</span></p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 04 · SOL ------------------------------------------------------------->
-      <section class="chapter chapter-last" id="connect" data-chapter data-label="Sol" data-side="right" aria-labelledby="connect-title">
-        <div class="stick">
-          <div class="panel panel-connect">
-            <p class="kicker"><span>03</span> THE NEXT CHAPTER</p>
-            <p class="eyebrow">OPEN TO LEARNING &amp; NEW CONNECTIONS</p>
-            <h2 id="connect-title">Good things happen<br>when we <span>connect.</span></h2>
-            <p class="lead-in">I’m always glad to meet people who care about business, technology, and the possibilities between them.</p>
-            <!-- TODO: put your email after mailto: (e.g. mailto:you@example.com) to activate this button. -->
-            <a class="button" href="mailto:">Say hello <span aria-hidden="true">↗</span></a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <a class="wordmark" href="#home"><span class="wordmark-mark">DJ</span><span class="wordmark-text">Drexie Jaira Litaoen</span></a>
-      <p>Made with intention, and a lot still to learn.</p>
-      <a class="back-to-top" href="#home">BACK TO TOP <span aria-hidden="true">↑</span></a>
-    </footer>
-  </body>
+<!-- three r128 exposes a global; js/scene/three.js is the single place that touches it -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
 </html>
