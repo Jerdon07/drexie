@@ -25,11 +25,14 @@ let _blank;
 export const blank = () => _blank ||= tex(8, 8, c => { c.fillStyle = P.paper; c.fillRect(0, 0, 8, 8); });
 export const idleScreen = () => tex(512, 320, (c, w, h) => { c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); bars(c); });
 
-export const phoneTex = () => tex(256, 512, (c, w, h) => {
-  c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h);
-  c.strokeStyle = P.em; c.lineWidth = 8; c.strokeRect(46, 170, 164, 116);
-  c.beginPath(); c.moveTo(46, 170); c.lineTo(128, 240); c.lineTo(210, 170); c.stroke();
-});
+export const phoneTex = () => { const s = SECTIONS.phone; return tex(256, 512, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1a2a3a'); g.addColorStop(1, '#0b1118'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = P.text; c.textAlign = 'center'; c.font = font(64, FONT.sans, '300'); c.fillText('09:41', w / 2, 120);
+  c.fillStyle = P.mute; c.font = font(15, FONT.mono); c.fillText(s.kicker.toUpperCase(), w / 2, 150);
+  c.strokeStyle = P.em; c.lineWidth = 6; c.strokeRect(70, 230, 116, 80); c.beginPath(); c.moveTo(70, 230); c.lineTo(128, 275); c.lineTo(186, 230); c.stroke();
+  c.fillStyle = P.text; c.font = font(22, FONT.sans, '600'); c.fillText(s.title, w / 2, 372);
+  c.fillStyle = 'rgba(255,255,255,.4)'; c.fillRect(88, h - 26, 80, 5); c.textAlign = 'left';
+}); };
 
 export const laptopTex = () => { const s = SECTIONS.laptop; return tex(1280, 800, (c, w, h) => {
   c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 52);
@@ -68,4 +71,26 @@ export const pageTex = p => tex(1024, 732, (c, w, h) => {
   c.fillStyle = P.sub; c.font = font(32, FONT.sans); y = wrap(c, p.text, 80, y + 20, 820, 46);
   pills(c, p.tags, 80, y + 34, 960, P.pine, 24);
   c.fillStyle = P.folio; c.font = font(22, FONT.mono); c.fillText(p.folio, w - 130, h - 40);
+});
+
+// Procedural oak: 4 planks, wavy grain lines, occasional knots. Seeded so it's identical every load.
+export const woodTex = () => { let s = 7; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;
+  const t = tex(1024, 512, (c, w, h) => {
+    const cols = ['#8a5a36', '#7b4d2c', '#935f39', '#84552f'], ph = h / cols.length;
+    cols.forEach((col, i) => {
+      const y0 = i * ph; c.fillStyle = col; c.fillRect(0, y0, w, ph);
+      for (let k = 0; k < 46; k++) {
+        const y = y0 + rnd() * ph, a = .05 + rnd() * .12, amp = 1 + rnd() * 3, f = .004 + rnd() * .01, p0 = rnd() * 6;
+        c.strokeStyle = rnd() > .5 ? `rgba(40,20,8,${a})` : `rgba(255,220,170,${a * .6})`; c.lineWidth = .6 + rnd() * 1.4; c.beginPath();
+        for (let x = 0; x <= w; x += 16) c.lineTo(x, y + Math.sin(x * f + p0) * amp); c.stroke();
+      }
+      if (rnd() > .4) { const kx = rnd() * w; for (let r = 3; r > 0; r--) { c.strokeStyle = `rgba(40,20,8,${.12 * r / 3})`; c.lineWidth = 2; c.beginPath(); c.ellipse(kx, y0 + ph / 2, r * 14, r * 5, 0, 0, 7); c.stroke(); } }
+      c.fillStyle = 'rgba(30,14,6,.55)'; c.fillRect(0, y0, w, 2); // plank seam
+    });
+  }); t.anisotropy = 4; return t; };
+
+export const keyboardTex = () => tex(1120, 600, (c, w, h) => {
+  c.fillStyle = '#2a3038'; c.fillRect(0, 0, w, h); c.fillStyle = '#11151a';
+  for (let r = 0; r < 5; r++) for (let k = 0; k < 14; k++) c.fillRect(40 + k * 74, 36 + r * 66, 66, 56);
+  c.fillStyle = '#232a33'; c.fillRect(380, 392, 360, 180); c.strokeStyle = '#3a424d'; c.lineWidth = 3; c.strokeRect(380, 392, 360, 180);
 });

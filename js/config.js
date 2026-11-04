@@ -15,6 +15,6 @@ export const P = {
 export const BARS = [.5, .8, .6, .95, .7, .85];
 export const FOG = { near: 14, far: 34 };
 export const SCENE_THEME = {
-  dark:  { bg: 0x0a0e13, desk: 0x1a222c, pad: 0x10161d },
-  light: { bg: 0xdfe6ee, desk: 0xa9b4c2, pad: 0x8e9bab },
+  dark:  { bg: 0x140d08, desk: 0xd8c4b0, pad: 0x2b1d14 },
+  light: { bg: 0xcdbba3, desk: 0xffffff, pad: 0x7a6450 },
 };

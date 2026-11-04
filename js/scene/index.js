@@ -8,14 +8,19 @@ import PROPS from './props.js';
 import OBJECTS from './objects/index.js';
 
 export function createScene(canvas, { onPick, onHover }) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); // throws w/o WebGL → main.js fallback
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: true });
+  renderer.setClearColor(0, 0); // CSS paints the brown gradient behind the canvas // throws w/o WebGL → main.js fallback
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0, FOG.near, FOG.far);
   const camera = new THREE.PerspectiveCamera(50, 1, .1, 80), rig = createCameraRig(camera);
 
   const props = PROPS.map(b => b()), objects = OBJECTS.map(b => b()), all = [...props, ...objects], byId = {};
-  props.forEach(p => scene.add(p.group));
+  props.forEach(p => {
+    if (p.x !== undefined) { p.group.position.set(p.x, 0, p.z); p.group.rotation.y = p.ry || 0; }
+    if (p.cast) p.group.traverse(n => { if (n.isMesh) n.castShadow = n.receiveShadow = true; });
+    scene.add(p.group);
+  });
   objects.forEach(o => {
     const g = o.group; byId[o.id] = o;
     g.position.set(o.x, 0, o.z); g.rotation.y = o.ry || 0; g.userData = { id: o.id, base: g.scale.x };
@@ -28,7 +33,7 @@ export function createScene(canvas, { onPick, onHover }) {
   /* theme */
   const bg = new THREE.Color();
   function applyTheme(t) {
-    mixTheme('bg', t, bg); renderer.setClearColor(bg); scene.fog.color.copy(bg);
+    mixTheme('bg', t, bg); scene.fog.color.copy(bg);
     all.forEach(d => d.onTheme?.(t));
     paper.forEach(m => m.color.setScalar(.8 + .2 * t));
   }
@@ -58,7 +63,7 @@ export function createScene(canvas, { onPick, onHover }) {
 
   /* picking */
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), roots = objects.map(o => o.group), mouse = { x: 0, y: 0 };
-  let down = null;
+  let down = null, lastPt = null, dragging = false;
   function pick(e) {
     ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
     let o = ray.intersectObjects(roots, true)[0]?.object;
@@ -67,12 +72,15 @@ export function createScene(canvas, { onPick, onHover }) {
   }
   canvas.addEventListener('pointermove', e => {
     mouse.x = e.clientX / innerWidth - .5; mouse.y = e.clientY / innerHeight - .5;
+    if (down && !cur) { // drag to orbit (camera.js clamps it so you can never reach the back of the desk)
+      if (dragging || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) { dragging = true; rig.rotate(e.clientX - lastPt[0], e.clientY - lastPt[1]); lastPt = [e.clientX, e.clientY]; canvas.style.cursor = 'grabbing'; return; }
+    }
     if (e.pointerType === 'touch') return;
     hover = cur ? null : pick(e); canvas.style.cursor = hover ? 'pointer' : 'default'; onHover(hover, e.clientX, e.clientY);
   });
-  canvas.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+  canvas.addEventListener('pointerdown', e => { down = lastPt = [e.clientX, e.clientY]; dragging = false; canvas.setPointerCapture?.(e.pointerId); });
   canvas.addEventListener('pointerup', e => {
-    const d = down; down = null;
+    const d = down; down = null; dragging = false; canvas.style.cursor = 'default';
     if (!d || Math.hypot(e.clientX - d[0], e.clientY - d[1]) > 6) return; // a drag, not a click
     const id = pick(e);
     if (id && id === cur && byId[id].onClick) byId[id].onClick(); else onPick(id);
@@ -93,5 +101,5 @@ export function createScene(canvas, { onPick, onHover }) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else { last = performance.now(); frame(); } });
   frame();
 
-  return { focus, hasView: id => !!byId[id]?.view, bookOf: id => byId[id]?.book };
+  return { focus, play: id => byId[id]?.play?.(), hasView: id => !!byId[id]?.view, bookOf: id => byId[id]?.book };
 }

@@ -61,11 +61,12 @@ export const SECTIONS = {
       ['Email · your@email.com', 'mailto:your@email.com'],
     ],
   },
+  coffee: { label: 'Coffee · Take a sip', action: 'play' },
   lamp: { label: 'Lamp · Light / Dark', action: 'theme' },
 };
 
 // Chip order. Adding a section = add it above + a file in js/scene/objects/.
-export const ORDER = ['notebook', 'laptop', 'db', 'cake', 'folders', 'phone', 'lamp'];
+export const ORDER = ['notebook', 'laptop', 'db', 'cake', 'folders', 'phone', 'coffee', 'lamp'];
 
 // Derived once: flip-book pages (intro + one per project) so nothing is typed twice.
 const f = SECTIONS.folders, total = f.items.length + 1;
