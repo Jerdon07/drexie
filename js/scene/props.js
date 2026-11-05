@@ -6,6 +6,7 @@ import { woodTex } from './textures.js';
 import glasses from './decor/glasses.js';
 import plush from './decor/plush.js';
 import penStand from './decor/penstand.js';
+import chair from './decor/chair.js';
 
 function lighting() {
   const group = new THREE.Group();
@@ -30,4 +31,4 @@ function desk() {
   return { group, onTheme(t) { mixTheme('desk', t, topMat.color); mixTheme('pad', t, pad.material.color); } };
 }
 
-export default [lighting, desk, glasses, plush, penStand];
+export default [lighting, desk, glasses, plush, penStand, chair];

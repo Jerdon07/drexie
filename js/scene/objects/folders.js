@@ -1,6 +1,6 @@
 import THREE from '../three.js';
 import { mat, box, screen } from '../primitives.js';
-import { blank, pageTex } from '../textures.js';
+import { blank, pageTex, pagePreviewTex } from '../textures.js';
 import { BOOK_PAGES } from '../../content.js';
 import { REDUCED_MOTION } from '../../config.js';
 
@@ -16,7 +16,8 @@ export default function folders() {
     const rear = new THREE.Mesh(back.geometry, back.material); rear.rotation.copy(back.rotation); rear.position.copy(back.position);
     pivot.add(front, rear); group.add(pivot);
     pages.push({ pivot, a: 0, t: 0 }); paper.push(front.material);
-    surfaces.push({ material: front.material, rest: front.material.map, full: () => pageTex(p) });
+    // Only page 0 is visible on the desk (the rest are stacked underneath and reset on blur), so only it gets a preview.
+    surfaces.push({ material: front.material, rest: front.material.map, preview: i === 0 ? () => pagePreviewTex(p) : undefined, full: () => pageTex(p) });
   });
 
   const book = {

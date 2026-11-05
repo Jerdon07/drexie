@@ -4,6 +4,7 @@ import { SECTIONS, PROFILE } from '../content.js';
 import { P, FONT, font, BARS } from '../config.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
+const sharp = t => (t.anisotropy = 4, t); // keeps small/oblique text from shimmering
 function wrap(c, t, x, y, w, lh) {
   let l = '';
   for (const s of t.split(' ')) { const n = l ? l + ' ' + s : s; if (l && c.measureText(n).width > w) { c.fillText(l, x, y); y += lh; l = s; } else l = n; }
@@ -52,6 +53,18 @@ export const laptopTex = () => { const s = SECTIONS.laptop; return tex(1280, 800
   pills(c, s.badges.map(b => b.text), 260, 716, 1260, P.emSoft, 20);
 }); };
 
+// Desk-distance laptop screen: same canvas size/aspect as laptopTex but ~2x type, no sidebar or cards, so it stays legible when small.
+export const laptopPreviewTex = () => { const s = SECTIONS.laptop; return sharp(tex(1280, 800, (c, w, h) => {
+  c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 84);
+  P.traffic.forEach((k, i) => { c.fillStyle = k; c.beginPath(); c.arc(50 + i * 42, 42, 13, 0, 7); c.fill(); });
+  c.fillStyle = P.mute; c.font = font(32, FONT.mono); c.fillText(s.screen.windowTitle, 190, 53);
+  c.fillStyle = P.em; c.font = font(36, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 80, 200);
+  c.fillStyle = P.text; c.font = font(190, FONT.sans, '700'); c.fillText(s.title, 80, 380);
+  c.fillStyle = P.mute; c.font = font(54, FONT.sans); wrap(c, s.lead, 80, 470, 1100, 66);
+  c.fillStyle = P.em; c.fillRect(80, 560, 160, 8); c.fillStyle = P.sap; c.fillRect(250, 560, 80, 8);
+  pills(c, s.badges.slice(0, 2).map(b => b.text), 80, 690, 1220, P.emSoft, 40);
+})); };
+
 export const paperTex = () => { const s = SECTIONS.notebook; return tex(900, 1190, (c, w, h) => {
   c.fillStyle = P.paper; c.fillRect(0, 0, w, h);
   c.strokeStyle = P.margin; c.lineWidth = 2; c.beginPath(); c.moveTo(62, 0); c.lineTo(62, h); c.stroke();
@@ -64,6 +77,16 @@ export const paperTex = () => { const s = SECTIONS.notebook; return tex(900, 119
   pills(c, s.badges.map(b => b.text), 96, y + 30, 830, P.pine, 22);
 }); };
 
+// Desk-distance notebook page: same canvas as paperTex, name at ~112px and a big lead line; paragraphs/badges are left for the focused view.
+export const paperPreviewTex = () => { const s = SECTIONS.notebook; return sharp(tex(900, 1190, (c, w, h) => {
+  c.fillStyle = P.paper; c.fillRect(0, 0, w, h);
+  c.strokeStyle = P.margin; c.lineWidth = 3; c.beginPath(); c.moveTo(62, 0); c.lineTo(62, h); c.stroke();
+  c.fillStyle = P.pine; c.font = font(40, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 96, 150);
+  c.font = font(112, FONT.serif, '700'); c.fillStyle = P.ink; c.fillText(PROFILE.first, 96, 330); c.fillStyle = P.pine; c.fillText(PROFILE.last, 96, 456);
+  c.fillStyle = P.ink; c.fillRect(96, 520, 160, 8);
+  c.fillStyle = P.sub; c.font = font(64, FONT.serif, 'italic'); wrap(c, s.lead, 96, 640, 720, 82);
+})); };
+
 export const pageTex = p => tex(1024, 732, (c, w, h) => {
   c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = P.pine; c.fillRect(0, 0, 18, h);
   c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), 80, 100);
@@ -72,6 +95,15 @@ export const pageTex = p => tex(1024, 732, (c, w, h) => {
   pills(c, p.tags, 80, y + 34, 960, P.pine, 24);
   c.fillStyle = P.folio; c.font = font(22, FONT.mono); c.fillText(p.folio, w - 130, h - 40);
 });
+
+// Desk-distance cover page for the folders flip-book (page 0 only): big title + eyebrow + tag, no body copy.
+export const pagePreviewTex = p => sharp(tex(1024, 732, (c, w, h) => {
+  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = P.pine; c.fillRect(0, 0, 28, h);
+  c.fillStyle = P.pine; c.font = font(44, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), 90, 150);
+  c.fillStyle = P.ink; c.font = font(200, FONT.serif, '700'); c.fillText(p.title, 90, 380);
+  c.fillStyle = P.ink; c.fillRect(90, 440, 160, 8);
+  pills(c, p.tags, 90, 560, 980, P.pine, 40);
+}));
 
 // Procedural oak: 4 planks, wavy grain lines, occasional knots. Seeded so it's identical every load.
 export const woodTex = () => { let s = 7; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;

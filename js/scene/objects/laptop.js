@@ -1,6 +1,6 @@
 import THREE from '../three.js';
 import { mat, box, cyl, screen as makeScreen } from '../primitives.js';
-import { idleScreen, laptopTex, keyboardTex } from '../textures.js';
+import { idleScreen, laptopTex, laptopPreviewTex, keyboardTex } from '../textures.js';
 
 // Slim aluminium notebook. The lid angle (-.3 rad) is mirrored by the 'screen' framing in camera.js.
 export default function laptop() {
@@ -15,6 +15,7 @@ export default function laptop() {
   const cam = cyl(.025, .004, mat(0x222831), 0, 1.9, .046); cam.rotation.x = Math.PI / 2;
   const logo = new THREE.Mesh(new THREE.CircleGeometry(.2, 32), new THREE.MeshBasicMaterial({ color: 0xeef3f8 })); logo.position.set(0, 1, -.036); logo.rotation.y = Math.PI;
   hinge.add(box(3.1, 2, .07, alu, 0, 1, 0), box(2.96, 1.86, .008, dark, 0, .95, .038), scr, cam, logo);
+  // preview = big, legible screen shown on the desk view; full = detailed screen shown when focused.
   return { id: 'laptop', group, x: 0, z: -.6, dist: 6.4, view: { type: 'screen', mesh: scr },
-    surfaces: [{ material: scr.material, rest: scr.material.map, full: laptopTex }] };
+    surfaces: [{ material: scr.material, rest: scr.material.map, preview: laptopPreviewTex, full: laptopTex }] };
 }

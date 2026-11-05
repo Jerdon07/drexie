@@ -39,11 +39,13 @@ export function createScene(canvas, { onPick, onHover }) {
   }
   applyTheme(0);
 
-  /* focus. Surface textures are generated lazily on first focus, then cached. */
+  /* focus. Surface textures are generated lazily and cached.
+     focused → full texture; unfocused → optional `preview` (legible at desk distance), else the cheap `rest`. */
   let cur = null, hover = null, aspect = 1;
   function skin() {
     surfaces.forEach(s => {
-      const want = s.owner === cur ? (s.fullTex ||= s.full()) : s.rest;
+      const idle = s.preview ? (s.previewTex ||= s.preview()) : s.rest;
+      const want = s.owner === cur ? (s.fullTex ||= s.full()) : idle;
       if (s.material.map !== want) { s.material.map = want; s.material.needsUpdate = true; }
     });
   }
@@ -53,6 +55,7 @@ export function createScene(canvas, { onPick, onHover }) {
     if (id) skin(); else setTimeout(() => { if (!cur) skin(); }, 700); // swap back after the zoom-out finishes
     rig.aim(id ? byId[id] : null, aspect);
   }
+  skin(); // apply previews on load (must run after `cur` is declared)
 
   /* resize */
   function resize() {
