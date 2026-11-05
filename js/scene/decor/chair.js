@@ -17,7 +17,7 @@ export default function chair() {
   for (let i = 0; i < 5; i++) {
     const a = i * Math.PI * 2 / 5;
     const arm = box(1.7, .14, .22, metal, Math.cos(a) * .85, FLOOR + .3, Math.sin(a) * .85); arm.rotation.y = -a;
-    const caster = new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 10), rubber); caster.position.set(Math.cos(a) * 1.65, FLOOR + .16, Math.sin(a) * 1.65);
+    const caster = new THREE.Mesh(new THREE.SphereGeometry(.16, 20, 14), rubber); caster.position.set(Math.cos(a) * 1.65, FLOOR + .16, Math.sin(a) * 1.65);
     group.add(arm, caster);
   }
 

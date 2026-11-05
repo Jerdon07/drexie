@@ -7,12 +7,29 @@ import { createCameraRig } from './camera.js';
 import PROPS from './props.js';
 import OBJECTS from './objects/index.js';
 
+// Procedural studio environment (a dim warm room + a few bright "softboxes"), prefiltered once with PMREM.
+// Standard materials pick it up through scene.environment, which is what gives the metals something to reflect.
+function makeEnv(renderer) {
+  const env = new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(40, 20, 40), new THREE.MeshBasicMaterial({ color: 0x3a2a1e, side: THREE.BackSide })));
+  const panel = (w, h, color, k, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(k), side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m); // HDR values (>1) survive PMREM, so these read as real light sources
+  };
+  panel(16, 10, 0xffe6c8, 6, -6, 9, 6);    // key: warm, top-left-front
+  panel(12, 8, 0x9ec5ff, 2.5, 12, 5, -4);  // fill: cool, right-back
+  panel(20, 3, 0xffb27a, 3, 0, 2, -18);    // warm strip behind the desk
+  const pm = new THREE.PMREMGenerator(renderer), rt = pm.fromScene(env, .04); pm.dispose();
+  return rt.texture;
+}
+
 export function createScene(canvas, { onPick, onHover }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: true });
   renderer.setClearColor(0, 0); // CSS paints the brown gradient behind the canvas // throws w/o WebGL → main.js fallback
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; // soft shadow edges
   const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0, FOG.near, FOG.far);
+  scene.environment = makeEnv(renderer);
   const camera = new THREE.PerspectiveCamera(50, 1, .1, 80), rig = createCameraRig(camera);
 
   const props = PROPS.map(b => b()), objects = OBJECTS.map(b => b()), all = [...props, ...objects], byId = {};

@@ -14,6 +14,10 @@ export const P = {
 };
 export const BARS = [.5, .8, .6, .95, .7, .85];
 export const FOG = { near: 14, far: 34 };
+// Smoothness knobs. ROUND = edge radius (world units) for boxes/cylinders; ENV.intensity = how strongly the procedural
+// reflection environment lights materials (metals scale it up automatically). If everything looks washed out, lower it.
+export const ROUND = { box: .05, cyl: .03 };
+export const ENV = { intensity: .35 };
 // World units the home camera is raised so the desk renders lower on screen (clears the title block). Raise to push objects down.
 export const HOME_LIFT = 1.2;
 export const SCENE_THEME = {

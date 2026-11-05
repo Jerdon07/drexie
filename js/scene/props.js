@@ -1,6 +1,6 @@
 // Non-interactive scene furniture. Contract: () => { group, x?, z?, ry?, cast?, onTheme?(t), update?(dt) }
 import THREE from './three.js';
-import { mat, box } from './primitives.js';
+import { mat, box, roundedBoxGeo } from './primitives.js';
 import { mixTheme } from './palette.js';
 import { woodTex } from './textures.js';
 import glasses from './decor/glasses.js';
@@ -11,7 +11,7 @@ import chair from './decor/chair.js';
 function lighting() {
   const group = new THREE.Group();
   const hemi = new THREE.HemisphereLight(0xd9b896, 0x1c120b, .55);
-  const sun = new THREE.DirectionalLight(0xffe6c8, .9); sun.position.set(-4, 9, 6); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  const sun = new THREE.DirectionalLight(0xffe6c8, .9); sun.position.set(-4, 9, 6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; // normalBias stops acne on the now-curved surfaces
   Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 6, bottom: -6, near: 1, far: 26 });
   const l1 = new THREE.PointLight(0xffb27a, .9, 16); l1.position.set(-5, 3, -2);
   const l2 = new THREE.PointLight(0xd9a066, .9, 16); l2.position.set(5, 3, 3);
@@ -23,7 +23,7 @@ function lighting() {
 function desk() {
   const group = new THREE.Group();
   const topMat = mat(0xffffff, { map: woodTex(), roughness: .55, metalness: .05 }), side = mat(0x6a4126, { roughness: .6 });
-  const top = new THREE.Mesh(new THREE.BoxGeometry(14, .3, 6.6), [side, side, topMat, side, side, side]); // only the +Y face gets the grain
+  const top = new THREE.Mesh(roundedBoxGeo(14, .3, 6.6, .08), [side, side, topMat, side, side, side]); // only the +Y face gets the grain
   top.position.y = -.15; top.receiveShadow = true;
   const pad = box(8.6, .02, 3.8, mat(0x2b1d14, { roughness: .9 }), 0, .01, .4); pad.receiveShadow = true;
   group.add(top, pad);
