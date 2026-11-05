@@ -14,6 +14,8 @@ export const P = {
 };
 export const BARS = [.5, .8, .6, .95, .7, .85];
 export const FOG = { near: 14, far: 34 };
+// World units the home camera is raised so the desk renders lower on screen (clears the title block). Raise to push objects down.
+export const HOME_LIFT = 1.2;
 export const SCENE_THEME = {
   dark:  { bg: 0x140d08, desk: 0xd8c4b0, pad: 0x2b1d14 },
   light: { bg: 0xcdbba3, desk: 0xffffff, pad: 0x7a6450 },

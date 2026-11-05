@@ -1,4 +1,5 @@
 import THREE from './three.js';
+import { HOME_LIFT } from '../config.js';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MAX_YAW = .9, PITCH = [-.2, .4]; // ±~52° left/right; never reaches the back of the desk
 
@@ -10,7 +11,10 @@ export function createCameraRig(camera) {
     rotate(dx, dy) { orb.ty = clamp(orb.ty - dx * .005, -MAX_YAW, MAX_YAW); orb.tp = clamp(orb.tp + dy * .004, PITCH[0], PITCH[1]); },
     aim(def, aspect) {
       const wide = aspect > 1.1, v = def?.view; up.set(0, 1, 0);
-      if (!def) { const k = aspect < 1.2 ? (1.2 - aspect) * 14 : 0; pos.set(0, 6.2 + k * .45, 10.8 + k); target.set(0, wide ? 1.3 : 2, 0); return; }
+      if (!def) { // home view: lifted by HOME_LIFT so the desk sits lower and clears the title block
+        const k = aspect < 1.2 ? (1.2 - aspect) * 14 : 0;
+        pos.set(0, 6.2 + k * .45 + HOME_LIFT, 10.8 + k); target.set(0, (wide ? 1.3 : 2) + HOME_LIFT, 0); return;
+      }
       orb.ty = orb.tp = 0;
       if (v?.type === 'screen') { // face a screen head-on
         v.mesh.getWorldPosition(c); const d = Math.max(2.1, 2.8 / (.84 * aspect));
