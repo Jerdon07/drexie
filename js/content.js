@@ -1,4 +1,5 @@
 // All copy lives here and nowhere else. Panel HTML and 3D textures both read from it.
+// TODO markers = facts I don't have yet. Replace them; nothing else needs to change.
 export const PROFILE = {
   first: 'Drexie Jaira', last: 'Litaoen',
   headline: '1st-Year BSIT Student | Future ERP & Oracle Database Engineer',
@@ -17,60 +18,80 @@ export const SECTIONS = {
     ],
     badges: [acc('BSIT'), tag('University of the Cordilleras'), acc('ERP Track'), tag('Aspiring SAP Specialist')],
   },
+
+  // Laptop = personal information. `fields` is [label, value]; 8 fills the 2×4 screen grid.
   laptop: {
-    label: 'Laptop · Focus Areas', kicker: '02 · Focus areas', title: 'ERP & SAP',
-    lead: 'Where business processes meet software.',
-    items: [
-      { title: 'Enterprise Resource Planning', text: 'Finance, supply chain, HR and sales unified in one integrated system.' },
-      { title: 'SAP Ecosystem', text: 'How SAP’s modules map to real business functions.' },
-      { title: 'Business Process Analysis', text: 'Mapping workflows and finding where systems can remove friction.' },
+    label: 'Laptop · Personal Info', kicker: '02 · Personal info', title: 'Personal Info',
+    lead: 'Who I am, what I study and where I’m headed.',
+    fields: [ // TODO: add birthday / location / anything else you want public
+      ['Full name', `${PROFILE.first} ${PROFILE.last}`],
+      ['Program', 'BS Information Technology'],
+      ['School', 'University of the Cordilleras'],
+      ['Year level', '1st Year'],
+      ['Specialization', 'Enterprise Resource Planning'],
+      ['Focus areas', 'ERP · SAP · Business Process Analysis'],
+      ['Career goal', 'ERP & Oracle Database Engineer'],
+      ['Status', 'Open to mentorship'],
     ],
     badges: [acc('ERP'), acc('SAP'), tag('Business Process Analysis'), tag('Workflows')],
-    screen: { windowTitle: 'erp-workspace — focus areas', nav: ['Overview', 'Finance', 'Supply Chain', 'HR', 'Sales'] },
+    screen: { windowTitle: 'personal-info — profile.json', nav: ['Profile', 'Academics', 'Focus', 'Goals'] },
   },
-  db: {
-    label: 'Database · Oracle', kicker: '03 · Database architecture', title: 'Oracle & SQL',
-    lead: 'Good systems start with good data.',
-    paragraphs: ['Building fundamentals in relational design, normalization and SQL, with the long-term goal of becoming an Oracle Database Engineer.'],
-    badges: [acc('Oracle'), acc('SQL'), tag('ERD'), tag('Normalization')],
+
+  // Notebook #2 = education. `entries` newest first; `todo` entries render muted until you fill them in.
+  education: {
+    label: 'Notebook · Education', kicker: '03 · Education', title: 'Education',
+    lead: 'Where I’m studying and what I’m building on.',
+    entries: [
+      { tag: 'Current', title: 'BS in Information Technology', school: 'University of the Cordilleras', meta: '1st Year · Enterprise Resource Planning track' },
+      { tag: 'Previous', title: 'Senior High School', school: 'TODO: school name', meta: 'TODO: strand · years attended', todo: true },
+    ],
+    coursework: ['ERP fundamentals', 'SAP ecosystem', 'Business process analysis', 'Relational design', 'SQL', 'Normalization'],
   },
-  cake: {
-    label: 'Cake · Pastry', kicker: '04 · Beyond the terminal', title: 'Cooking & Pastry',
-    lead: 'Systems thinking you can taste.',
-    paragraphs: ['Pastry demands precise measurements, ordered steps and controlled variables, with room for creativity inside the process. It’s the same discipline I want to bring to database design and enterprise systems.'],
-    badges: [acc('Precision'), acc('Creativity'), tag('Process-oriented')],
-  },
+
+  // Folder = achievements. content.js BOOK_PAGES (below) flips through them, 3 per page.
   folders: {
-    label: 'Folders · Projects', kicker: '05 · Learning showcase', title: 'Projects',
-    lead: 'Work in progress. Real entries land here.',
-    status: 'Coming soon',
-    intro: { eyebrow: 'Learning showcase', text: 'Academic work, lab exercises and database design studies will live here. Flip through the pages.', tags: ['Click the page to flip →'] },
-    items: [
-      { title: 'Academic Project', text: 'Placeholder for a course project write-up: the problem, my approach and what I learned.', tags: ['Course project', 'TBD'] },
-      { title: 'Lab Work', text: 'Placeholder for hands-on lab exercises, queries and results.', tags: ['SQL', 'Lab'] },
-      { title: 'Database Design Study', text: 'Placeholder for an ERD and schema case study: entities, relationships and normalization.', tags: ['Oracle', 'ERD', 'Normalization'] },
+    label: 'Folder · Achievements', kicker: '04 · Achievements', title: 'Achievements',
+    lead: 'Milestones and recognitions so far.',
+    intro: { eyebrow: 'Achievements', text: 'A running list of milestones, awards and recognitions. Flip through the pages.' },
+    items: [ // TODO: replace with your real achievements (year / title / one line / category)
+      { year: 'TODO', title: 'Achievement title', text: 'One line on what it was and why it mattered.', tag: 'Category' },
+      { year: 'TODO', title: 'Achievement title', text: 'One line on what it was and why it mattered.', tag: 'Category' },
+      { year: 'TODO', title: 'Achievement title', text: 'One line on what it was and why it mattered.', tag: 'Category' },
     ],
-    badges: [acc('Coming soon')],
   },
+
+  // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Phone · Contact', kicker: '06 · Contact', title: 'Get in Touch',
+    label: 'Phone · Contact', kicker: '05 · Contact', title: 'Get in Touch',
     lead: 'Open to mentorship, collaboration and conversation.',
-    links: [ // TODO: still placeholders
-      ['GitHub · your-username', 'https://github.com/'],
-      ['LinkedIn · your-profile', 'https://www.linkedin.com/'],
-      ['Email · your@email.com', 'mailto:your@email.com'],
+    contacts: [ // TODO: LinkedIn / email / phone are still placeholders
+      { label: 'GitHub', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
+      { label: 'LinkedIn', value: 'your-profile', href: 'https://www.linkedin.com/' },
+      { label: 'Email', value: 'your@email.com', href: 'mailto:your@email.com' },
     ],
   },
+
+  // Family frames. Photo files: images/mother.png, images/father.png (generated silhouette if missing).
+  mother: { label: 'Frame · Mother', kicker: '06 · Family', title: 'Mother', lead: 'My mother.', photo: 'mother' }, // TODO: name + a few words
+  father: { label: 'Frame · Father', kicker: '07 · Family', title: 'Father', lead: 'My father.', photo: 'father' }, // TODO: name + a few words
+
+  profile: {
+    label: 'Profile · Me', kicker: '08 · Profile', title: `${PROFILE.first} ${PROFILE.last}`, lead: PROFILE.headline, photo: 'profile',
+    badges: [acc('BSIT'), tag('University of the Cordilleras'), acc('ERP Track')],
+  },
+
   coffee: { label: 'Coffee · Take a sip', action: 'play' },
   lamp: { label: 'Lamp · Light / Dark', action: 'theme' },
 };
 
 // Chip order. Adding a section = add it above + a file in js/scene/objects/.
-export const ORDER = ['notebook', 'laptop', 'db', 'cake', 'folders', 'phone', 'coffee', 'lamp'];
+export const ORDER = ['laptop', 'notebook', 'education', 'folders', 'phone', 'mother', 'father', 'profile', 'coffee', 'lamp'];
 
-// Derived once: flip-book pages (intro + one per project) so nothing is typed twice.
-const f = SECTIONS.folders, total = f.items.length + 1;
+// Derived once: flip-book pages (cover + achievements, PER_PAGE each) so nothing is typed twice.
+const f = SECTIONS.folders, PER_PAGE = 3, n = f.items.length;
+const lists = Array.from({ length: Math.ceil(n / PER_PAGE) }, (_, i) => f.items.slice(i * PER_PAGE, (i + 1) * PER_PAGE).map((it, j) => ({ ...it, n: i * PER_PAGE + j + 1 })));
+const total = lists.length + 1;
 export const BOOK_PAGES = [
-  { eyebrow: f.intro.eyebrow, title: f.title, text: f.intro.text, tags: f.intro.tags },
-  ...f.items.map((p, i) => ({ eyebrow: `Project ${String(i + 1).padStart(2, '0')} · ${f.status}`, ...p })),
+  { eyebrow: f.intro.eyebrow, title: f.title, text: f.intro.text, tags: [`${n} entries`, 'Click the page to flip →'] },
+  ...lists.map((rows, i) => ({ eyebrow: `Achievements · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows })),
 ].map((p, i) => ({ ...p, folio: `${i + 1} / ${total}` }));

@@ -38,11 +38,26 @@ html:not(.no-3d).focused #intro,html:not(.no-3d).focused #chips{opacity:0;pointe
 .bd{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
 .b{font:500 .74rem var(--mono);padding:6px 10px;border-radius:999px;background:rgba(59,130,246,.12);color:var(--badge-sap);border:1px solid rgba(59,130,246,.32)}
 .b.e{background:rgba(52,211,153,.1);color:var(--badge-em);border-color:rgba(52,211,153,.32)}
-.lk{display:block;padding:13px 15px;margin:0 0 10px;border:1px solid var(--bd);border-radius:12px;color:var(--tx);text-decoration:none;transition:border-color .2s,transform .2s}
+.lk{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:13px 15px;margin:0 0 10px;border:1px solid var(--bd);border-radius:12px;color:var(--tx);text-decoration:none;transition:border-color .2s,transform .2s}
 .lk:hover{border-color:var(--sap);transform:translateX(4px)}
+.lk .k{font:600 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--em);flex:none}
+.lk .v{font-size:.92rem;text-align:right;overflow-wrap:anywhere}
 .pj{border:1px dashed var(--bd);border-radius:12px;padding:12px 14px;margin:0 0 10px}
 .pj b{display:block;color:var(--tx);font-size:.95rem}
+.pj strong{display:block;color:var(--badge-em);font-size:.85rem;margin:2px 0 4px}
 .pj span{color:var(--mu);font-size:.85rem}
+.pj em{display:block;font:600 .68rem var(--mono);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--em);margin-bottom:4px}
+.pj.todo{opacity:.55}
+.eb.sub{margin:18px 0 0;color:var(--mu)}
+
+/* personal-info grid + portrait */
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.kv>div{border:1px solid var(--bd);border-left:3px solid var(--em);border-radius:10px;padding:9px 12px}
+.kv>div:nth-child(n+3):nth-child(-n+4),.kv>div:nth-child(n+7){border-left-color:var(--sap)}
+.kv dt{font:600 .66rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mu);margin:0 0 3px}
+.kv dd{margin:0;font-size:.9rem;color:var(--tx);overflow-wrap:anywhere}
+.ph{margin:0 0 16px;border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
+.ph img{display:block;width:100%;height:min(280px,30vh);object-fit:cover;object-position:center 20%}
 
 /* fallback when WebGL / three.js is unavailable */
 .no-3d #intro{left:max(28px,env(safe-area-inset-left,0px));right:calc(min(460px,42vw) + 56px);top:calc(env(safe-area-inset-top,0px) + 7vh);width:auto;transform:none;text-align:left;pointer-events:auto}
@@ -55,6 +70,8 @@ html:not(.no-3d).focused #intro,html:not(.no-3d).focused #chips{opacity:0;pointe
   #panel{left:12px;right:12px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);max-height:46vh;transform:translateY(40px);padding:22px}
   #panel.open{transform:none}
   #panel h2{font-size:1.7rem}
+  .kv{grid-template-columns:1fr}
+  .ph img{height:min(180px,20vh)}
   #intro{top:calc(env(safe-area-inset-top,0px) + 12px)}
   .no-3d #intro{top:calc(env(safe-area-inset-top,0px) + 70px);right:24px}
 }
