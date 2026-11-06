@@ -14,5 +14,5 @@ export default function plush() {
   }
   ball(.05, mat(0xf2a0b4), 0, .93, .42, 1.2, .8, .8);          // nose
   ball(.07, red, .3, 1.38, .12, 1.3, 1, .7); ball(.07, red, .5, 1.3, .12, 1.3, 1, .7); ball(.045, red, .4, 1.34, .14); // bow
-  return { group, x: 2.7, z: -1.7, ry: -.4, cast: true };
+  return { group, x: -3.85, z: -2, ry: .3, cast: true }; // back-left gap (was right of the laptop; the profile frame lives there now)
 }

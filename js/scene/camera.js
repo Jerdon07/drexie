@@ -26,7 +26,7 @@ export function createCameraRig(camera) {
         pos.set(p.x, v.y + d, p.z); target.set(p.x, v.y, p.z); up.set(-Math.sin(ry), 0, -Math.cos(ry)); return;
       }
       const d = (def.dist || 4.6) * (wide ? 1 : 1.25), ox = wide ? d * .36 : 0; // default 3/4 orbit framing
-      pos.set(p.x + ox, p.y + d * .55, p.z + d); target.set(p.x + ox, def.lookY ?? p.y + (wide ? .35 : -.5), p.z);
+      pos.set(p.x + ox, p.y + d * (def.rise ?? .55), p.z + d); target.set(p.x + ox, def.lookY ?? p.y + (wide ? .35 : -.5), p.z);
     },
     snap() { look.copy(target); camera.position.copy(pos); },
     step(k, free, mx, my) {
