@@ -30,5 +30,3 @@ function makeFrame({ id, w, h, x, z, ry, dist, rise, accent, wood = 0x6a4126 }) 
 const PARENT = { w: .95, h: 1.3, z: 2.35, ry: -.15, dist: 3.4 };
 export const mother = () => makeFrame({ id: 'mother', x: 5.3, ...PARENT });
 export const father = () => makeFrame({ id: 'father', x: 6.3, ...PARENT });
-// Profile: larger, emerald keyline, centre-right of the desk (left of the phone so the phone never hides it from the home camera).
-export const profile = () => makeFrame({ id: 'profile', x: 3.2, z: -1.5, ry: -.1, w: 1.55, h: 2, dist: 4.4, rise: 1, accent: 0x34d399 });

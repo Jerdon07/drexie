@@ -2,6 +2,7 @@
 import { SECTIONS, ORDER, PROFILE } from './content.js';
 import { $, esc, mountChips, mountPanel, mountNav, mountTooltip } from './ui.js';
 import { toggleTheme } from './theme.js';
+import { portraitSrc } from './images.js';
 
 let scene = null, current = null;
 const action = id => SECTIONS[id].action;
@@ -29,6 +30,7 @@ async function boot() {
   const intro = $('#intro'), chipBox = $('#chips');
   intro.querySelector('h1').innerHTML = `${esc(PROFILE.first)} <span>${esc(PROFILE.last)}</span>`;
   intro.querySelector('.tag').textContent = PROFILE.headline;
+  portraitSrc('profile').then(src => { const f = $('#portrait'); f.querySelector('img').src = src; f.querySelector('img').alt = `${PROFILE.first} ${PROFILE.last}`; f.querySelector('figcaption').textContent = PROFILE.first; });
 
   // Bottom nav: every interactive object except coffee (a 3D-only 'play' action).
   const chips = mountChips(chipBox, ORDER.filter(id => action(id) !== 'play'), activate);
