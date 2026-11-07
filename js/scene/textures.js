@@ -32,6 +32,102 @@ let _blank;
 export const blank = () => _blank ||= tex(8, 8, c => { c.fillStyle = P.paper; c.fillRect(0, 0, 8, 8); });
 export const idleScreen = () => tex(512, 320, (c, w, h) => { c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); bars(c); });
 
+// Book spine for the notebooks shelf. Mapped to a thin upright face (w:h = 1:4), label reads bottom-to-top like a real spine.
+// `muted` greys out entries that are still TODO in content.js.
+export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
+  c.fillStyle = col; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(255,255,255,.22)'; c.fillRect(0, 28, w, 4); c.fillRect(0, h - 32, w, 4); // head/tail bands
+  c.save(); c.translate(w / 2, h / 2); c.rotate(-Math.PI / 2);
+  c.fillStyle = muted ? 'rgba(255,255,255,.5)' : P.paper; c.textAlign = 'center'; c.textBaseline = 'middle';
+  fit(c, label, h - 100, 40, FONT.serif, '700'); c.fillText(label, 0, 0); c.restore();
+}));
+
+/* ---- School ID (CR80, portrait) + lanyard ribbon. University of the Cordilleras' school colour is forest green; the mark below is
+   an original generic emblem (mountains + sun), NOT the university's seal. ---- */
+const UC = { green: '#14633d', dark: '#0c3f27', deep: '#0a2d1c', lite: '#1b7a4b', gold: '#c9a227', cream: '#f4efe3', mint: '#b9e4cf', ink: '#10301f' };
+const ID_W = 864, ID_H = 1370; // 53.98 : 85.60 (CR80); keep in sync with CARD in js/idcard.js
+const spaced = (c, s, cx, y, gap) => { // canvas letter-spacing without relying on c.letterSpacing
+  const ws = [...s].map(ch => c.measureText(ch).width), total = ws.reduce((a, b) => a + b, 0) + gap * (ws.length - 1);
+  let x = cx - total / 2; [...s].forEach((ch, i) => { c.fillText(ch, x, y); x += ws[i] + gap; });
+};
+const guilloche = (c, w, h, a) => { c.strokeStyle = `rgba(20,99,61,${a})`; c.lineWidth = 2; for (let x = -h; x < w; x += 18) { c.beginPath(); c.moveTo(x, h); c.lineTo(x + h, 0); c.stroke(); } };
+const emblem = (c, cx, cy, r) => {
+  c.save(); c.beginPath(); c.arc(cx, cy, r, 0, 7); c.clip();
+  const g = c.createLinearGradient(0, cy - r, 0, cy + r); g.addColorStop(0, UC.lite); g.addColorStop(1, UC.deep); c.fillStyle = g; c.fillRect(cx - r, cy - r, r * 2, r * 2);
+  c.fillStyle = UC.gold; c.beginPath(); c.arc(cx + r * .3, cy - r * .35, r * .17, 0, 7); c.fill();
+  c.fillStyle = UC.cream; c.beginPath(); c.moveTo(cx - r, cy + r * .6); c.lineTo(cx - r * .45, cy - r * .1); c.lineTo(cx - r * .15, cy + r * .25); c.lineTo(cx + r * .25, cy - r * .35); c.lineTo(cx + r, cy + r * .6); c.closePath(); c.fill();
+  c.restore(); c.strokeStyle = UC.cream; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, r + 8, 0, 7); c.stroke();
+  c.strokeStyle = UC.gold; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, r + 18, 0, 7); c.stroke();
+};
+
+// `photo` = the profile portrait canvas (images.js). t.redraw() repaints after the real file loads.
+export const idFrontTex = photo => {
+  const draw = (c, w, h) => {
+    c.fillStyle = '#fbfbf7'; c.fillRect(0, 0, w, h); guilloche(c, w, h, .06);
+    const hg = c.createLinearGradient(0, 0, w, 340); hg.addColorStop(0, '#0a3a24'); hg.addColorStop(1, UC.lite); c.fillStyle = hg; c.fillRect(0, 0, w, 330); // header (the slot punches through its top)
+    c.fillStyle = UC.gold; c.fillRect(0, 330, w, 8); c.fillStyle = 'rgba(20,99,61,.55)'; c.fillRect(0, 346, w, 3);
+    emblem(c, 140, 196, 66);
+    c.textAlign = 'left'; c.fillStyle = UC.cream; c.font = font(40, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE', 250, 182);
+    fit(c, 'CORDILLERAS', 570, 72, FONT.serif, '700'); c.fillText('CORDILLERAS', 250, 256);
+    c.fillStyle = UC.mint; c.font = font(24, FONT.mono, '600'); c.fillText('BAGUIO CITY · PHILIPPINES', 252, 300);
+    c.fillStyle = UC.gold; c.fillRect(204, 372, 456, 566); c.fillStyle = UC.green; c.fillRect(208, 376, 448, 558); c.drawImage(photo, 212, 380, 440, 550); // existing profile photo
+    c.textAlign = 'center'; c.fillStyle = UC.ink; fit(c, PROFILE.first.toUpperCase(), 760, 64, FONT.sans, '700'); c.fillText(PROFILE.first.toUpperCase(), w / 2, 1010);
+    c.fillStyle = UC.green; fit(c, PROFILE.last.toUpperCase(), 760, 104, FONT.serif, '700'); c.fillText(PROFILE.last.toUpperCase(), w / 2, 1108);
+    c.fillStyle = UC.gold; c.fillRect(w / 2 - 90, 1136, 180, 5);
+    c.fillStyle = '#4a5663'; c.font = font(32, FONT.mono, '600'); c.fillText(PROFILE.program.toUpperCase(), w / 2, 1190);
+    const bg = c.createLinearGradient(0, 1250, w, 1370); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1256, w, 114);
+    c.fillStyle = UC.gold; c.fillRect(0, 1250, w, 6);
+    c.fillStyle = UC.cream; c.font = font(42, FONT.mono, '700'); spaced(c, 'STUDENT', w / 2 - 70, 1330, 14);
+    c.save(); c.beginPath(); c.arc(736, 1196, 52, 0, 7); c.clip(); // security-hologram patch
+    const hl = c.createLinearGradient(684, 1144, 788, 1248); ['#ff6ec7', '#ffe36e', '#6effb0', '#6ec7ff', '#b06eff'].forEach((k, i) => hl.addColorStop(i / 4, k));
+    c.globalAlpha = .6; c.fillStyle = hl; c.fillRect(684, 1144, 104, 104); c.globalAlpha = .5; c.strokeStyle = '#fff'; c.lineWidth = 2;
+    for (let r = 10; r < 56; r += 9) { c.beginPath(); c.arc(736, 1196, r, 0, 7); c.stroke(); } c.restore(); c.globalAlpha = 1;
+  };
+  const t = tex(ID_W, ID_H, draw); t.anisotropy = 8; t.redraw = () => { draw(t.image.getContext('2d'), ID_W, ID_H); t.needsUpdate = true; }; return t;
+};
+
+export const idBackTex = () => { const t = tex(ID_W, ID_H, (c, w, h) => {
+  c.fillStyle = '#f2f2ec'; c.fillRect(0, 0, w, h); guilloche(c, w, h, .05);
+  c.fillStyle = UC.green; c.fillRect(0, 0, w, 150); c.fillStyle = UC.gold; c.fillRect(0, 150, w, 6);
+  const ms = c.createLinearGradient(0, 190, 0, 360); ms.addColorStop(0, '#2a2d31'); ms.addColorStop(.5, '#0a0b0d'); ms.addColorStop(1, '#1b1d20'); c.fillStyle = ms; c.fillRect(0, 190, w, 170); // magnetic-stripe look
+  c.fillStyle = '#fff'; c.fillRect(70, 420, 724, 150); c.strokeStyle = UC.green; c.lineWidth = 3; c.strokeRect(70, 420, 724, 150);
+  c.fillStyle = 'rgba(20,99,61,.16)'; c.font = font(18, FONT.mono, '600'); for (let y = 446; y < 566; y += 26) for (let x = 78 - (y % 52); x < 790; x += 250) c.fillText('UNIVERSITY OF THE CORDILLERAS', x, y);
+  c.fillStyle = '#4a5663'; c.font = font(20, FONT.mono, '600'); c.textAlign = 'left'; c.fillText('AUTHORIZED SIGNATURE', 72, 606);
+  c.fillStyle = '#33403a'; c.font = font(28, FONT.sans); wrap(c, 'This card is the property of the University of the Cordilleras and is not transferable. If found, please return it to the university.', 70, 690, 724, 40);
+  let s = 0; for (const ch of `${PROFILE.first}${PROFILE.last}`) s = (s * 31 + ch.charCodeAt(0)) >>> 0; // decorative barcode seeded from the name (not a real ID number)
+  const rnd = () => (s = s * 16807 % 2147483647) / 2147483647; c.fillStyle = '#0a0b0d'; let x = 120;
+  while (x < 740) { const bw = 2 + Math.floor(rnd() * 5), gap = 2 + Math.floor(rnd() * 4); c.fillRect(x, 960, bw, 170); x += bw + gap; }
+  c.fillStyle = '#4a5663'; c.font = font(22, FONT.mono, '600'); c.textAlign = 'center'; c.fillText(`${PROFILE.first} ${PROFILE.last}`.toUpperCase(), w / 2, 1170);
+  const bg = c.createLinearGradient(0, 1256, w, 1370); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1256, w, 114); c.fillStyle = UC.gold; c.fillRect(0, 1250, w, 6);
+  c.fillStyle = UC.cream; fit(c, 'UNIVERSITY OF THE CORDILLERAS', 760, 36, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE CORDILLERAS', w / 2, 1326);
+}); t.anisotropy = 8; return t; };
+
+// Woven ribbon. Colour map and bump map share one canvas size so they stay registered; both repeat down the strap.
+const RW = 256, RH = 1280; // one repeat = 1280/256 × strap width ≈ 105 mm of strap
+export const RIBBON = { w: RW, h: RH };
+let _weave;
+const weaveCanvas = () => _weave ||= (() => { // 2/2 twill at ~0.3 mm per thread
+  const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH;
+  const g = cv.getContext('2d'), im = g.createImageData(RW, RH), px = im.data;
+  for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) { const k = (y * RW + x) * 4, v = ((x + (y >> 1)) & 3) < 2 ? 150 : 108; px[k] = px[k + 1] = px[k + 2] = v + ((x * 7 + y * 13) & 7); px[k + 3] = 255; }
+  g.putImageData(im, 0, 0); return cv;
+})();
+export const weaveTex = () => { const t = new THREE.CanvasTexture(weaveCanvas()); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+export const ribbonTex = () => { const t = tex(RW, RH, (c, w, h) => {
+  c.fillStyle = UC.green; c.fillRect(0, 0, w, h);
+  c.globalCompositeOperation = 'overlay'; c.globalAlpha = .55; c.drawImage(weaveCanvas(), 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; // thread shading
+  c.fillStyle = UC.dark; c.fillRect(0, 0, 14, h); c.fillRect(w - 14, 0, 14, h); // selvedge
+  [[44, 5, UC.cream], [54, 3, UC.gold], [w - 54, 3, UC.gold], [w - 44, 5, UC.cream]].forEach(([x, lw, col]) => { c.fillStyle = col; c.fillRect(x - lw / 2, 0, lw, h); });
+  c.strokeStyle = UC.mint; c.lineWidth = 3; c.setLineDash([18, 12]); [28, w - 28].forEach(x => { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }); c.setLineDash([]); // edge stitching
+  c.save(); c.translate(w / 2, 0); c.rotate(Math.PI / 2); // print reads down the strap
+  const label = 'UNIVERSITY OF THE CORDILLERAS';
+  c.textBaseline = 'middle'; c.textAlign = 'left'; c.fillStyle = UC.cream; fit(c, label, 880, 46, FONT.sans, '700'); c.fillText(label, 96, 0);
+  c.fillStyle = UC.gold; [48, 1010].forEach(x => { c.beginPath(); c.moveTo(x, -13); c.lineTo(x + 11, 0); c.lineTo(x, 13); c.lineTo(x - 11, 0); c.fill(); });
+  c.beginPath(); c.moveTo(1082, 22); c.lineTo(1116, -22); c.lineTo(1140, 4); c.lineTo(1170, -28); c.lineTo(1226, 22); c.closePath(); c.fill(); // mountain mark
+  c.fillStyle = UC.cream; c.beginPath(); c.arc(1190, -20, 6, 0, 7); c.fill();
+  c.restore();
+}); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+
 export const phoneTex = () => { const s = SECTIONS.phone; return tex(256, 512, (c, w, h) => {
   const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1a2a3a'); g.addColorStop(1, '#0b1118'); c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.fillStyle = P.text; c.textAlign = 'center'; c.font = font(64, FONT.sans, '300'); c.fillText('09:41', w / 2, 120);
@@ -75,59 +171,6 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop; return sharp(
   c.fillStyle = P.mute; c.font = font(54, FONT.sans); wrap(c, s.lead, 80, 470, 1100, 66);
   c.fillStyle = P.em; c.fillRect(80, 560, 160, 8); c.fillStyle = P.sap; c.fillRect(250, 560, 80, 8);
   pills(c, s.badges.slice(0, 2).map(b => b.text), 80, 690, 1220, P.emSoft, 40);
-})); };
-
-export const paperTex = () => { const s = SECTIONS.notebook; return tex(900, 1190, (c, w, h) => {
-  c.fillStyle = P.paper; c.fillRect(0, 0, w, h);
-  c.strokeStyle = P.margin; c.lineWidth = 2; c.beginPath(); c.moveTo(62, 0); c.lineTo(62, h); c.stroke();
-  c.fillStyle = P.pine; c.font = font(25, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 96, 96);
-  c.font = font(96, FONT.serif, '700'); c.fillStyle = P.ink; c.fillText(PROFILE.first, 96, 210); c.fillStyle = P.pine; c.fillText(PROFILE.last, 96, 308);
-  c.fillStyle = P.sub; c.font = font(29, FONT.serif, 'italic'); let y = wrap(c, PROFILE.headline, 96, 366, 720, 38);
-  c.fillStyle = P.ink; c.fillRect(96, y, 120, 4); c.font = font(42, FONT.serif, 'italic'); y = wrap(c, s.lead, 96, y + 66, 720, 52);
-  c.font = font(27, FONT.sans); c.fillStyle = P.body;
-  s.paragraphs.forEach((t, i) => { y = wrap(c, t, 96, y + (i ? 10 : 14), 720, 39); });
-  pills(c, s.badges.map(b => b.text), 96, y + 30, 830, P.pine, 22);
-}); };
-
-// Desk-distance notebook page: same canvas as paperTex, name at ~112px and a big lead line; paragraphs/badges are left for the focused view.
-export const paperPreviewTex = () => { const s = SECTIONS.notebook; return sharp(tex(900, 1190, (c, w, h) => {
-  c.fillStyle = P.paper; c.fillRect(0, 0, w, h);
-  c.strokeStyle = P.margin; c.lineWidth = 3; c.beginPath(); c.moveTo(62, 0); c.lineTo(62, h); c.stroke();
-  c.fillStyle = P.pine; c.font = font(40, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 96, 150);
-  c.font = font(112, FONT.serif, '700'); c.fillStyle = P.ink; c.fillText(PROFILE.first, 96, 330); c.fillStyle = P.pine; c.fillText(PROFILE.last, 96, 456);
-  c.fillStyle = P.ink; c.fillRect(96, 520, 160, 8);
-  c.fillStyle = P.sub; c.font = font(64, FONT.serif, 'italic'); wrap(c, s.lead, 96, 640, 720, 82);
-})); };
-
-export const eduTex = () => { const s = SECTIONS.education; return tex(900, 1190, (c, w, h) => {
-  c.fillStyle = P.paper; c.fillRect(0, 0, w, h);
-  c.strokeStyle = P.margin; c.lineWidth = 2; c.beginPath(); c.moveTo(62, 0); c.lineTo(62, h); c.stroke();
-  c.fillStyle = P.cobalt; c.font = font(25, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 96, 96);
-  c.fillStyle = P.ink; c.font = font(96, FONT.serif, '700'); c.fillText(s.title, 96, 210);
-  c.fillStyle = P.sub; c.font = font(29, FONT.serif, 'italic'); let y = wrap(c, s.lead, 96, 262, 720, 38);
-  c.fillStyle = P.ink; c.fillRect(96, y, 120, 4); y += 56;
-  s.entries.forEach(e => {
-    const col = e.todo ? P.folio : P.cobalt;
-    c.fillStyle = col; c.font = font(22, FONT.mono, '600'); c.fillText(e.tag.toUpperCase(), 96, y);
-    c.fillStyle = e.todo ? P.folio : P.ink; c.font = font(42, FONT.serif, '700'); y = wrap(c, e.title, 96, y + 52, 720, 50);
-    c.fillStyle = col; c.font = font(28, FONT.sans, '600'); c.fillText(e.school, 96, y - 4);
-    c.fillStyle = P.sub; c.font = font(23, FONT.mono); y = wrap(c, e.meta, 96, y + 38, 720, 32);
-    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(96, y + 6, 720, 2); y += 56;
-  });
-  c.fillStyle = P.cobalt; c.font = font(22, FONT.mono, '600'); c.fillText('COURSEWORK & FOCUS', 96, y);
-  pills(c, s.coursework, 96, y + 54, 830, P.cobalt, 22);
-}); };
-
-// Desk-distance education page: big title + current degree + school only.
-export const eduPreviewTex = () => { const s = SECTIONS.education, e = s.entries[0]; return sharp(tex(900, 1190, (c, w, h) => {
-  c.fillStyle = P.paper; c.fillRect(0, 0, w, h);
-  c.strokeStyle = P.margin; c.lineWidth = 3; c.beginPath(); c.moveTo(62, 0); c.lineTo(62, h); c.stroke();
-  c.fillStyle = P.cobalt; c.font = font(40, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 96, 150);
-  c.fillStyle = P.ink; c.font = font(112, FONT.serif, '700'); c.fillText(s.title, 96, 330);
-  c.fillStyle = P.cobalt; c.fillRect(96, 400, 160, 8);
-  c.fillStyle = P.ink; c.font = font(64, FONT.serif, 'italic'); let y = wrap(c, e.title, 96, 520, 720, 80);
-  c.fillStyle = P.cobalt; c.font = font(46, FONT.sans, '600'); y = wrap(c, e.school, 96, y + 24, 720, 58);
-  c.fillStyle = P.sub; c.font = font(34, FONT.mono); wrap(c, e.meta, 96, y + 24, 720, 44);
 })); };
 
 export const pageTex = p => tex(1024, 732, (c, w, h) => {

@@ -19,13 +19,15 @@ html,body{height:100%;margin:0;overflow:hidden;color:var(--tx);font-family:var(-
 #intro h1 span{background:linear-gradient(90deg,var(--em),var(--sap));-webkit-background-clip:text;background-clip:text;color:transparent}
 #intro .tag{color:var(--mu);font-size:clamp(.78rem,1.4vw,.95rem);margin:0 auto;max-width:520px}
 #chips{left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:0 14px;transition:opacity .4s}
-/* profile portrait: flat frame in the empty space right of the desk (never over it); hides when a panel opens */
-#portrait{right:max(28px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 14vh);margin:0;padding:10px 10px 12px;border-radius:22px;background:var(--surf);border:1px solid var(--bd);backdrop-filter:blur(12px);box-shadow:0 18px 50px -18px #000,0 0 0 1px rgba(52,211,153,.25);text-align:center;pointer-events:none;transition:opacity .4s}
-#portrait img{display:block;height:min(30vh,280px);aspect-ratio:4/5;object-fit:cover;object-position:center 20%;border-radius:14px}
-#portrait figcaption{margin-top:10px;font-size:.66rem}
-.no-3d #portrait,html.focused #portrait{opacity:0}
-.no-3d #portrait{display:none}
+
 html:not(.no-3d).focused #intro,html:not(.no-3d).focused #chips{opacity:0;pointer-events:none}
+
+/* school ID overlay: a transparent full-viewport canvas (js/idcard.js). It never catches pointers itself (the script hit-tests the
+   card and strap), fades out while an object is focused, and is hidden in the no-3D fallback and on phones. */
+#portrait{inset:0;margin:0;pointer-events:none;transition:opacity .4s;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35))}
+#portrait canvas{display:block;width:100%;height:100%}
+html.focused #portrait{opacity:0}
+.no-3d #portrait{display:none}
 
 /* navigation */
 #hback{left:max(18px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 16px);opacity:0;pointer-events:none;transition:opacity .4s}
@@ -73,13 +75,13 @@ html:not(.no-3d).focused #intro,html:not(.no-3d).focused #chips{opacity:0;pointe
 .no-3d #chips{position:static;left:auto;right:auto;bottom:auto;padding:0;margin-top:22px;justify-content:flex-start;pointer-events:auto}
 
 @media (max-width:760px){
+  #portrait{display:none}
   #panel{left:12px;right:12px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);max-height:46vh;transform:translateY(40px);padding:22px}
   #panel.open{transform:none}
   #panel h2{font-size:1.7rem}
   .kv{grid-template-columns:1fr}
   .ph img{height:min(180px,20vh)}
   #intro{top:calc(env(safe-area-inset-top,0px) + 12px)}
-  #portrait{display:none}
   .no-3d #intro{top:calc(env(safe-area-inset-top,0px) + 70px);right:24px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}

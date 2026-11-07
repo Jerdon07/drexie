@@ -1,8 +1,7 @@
 // Composition root: wires content, UI and (optionally) the 3D scene. No rendering logic here.
-import { SECTIONS, ORDER, PROFILE } from './content.js';
+import { SECTIONS, NAV, PROFILE } from './content.js';
 import { $, esc, mountChips, mountPanel, mountNav, mountTooltip } from './ui.js';
 import { toggleTheme } from './theme.js';
-import { portraitSrc } from './images.js';
 
 let scene = null, current = null;
 const action = id => SECTIONS[id].action;
@@ -30,14 +29,18 @@ async function boot() {
   const intro = $('#intro'), chipBox = $('#chips');
   intro.querySelector('h1').innerHTML = `${esc(PROFILE.first)} <span>${esc(PROFILE.last)}</span>`;
   intro.querySelector('.tag').textContent = PROFILE.headline;
-  portraitSrc('profile').then(src => { const f = $('#portrait'); f.querySelector('img').src = src; f.querySelector('img').alt = `${PROFILE.first} ${PROFILE.last}`; f.querySelector('figcaption').textContent = PROFILE.first; });
 
-  // Bottom nav: every interactive object except coffee (a 3D-only 'play' action).
-  const chips = mountChips(chipBox, ORDER.filter(id => action(id) !== 'play'), activate);
+  // School ID overlay (right side). Own try/catch: if its second WebGL context fails the desk still works.
+  let idCard = null;
+  if (scene) try { const { mountIdCard } = await import('./idcard.js'); idCard = mountIdCard($('#portrait')); }
+  catch (err) { console.warn('School ID unavailable.', err); $('#portrait').hidden = true; }
+
+  // Bottom nav: exactly NAV, in order. Coffee, lamp and the school ID are 3D-only (not nav targets).
+  const chips = mountChips(chipBox, NAV, activate);
   const panel = mountPanel($('#panel'), () => focus(null));
   const nav = mountNav({ onBack: () => focus(null), onFlip: d => scene?.bookOf(current)?.flip(d) });
 
-  ORDER.forEach(id => { const b = scene?.bookOf(id); if (b) { b.onChange = nav.setPage; nav.setPage(b.index, b.count); } });
+  NAV.forEach(id => { const b = scene?.bookOf(id); if (b) { b.onChange = nav.setPage; nav.setPage(b.index, b.count); } });
 
   function activate(id) { action(id) === 'theme' ? toggleTheme() : focus(id); }
 
@@ -46,6 +49,7 @@ async function boot() {
     const away = !!(scene && id);
     document.documentElement.classList.toggle('focused', away);
     intro.inert = chipBox.inert = away;
+    idCard?.setActive(!away); // the ID fades out on focus and must stop catching drags
     chips.setActive(id);
     id && !scene?.hasView(id) ? panel.show(id) : panel.hide(); // sections without a 3D "view" use the HTML panel
     nav.showBack(!!id);

@@ -3,12 +3,14 @@
 export const PROFILE = {
   first: 'Drexie Jaira', last: 'Litaoen',
   headline: '1st-Year BSIT Student | Future ERP & Oracle Database Engineer',
+  school: 'University of the Cordilleras', program: 'BSIT · ERP Track', // printed on the school ID
 };
 
 const acc = text => ({ text, accent: true });
 const tag = text => ({ text });
 
 export const SECTIONS = {
+  // ORPHANED: its notebook object was removed and it is not in NAV, so nothing renders this any more. Delete or re-home it.
   notebook: {
     label: 'Notebook · About', kicker: '01 · About me', title: 'About Me',
     lead: 'Curious about how complex systems work.',
@@ -21,7 +23,7 @@ export const SECTIONS = {
 
   // Laptop = personal information. `fields` is [label, value]; 8 fills the 2×4 screen grid.
   laptop: {
-    label: 'Laptop · Personal Info', kicker: '02 · Personal info', title: 'Personal Info',
+    label: 'Laptop', kicker: '02 · Personal info', title: 'Personal Info',
     lead: 'Who I am, what I study and where I’m headed.',
     fields: [ // TODO: add birthday / location / anything else you want public
       ['Full name', `${PROFILE.first} ${PROFILE.last}`],
@@ -37,9 +39,10 @@ export const SECTIONS = {
     screen: { windowTitle: 'personal-info — profile.json', nav: ['Profile', 'Academics', 'Focus', 'Goals'] },
   },
 
-  // Notebook #2 = education. `entries` newest first; `todo` entries render muted until you fill them in.
-  education: {
-    label: 'Notebook · Education', kicker: '03 · Education', title: 'Education',
+  // Notebooks shelf = education. `entries` newest first (one book each on the top shelf, `todo` ones render muted);
+  // `coursework` = one book each on the bottom shelf. The HTML panel shows everything.
+  notebooks: {
+    label: 'Notebooks', kicker: '03 · Education', title: 'Education',
     lead: 'Where I’m studying and what I’m building on.',
     entries: [
       { tag: 'Current', title: 'BS in Information Technology', school: 'University of the Cordilleras', meta: '1st Year · Enterprise Resource Planning track' },
@@ -50,7 +53,7 @@ export const SECTIONS = {
 
   // Folder = achievements. content.js BOOK_PAGES (below) flips through them, 3 per page.
   folders: {
-    label: 'Folder · Achievements', kicker: '04 · Achievements', title: 'Achievements',
+    label: 'Folder', kicker: '04 · Achievements', title: 'Achievements',
     lead: 'Milestones and recognitions so far.',
     intro: { eyebrow: 'Achievements', text: 'A running list of milestones, awards and recognitions. Flip through the pages.' },
     items: [ // TODO: replace with your real achievements (year / title / one line / category)
@@ -62,7 +65,7 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Phone · Contact', kicker: '05 · Contact', title: 'Get in Touch',
+    label: 'Phone', kicker: '05 · Contact', title: 'Get in Touch',
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [ // TODO: LinkedIn / email / phone are still placeholders
       { label: 'GitHub', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
@@ -72,20 +75,17 @@ export const SECTIONS = {
   },
 
   // Family frames. Photo files: images/mother.png, images/father.png (generated silhouette if missing).
-  mother: { label: 'Frame · Mother', kicker: '06 · Family', title: 'Mother', lead: 'My mother.', photo: 'mother' }, // TODO: name + a few words
-  father: { label: 'Frame · Father', kicker: '07 · Family', title: 'Father', lead: 'My father.', photo: 'father' }, // TODO: name + a few words
+  mother: { label: 'Mother Frame', kicker: '06 · Family', title: 'Mother', lead: 'My mother.', photo: 'mother' }, // TODO: name + a few words
+  father: { label: 'Father Frame', kicker: '07 · Family', title: 'Father', lead: 'My father.', photo: 'father' }, // TODO: name + a few words
 
-  profile: {
-    label: 'Profile · Me', kicker: '08 · Profile', title: `${PROFILE.first} ${PROFILE.last}`, lead: PROFILE.headline, photo: 'profile',
-    badges: [acc('BSIT'), tag('University of the Cordilleras'), acc('ERP Track')],
-  },
-
+  // 3D-only objects: not in NAV, so the label is just the hover tooltip.
   coffee: { label: 'Coffee · Take a sip', action: 'play' },
   lamp: { label: 'Lamp · Light / Dark', action: 'theme' },
 };
 
-// Chip order. Adding a section = add it above + a file in js/scene/objects/.
-export const ORDER = ['laptop', 'notebook', 'education', 'folders', 'phone', 'mother', 'father', 'profile', 'coffee', 'lamp'];
+// Bottom nav: exactly these, in this order. Each id must match a 3D object id (js/scene/objects/*).
+// Adding a section = add it above + a file in js/scene/objects/ + an id here.
+export const NAV = ['laptop', 'folders', 'notebooks', 'mother', 'father', 'phone'];
 
 // Derived once: flip-book pages (cover + achievements, PER_PAGE each) so nothing is typed twice.
 const f = SECTIONS.folders, PER_PAGE = 3, n = f.items.length;
