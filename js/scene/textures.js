@@ -143,23 +143,45 @@ export const phoneTex = () => { const s = SECTIONS.phone; return tex(256, 512, (
   c.fillStyle = 'rgba(255,255,255,.4)'; c.fillRect(88, h - 26, 80, 5); c.textAlign = 'left';
 }); };
 
-export const laptopTex = () => { const s = SECTIONS.laptop; return tex(1280, 800, (c, w, h) => {
+// Laptop screen. Left: identity sidebar (avatar, name, headline, contact). Right: grouped cards + hobby/skill pills. All text from content.js.
+const initials = () => PROFILE.first[0] + PROFILE.last[0];
+function avatar(c, cx, cy, r) { // gradient disc with initials (a photo would need an async repaint; the ID card already carries the photo)
+  const g = c.createLinearGradient(cx - r, cy - r, cx + r, cy + r); g.addColorStop(0, P.em); g.addColorStop(1, P.sap);
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r, 0, 7); c.fill();
+  c.fillStyle = P.screenBg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = font(r * .85, FONT.sans, '700'); c.fillText(initials(), cx, cy + r * .04);
+  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+}
+export const laptopTex = () => { const s = SECTIONS.laptop, flat = f => Object.fromEntries(f); return tex(1280, 800, (c, w, h) => {
   c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 52);
   P.traffic.forEach((k, i) => { c.fillStyle = k; c.beginPath(); c.arc(30 + i * 26, 26, 8, 0, 7); c.fill(); });
   c.fillStyle = P.mute; c.font = font(20, FONT.mono); c.fillText(s.screen.windowTitle, 130, 33);
-  c.fillStyle = P.em; c.font = font(20, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 60, 100);
-  c.fillStyle = P.text; fit(c, s.title, 1160, 74, FONT.sans, '700'); c.fillText(s.title, 60, 180);
-  c.fillStyle = P.mute; c.font = font(28, FONT.sans); c.fillText(s.lead, 60, 228);
-  const COLS = 3, CW = 380, CH = 70, GX = 20, GY = 12; // 3 × 5 grid of label/value cards
-  s.fields.slice(0, COLS * 5).forEach(([k, v], i) => {
-    const x = 60 + (i % COLS) * (CW + GX), y = 260 + Math.floor(i / COLS) * (CH + GY), r = Math.floor(i / COLS);
-    c.fillStyle = P.panel; c.fillRect(x, y, CW, CH); c.fillStyle = r % 2 ? P.sap : P.em; c.fillRect(x, y, 5, CH);
-    c.fillStyle = P.mute; c.font = font(15, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 20, y + 26);
-    c.fillStyle = P.text; fit(c, v, CW - 36, 24, FONT.sans, '600');
-    if (c.measureText(v).width > CW - 36) { c.font = font(18, FONT.sans, '600'); wrap(c, v, x + 20, y + 46, CW - 36, 20); } // too long for one line: wrap instead of shrinking to illegible
-    else c.fillText(v, x + 20, y + 54);
+
+  // sidebar
+  const SW = 360, cx = SW / 2; c.fillStyle = P.sidebar; c.fillRect(0, 52, SW, h);
+  avatar(c, cx, 168, 66);
+  c.textAlign = 'center'; c.fillStyle = P.text; c.font = font(30, FONT.sans, '700'); let y = wrap(c, s.name, cx, 282, SW - 60, 36);
+  c.fillStyle = P.mute; c.font = font(17, FONT.sans); y = wrap(c, PROFILE.headline, cx, y + 4, SW - 70, 24);
+  c.fillStyle = 'rgba(255,255,255,.1)'; c.fillRect(40, y + 4, SW - 80, 2);
+  c.textAlign = 'left'; y += 40;
+  s.groups.find(g => g.title === 'Contact').fields.forEach(([k, v], i) => {
+    c.fillStyle = P.em; c.font = font(13, FONT.mono, '600'); c.fillText(k.toUpperCase(), 36, y);
+    c.fillStyle = P.text; fit(c, v, SW - 72, 20, FONT.sans, '600'); c.fillText(v, 36, y + 26); y += 62;
   });
-  pills(c, s.badges.map(b => b.text), 60, 744, 1240, P.emSoft, 20);
+
+  // main: section label + cards
+  const X0 = SW + 44, XW = w - X0 - 44, GAP = 14, label = (t, yy) => { c.fillStyle = P.mute; c.font = font(15, FONT.mono, '600'); c.fillText(t.toUpperCase(), X0, yy); };
+  const card = (k, v, x, yy, cw, accent) => {
+    c.fillStyle = P.panel; c.fillRect(x, yy, cw, 66); c.fillStyle = accent; c.fillRect(x, yy, 5, 66);
+    c.fillStyle = P.mute; c.font = font(14, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 20, yy + 24);
+    c.fillStyle = P.text; fit(c, v, cw - 40, 24, FONT.sans, '600'); c.fillText(v, x + 20, yy + 52);
+  };
+  c.fillStyle = P.em; c.font = font(18, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), X0, 102);
+  c.fillStyle = P.text; c.font = font(40, FONT.sans, '700'); c.fillText(s.title, X0, 148);
+
+  const half = (XW - GAP) / 2, acd = flat(s.groups[1].fields);
+  label('Personal', 196); s.groups[0].fields.forEach(([k, v], i) => card(k, v, X0 + (i % 2) * (half + GAP), 208 + (i >> 1) * 80, half, i >> 1 ? P.sap : P.em));
+  label('Academics', 384); card('Program', acd.Program, X0, 396, XW, P.em); card('College', acd.College, X0, 476, half, P.sap); card('Year level', acd['Year level'], X0 + half + GAP, 476, half, P.sap);
+  let ly = 590; s.lists.forEach(l => { label(l.title, ly); ly = pills(c, l.items, X0, ly + 40, w - 44, l.title === 'Skills' ? P.sap : P.emSoft, 20) + 12; });
 }); };
 
 // Desk-distance laptop screen: same canvas size/aspect as laptopTex but ~2x type, no sidebar or cards, so it stays legible when small.
@@ -167,11 +189,11 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop; return sharp(
   c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 84);
   P.traffic.forEach((k, i) => { c.fillStyle = k; c.beginPath(); c.arc(50 + i * 42, 42, 13, 0, 7); c.fill(); });
   c.fillStyle = P.mute; c.font = font(32, FONT.mono); c.fillText(s.screen.windowTitle, 190, 53);
-  c.fillStyle = P.em; c.font = font(36, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 80, 200);
-  c.fillStyle = P.text; fit(c, s.title, 1120, 190, FONT.sans, '700'); c.fillText(s.title, 80, 380);
-  c.fillStyle = P.mute; c.font = font(54, FONT.sans); wrap(c, s.lead, 80, 470, 1100, 66);
-  c.fillStyle = P.em; c.fillRect(80, 560, 160, 8); c.fillStyle = P.sap; c.fillRect(250, 560, 80, 8);
-  pills(c, s.badges.slice(0, 2).map(b => b.text), 80, 690, 1220, P.emSoft, 40);
+  avatar(c, 270, 440, 150);
+  c.fillStyle = P.em; c.font = font(36, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 500, 320);
+  c.fillStyle = P.text; c.font = font(92, FONT.sans, '700'); const y = wrap(c, s.name.replace(/ M\./, ''), 500, 420, 740, 100);
+  c.fillStyle = P.em; c.fillRect(500, y - 40, 160, 8); c.fillStyle = P.sap; c.fillRect(670, y - 40, 80, 8);
+  pills(c, s.badges.slice(0, 2).map(b => b.text), 500, y + 60, 1220, P.emSoft, 40);
 })); };
 
 export const pageTex = p => tex(1024, 732, (c, w, h) => {

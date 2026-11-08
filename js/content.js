@@ -21,24 +21,20 @@ export const SECTIONS = {
     badges: [acc('BSIT'), tag('University of the Cordilleras'), acc('ERP Track'), tag('Aspiring SAP Specialist')],
   },
 
-  // Laptop = personal information. `fields` is [label, value]; the screen grid is 3 columns × 5 rows (15 slots max).
+  // Laptop = personal information. `groups` drive the laptop screen (sidebar + cards); `fields` is the same data flattened
+  // for the HTML panel, so nothing is typed twice. `lists` render as pill rows on the screen.
   laptop: {
     label: 'Personal Info', kicker: '02 · Personal info', title: 'Personal Info',
     lead: 'Who I am, what I study and where I’m headed.',
-    fields: [ // [label, value]; the laptop screen lays these out 3 per row
-      ['Name', 'Drexie Jaira M. Litaoen'],
-      ['Gender', 'Female'],
-      ['Status', 'Single'],
-      ['Age', '18 years old'],
-      ['Birthday', '04/14/08'],
-      ['Year level', '1st year'],
-      ['Program', 'B.S. in Information Technology'],
-      ['College', 'CITCS department'],
-      ['Hobbies', 'Journaling, Reading, Gaming'],
-      ['Skills', 'Time management, Critical thinking, Good communication'],
-      ['Address', 'Sapsing, La Trinidad, Benguet'],
-      ['Email', 'leedrexie@gmail.com'],
-      ['Phone number', '09850883391'],
+    name: 'Drexie Jaira M. Litaoen',
+    groups: [
+      { title: 'Personal', fields: [['Gender', 'Female'], ['Age', '18 years old'], ['Birthday', '04/14/08'], ['Status', 'Single']] },
+      { title: 'Academics', fields: [['Program', 'B.S. in Information Technology'], ['College', 'CITCS department'], ['Year level', '1st year']] },
+      { title: 'Contact', fields: [['Email', 'leedrexie@gmail.com'], ['Phone number', '09850883391'], ['Address', 'Sapsing, La Trinidad, Benguet']] },
+    ],
+    lists: [
+      { title: 'Hobbies', items: ['Journaling', 'Reading', 'Gaming'] },
+      { title: 'Skills', items: ['Time management', 'Critical thinking', 'Good communication'] },
     ],
     badges: [acc('ERP'), acc('SAP'), tag('Business Process Analysis'), tag('Workflows')],
     screen: { windowTitle: 'personal-info — profile.json' },
@@ -87,6 +83,9 @@ export const SECTIONS = {
   coffee: { label: 'Coffee · Take a sip', action: 'play' },
   lamp: { label: 'Lamp · Light / Dark', action: 'theme' },
 };
+
+// Panel view of the laptop: name first, then every group field, then each list as a comma-joined value.
+SECTIONS.laptop.fields = [['Name', SECTIONS.laptop.name], ...SECTIONS.laptop.groups.flatMap(g => g.fields), ...SECTIONS.laptop.lists.map(l => [l.title, l.items.join(', ')])];
 
 // Bottom nav: exactly these, in this order. Each id must match a 3D object id (js/scene/objects/*).
 // Adding a section = add it above + a file in js/scene/objects/ + an id here.
