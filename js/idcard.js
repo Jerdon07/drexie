@@ -5,7 +5,7 @@
 import THREE from './scene/three.js';
 import { REDUCED_MOTION } from './config.js';
 import { portraitSrc } from './images.js';
-import { idFrontTex, idBackTex, ribbonTex, weaveTex, RIBBON } from './scene/textures.js';
+import { idFrontTex, idBackTex, ribbonTex, weaveTex, RIBBON, ID_PHOTO } from './scene/textures.js';
 import { createLanyard } from './scene/lanyard.js';
 import { makeStudioEnv } from './scene/env.js';
 
@@ -15,7 +15,8 @@ const SLOT = { w: 12.7 * MM, h: 3.2 * MM };
 const HW = .192;                                   // strap end → slot centre (crimp + swivel + ring stack)
 const WIDTH = .15;                                 // 21 mm strap
 const RIGID = HW + CARD.h / 2 - CARD.top;          // strap end → card centre
-const VIEW_H = 1.8, CARD_Y = .126;                 // world height of the viewport; card centre at rest (≈ 43% down the screen)
+const VIEW_H = .64, CARD_Y = 0;                    // world height of the viewport (smaller = bigger card); card centre at rest (screen centre)
+const MAX_W_FRAC = .36;                            // the card never takes more than this share of the viewport width (keeps it off the desk on narrow windows)
 const ANCHOR = new THREE.Vector3(0, VIEW_H / 2 + 1.1, 0); // hidden above the top edge: the strap's visible part is just its lower end
 const DROP = (ANCHOR.y - (CARD_Y + RIGID)) / 1.03; // rest length (it sits ~3% stretched under the card's weight)
 const TILE = RIBBON.h * WIDTH / RIBBON.w;          // strap length per texture repeat
@@ -73,13 +74,13 @@ function buildHardware() {
 export function createIdModel(photoSrc) {
   const group = new THREE.Group();
   // The existing profile photo: portraitSrc() resolves to the real file, or the generated silhouette if it is missing.
-  const photo = Object.assign(document.createElement('canvas'), { width: 440, height: 550 }), pc = photo.getContext('2d');
-  pc.fillStyle = '#14633d'; pc.fillRect(0, 0, 440, 550);
+  const photo = Object.assign(document.createElement('canvas'), { width: ID_PHOTO.w, height: ID_PHOTO.h }), pc = photo.getContext('2d');
+  pc.fillStyle = '#14633d'; pc.fillRect(0, 0, ID_PHOTO.w, ID_PHOTO.h);
   const front = idFrontTex(photo), back = idBackTex(), ribbon = ribbonTex(), bump = weaveTex();
   [front, back, ribbon].forEach(t => { t.encoding = THREE.sRGBEncoding; });
   Promise.resolve(photoSrc).then(src => new Promise(ok => { const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(null); img.src = src; })).then(img => {
-    if (!img) return; const k = Math.max(440 / img.width, 550 / img.height), w = img.width * k, h = img.height * k;
-    pc.drawImage(img, (440 - w) / 2, Math.min(0, (550 - h) * .2), w, h); front.redraw(); // bias toward the top so faces aren't cropped
+    if (!img) return; const k = Math.max(ID_PHOTO.w / img.width, ID_PHOTO.h / img.height), w = img.width * k, h = img.height * k;
+    pc.drawImage(img, (ID_PHOTO.w - w) / 2, Math.min(0, (ID_PHOTO.h - h) * .2), w, h); front.redraw(); // bias toward the top so faces aren't cropped
     model.onPhoto?.();
   });
 
@@ -109,10 +110,10 @@ export function mountIdCard(root) {
   const visible = () => root.getClientRects().length > 0; // display:none on phones
   function layout() {
     if (!visible()) return;
-    const W = innerWidth, H = innerHeight, ppu = H / VIEW_H, sx = W - RIGHT_PX - CARD.w / 2 * ppu; // screen x of the strap
+    const W = innerWidth, H = innerHeight, ppu = Math.min(H / VIEW_H, W * MAX_W_FRAC / CARD.w), viewH = H / ppu, sx = W - RIGHT_PX - CARD.w / 2 * ppu; // screen x of the strap
     renderer.setPixelRatio(Math.min(devicePixelRatio, W * H > 2.5e6 ? 1.5 : 2)); // the canvas covers the viewport: keep huge screens cheap
     renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
-    const cx = -(sx - W / 2) / ppu; camera.position.set(cx, 0, VIEW_H / 2 / Math.tan(FOV * Math.PI / 360)); camera.lookAt(cx, 0, 0);
+    const cx = -(sx - W / 2) / ppu; camera.position.set(cx, 0, viewH / 2 / Math.tan(FOV * Math.PI / 360)); camera.lookAt(cx, 0, 0);
     wake();
   }
 
