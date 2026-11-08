@@ -1,7 +1,7 @@
 import THREE from '../three.js';
 import { mat, box, cyl } from '../primitives.js';
 import { ENV } from '../../config.js';
-import { idFrontTex, idBackTex, ribbonTex, weaveTex } from '../textures.js';
+import { idFrontTex, idBackTex, ribbonTex, weaveTex, ID_PHOTO } from '../textures.js';
 import { portraitSrc } from '../../images.js';
 import { createLanyard } from '../lanyard.js';
 
@@ -63,12 +63,12 @@ export default function profile() {
   const group = new THREE.Group();
   // The existing profile photo: portraitSrc() resolves to the real file, or the generated silhouette if it is missing.
   // Cover-fit it into a canvas the card texture draws from; until it loads the canvas is a neutral mint placeholder.
-  const photo = Object.assign(document.createElement('canvas'), { width: 440, height: 550 }), pc = photo.getContext('2d');
-  pc.fillStyle = '#14633d'; pc.fillRect(0, 0, 440, 550);
+  const photo = Object.assign(document.createElement('canvas'), { width: ID_PHOTO.w, height: ID_PHOTO.h }), pc = photo.getContext('2d');
+  pc.fillStyle = '#14633d'; pc.fillRect(0, 0, ID_PHOTO.w, ID_PHOTO.h);
   const front = idFrontTex(photo);
   portraitSrc('profile').then(src => { const img = new Image(); img.onload = () => {
-    const k = Math.max(440 / img.width, 550 / img.height), w = img.width * k, h = img.height * k;
-    pc.drawImage(img, (440 - w) / 2, Math.min(0, (550 - h) * .2), w, h); front.redraw(); // bias toward the top so faces aren't cropped
+    const k = Math.max(ID_PHOTO.w / img.width, ID_PHOTO.h / img.height), w = img.width * k, h = img.height * k;
+    pc.drawImage(img, (ID_PHOTO.w - w) / 2, Math.min(0, (ID_PHOTO.h - h) * .2), w, h); front.redraw(); // bias toward the top so faces aren't cropped
   }; img.src = src; });
 
   const ribbonMat = new THREE.MeshStandardMaterial({ map: ribbonTex(), bumpMap: weaveTex(), bumpScale: 1.5, roughness: .88, metalness: 0, envMapIntensity: ENV.intensity });

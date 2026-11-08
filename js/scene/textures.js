@@ -46,6 +46,7 @@ export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
    an original generic emblem (mountains + sun), NOT the university's seal. ---- */
 const UC = { green: '#14633d', dark: '#0c3f27', deep: '#0a2d1c', lite: '#1b7a4b', gold: '#c9a227', cream: '#f4efe3', mint: '#b9e4cf', ink: '#10301f' };
 const ID_W = 864, ID_H = 1370; // 53.98 : 85.60 (CR80); keep in sync with CARD in js/idcard.js
+export const ID_PHOTO = { w: 592, h: 740 }; // portrait area on the card (4:5). idcard.js sizes its source canvas from this, so they can't drift apart.
 const spaced = (c, s, cx, y, gap) => { // canvas letter-spacing without relying on c.letterSpacing
   const ws = [...s].map(ch => c.measureText(ch).width), total = ws.reduce((a, b) => a + b, 0) + gap * (ws.length - 1);
   let x = cx - total / 2; [...s].forEach((ch, i) => { c.fillText(ch, x, y); x += ws[i] + gap; });
@@ -70,11 +71,11 @@ export const idFrontTex = photo => {
     c.textAlign = 'left'; c.fillStyle = UC.cream; c.font = font(40, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE', 250, 182);
     fit(c, 'CORDILLERAS', 570, 72, FONT.serif, '700'); c.fillText('CORDILLERAS', 250, 256);
     c.fillStyle = UC.mint; c.font = font(24, FONT.mono, '600'); c.fillText('BAGUIO CITY · PHILIPPINES', 252, 300);
-    c.fillStyle = UC.gold; c.fillRect(204, 372, 456, 566); c.fillStyle = UC.green; c.fillRect(208, 376, 448, 558); c.drawImage(photo, 212, 380, 440, 550); // existing profile photo
-    c.textAlign = 'center'; c.fillStyle = UC.ink; fit(c, PROFILE.first.toUpperCase(), 760, 64, FONT.sans, '700'); c.fillText(PROFILE.first.toUpperCase(), w / 2, 1010);
-    c.fillStyle = UC.green; fit(c, PROFILE.last.toUpperCase(), 760, 104, FONT.serif, '700'); c.fillText(PROFILE.last.toUpperCase(), w / 2, 1108);
-    c.fillStyle = UC.gold; c.fillRect(w / 2 - 90, 1136, 180, 5);
-    c.fillStyle = '#4a5663'; c.font = font(32, FONT.mono, '600'); c.fillText(PROFILE.program.toUpperCase(), w / 2, 1190);
+    // Portrait fills the space the name used to take (the name is already in the page header). 4px gold frame + 4px green rim around it.
+    const px = (w - ID_PHOTO.w) / 2, py = 382;
+    c.fillStyle = UC.gold; c.fillRect(px - 8, py - 8, ID_PHOTO.w + 16, ID_PHOTO.h + 16); c.fillStyle = UC.green; c.fillRect(px - 4, py - 4, ID_PHOTO.w + 8, ID_PHOTO.h + 8); c.drawImage(photo, px, py, ID_PHOTO.w, ID_PHOTO.h);
+    c.fillStyle = UC.gold; c.fillRect(w / 2 - 90, 1148, 180, 4);
+    c.textAlign = 'center'; c.fillStyle = '#4a5663'; c.font = font(32, FONT.mono, '600'); c.fillText(PROFILE.program.toUpperCase(), w / 2, 1204);
     const bg = c.createLinearGradient(0, 1250, w, 1370); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1256, w, 114);
     c.fillStyle = UC.gold; c.fillRect(0, 1250, w, 6);
     c.fillStyle = UC.cream; c.font = font(42, FONT.mono, '700'); spaced(c, 'STUDENT', w / 2 - 70, 1330, 14);
@@ -97,9 +98,8 @@ export const idBackTex = () => { const t = tex(ID_W, ID_H, (c, w, h) => {
   let s = 0; for (const ch of `${PROFILE.first}${PROFILE.last}`) s = (s * 31 + ch.charCodeAt(0)) >>> 0; // decorative barcode seeded from the name (not a real ID number)
   const rnd = () => (s = s * 16807 % 2147483647) / 2147483647; c.fillStyle = '#0a0b0d'; let x = 120;
   while (x < 740) { const bw = 2 + Math.floor(rnd() * 5), gap = 2 + Math.floor(rnd() * 4); c.fillRect(x, 960, bw, 170); x += bw + gap; }
-  c.fillStyle = '#4a5663'; c.font = font(22, FONT.mono, '600'); c.textAlign = 'center'; c.fillText(`${PROFILE.first} ${PROFILE.last}`.toUpperCase(), w / 2, 1170);
   const bg = c.createLinearGradient(0, 1256, w, 1370); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1256, w, 114); c.fillStyle = UC.gold; c.fillRect(0, 1250, w, 6);
-  c.fillStyle = UC.cream; fit(c, 'UNIVERSITY OF THE CORDILLERAS', 760, 36, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE CORDILLERAS', w / 2, 1326);
+  c.textAlign = 'center'; c.fillStyle = UC.cream; fit(c, 'UNIVERSITY OF THE CORDILLERAS', 760, 36, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE CORDILLERAS', w / 2, 1326);
 }); t.anisotropy = 8; return t; };
 
 // Woven ribbon. Colour map and bump map share one canvas size so they stay registered; both repeat down the strap.
