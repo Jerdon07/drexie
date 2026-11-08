@@ -29,7 +29,7 @@ export const ENV = { intensity: .35 };
 // World units the home camera is raised so the desk renders lower on screen (clears the title block). Raise to push objects down.
 export const HOME_LIFT = 1.2;
 // World units the home camera pans right so the desk sits left of centre and the ID overlay has room. Fades out below ~1.3 aspect (see camera.js).
-export const HOME_SHIFT = 1.2;
+export const HOME_SHIFT = 1.6;
 export const SCENE_THEME = {
   dark:  { bg: 0x140d08, desk: 0xd8c4b0, pad: 0x2b1d14 },
   light: { bg: 0xcdbba3, desk: 0xffffff, pad: 0x7a6450 },
