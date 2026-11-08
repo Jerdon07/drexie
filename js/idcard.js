@@ -15,8 +15,8 @@ const SLOT = { w: 12.7 * MM, h: 3.2 * MM };
 const HW = .192;                                   // strap end → slot centre (crimp + swivel + ring stack)
 const WIDTH = .15;                                 // 21 mm strap
 const RIGID = HW + CARD.h / 2 - CARD.top;          // strap end → card centre
-const VIEW_H = .8, CARD_Y = -.03;                 // world height of the viewport (smaller = bigger card); card centre at rest (≈ 54% down the screen)
-const MAX_W_FRAC = .3;                             // the card never takes more than this share of the viewport width (keeps it off the desk on narrow windows)
+const VIEW_H = .64, CARD_Y = 0;                    // world height of the viewport (smaller = bigger card); card centre at rest (screen centre)
+const MAX_W_FRAC = .36;                            // the card never takes more than this share of the viewport width (keeps it off the desk on narrow windows)
 const ANCHOR = new THREE.Vector3(0, VIEW_H / 2 + 1.1, 0); // hidden above the top edge: the strap's visible part is just its lower end
 const DROP = (ANCHOR.y - (CARD_Y + RIGID)) / 1.03; // rest length (it sits ~3% stretched under the card's weight)
 const TILE = RIBBON.h * WIDTH / RIBBON.w;          // strap length per texture repeat
