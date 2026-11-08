@@ -16,7 +16,8 @@ const HW = .192;                                   // strap end → slot centre 
 const WIDTH = .15;                                 // 21 mm strap
 const RIGID = HW + CARD.h / 2 - CARD.top;          // strap end → card centre
 const VIEW_H = .64, CARD_Y = 0;                    // world height of the viewport (smaller = bigger card); card centre at rest (screen centre)
-const MAX_W_FRAC = .36;                            // the card never takes more than this share of the viewport width (keeps it off the desk on narrow windows)
+const SIZE = .75;                                  // on-screen scale of the whole ID (1 = original). Scales pixels-per-unit only; physics and card geometry are untouched.
+const MAX_W_FRAC = .36;                           // the card never takes more than this share of the viewport width (keeps it off the desk on narrow windows)
 const ANCHOR = new THREE.Vector3(0, VIEW_H / 2 + 1.1, 0); // hidden above the top edge: the strap's visible part is just its lower end
 const DROP = (ANCHOR.y - (CARD_Y + RIGID)) / 1.03; // rest length (it sits ~3% stretched under the card's weight)
 const TILE = RIBBON.h * WIDTH / RIBBON.w;          // strap length per texture repeat
@@ -110,7 +111,7 @@ export function mountIdCard(root) {
   const visible = () => root.getClientRects().length > 0; // display:none on phones
   function layout() {
     if (!visible()) return;
-    const W = innerWidth, H = innerHeight, ppu = Math.min(H / VIEW_H, W * MAX_W_FRAC / CARD.w), viewH = H / ppu, sx = W - RIGHT_PX - CARD.w / 2 * ppu; // screen x of the strap
+    const W = innerWidth, H = innerHeight, ppu = Math.min(H / VIEW_H, W * MAX_W_FRAC / CARD.w) * SIZE, viewH = H / ppu, sx = W - RIGHT_PX - CARD.w / 2 * ppu; // screen x of the strap
     renderer.setPixelRatio(Math.min(devicePixelRatio, W * H > 2.5e6 ? 1.5 : 2)); // the canvas covers the viewport: keep huge screens cheap
     renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
     const cx = -(sx - W / 2) / ppu; camera.position.set(cx, 0, viewH / 2 / Math.tan(FOV * Math.PI / 360)); camera.lookAt(cx, 0, 0);
