@@ -23,7 +23,7 @@ export const SECTIONS = {
 
   // Laptop = personal information. `fields` is [label, value]; 8 fills the 2×4 screen grid.
   laptop: {
-    label: 'Laptop', kicker: '02 · Personal info', title: 'Personal Info',
+    label: 'Personal Info', kicker: '02 · Personal info', title: 'Personal Info',
     lead: 'Who I am, what I study and where I’m headed.',
     fields: [ // TODO: add birthday / location / anything else you want public
       ['Full name', `${PROFILE.first} ${PROFILE.last}`],
@@ -42,7 +42,7 @@ export const SECTIONS = {
   // Notebooks shelf = education. `entries` newest first (one book each on the top shelf, `todo` ones render muted);
   // `coursework` = one book each on the bottom shelf. The HTML panel shows everything.
   notebooks: {
-    label: 'Notebooks', kicker: '03 · Education', title: 'Education',
+    label: 'Education', kicker: '03 · Education', title: 'Education',
     lead: 'Where I’m studying and what I’m building on.',
     entries: [
       { tag: 'Current', title: 'BS in Information Technology', school: 'University of the Cordilleras', meta: '1st Year · Enterprise Resource Planning track' },
@@ -53,7 +53,7 @@ export const SECTIONS = {
 
   // Folder = achievements. content.js BOOK_PAGES (below) flips through them, 3 per page.
   folders: {
-    label: 'Folder', kicker: '04 · Achievements', title: 'Achievements',
+    label: 'Achievements', kicker: '04 · Achievements', title: 'Achievements',
     lead: 'Milestones and recognitions so far.',
     intro: { eyebrow: 'Achievements', text: 'A running list of milestones, awards and recognitions. Flip through the pages.' },
     items: [ // TODO: replace with your real achievements (year / title / one line / category)
@@ -65,7 +65,7 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Phone', kicker: '05 · Contact', title: 'Get in Touch',
+    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch',
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [ // TODO: LinkedIn / email / phone are still placeholders
       { label: 'GitHub', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
