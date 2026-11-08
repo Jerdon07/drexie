@@ -147,18 +147,19 @@ export const laptopTex = () => { const s = SECTIONS.laptop; return tex(1280, 800
   c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 52);
   P.traffic.forEach((k, i) => { c.fillStyle = k; c.beginPath(); c.arc(30 + i * 26, 26, 8, 0, 7); c.fill(); });
   c.fillStyle = P.mute; c.font = font(20, FONT.mono); c.fillText(s.screen.windowTitle, 130, 33);
-  c.fillStyle = P.sidebar; c.fillRect(0, 52, 220, h);
-  s.screen.nav.forEach((t, i) => { c.fillStyle = i ? P.mute : P.em; c.font = font(22, FONT.mono); c.fillText((i ? '  ' : '▸ ') + t, 24, 110 + i * 46); });
-  c.fillStyle = P.em; c.font = font(20, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 260, 110);
-  c.fillStyle = P.text; fit(c, s.title, 960, 86, FONT.sans, '700'); c.fillText(s.title, 260, 205);
-  c.fillStyle = P.mute; c.font = font(30, FONT.sans); c.fillText(s.lead, 260, 262);
-  s.fields.forEach(([k, v], i) => { // 2 × 4 grid of label/value cards
-    const x = 260 + (i % 2) * 495, y = 300 + (i >> 1) * 96;
-    c.fillStyle = P.panel; c.fillRect(x, y, 475, 84); c.fillStyle = (i >> 1) % 2 ? P.sap : P.em; c.fillRect(x, y, 5, 84);
-    c.fillStyle = P.mute; c.font = font(16, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 24, y + 30);
-    c.fillStyle = P.text; fit(c, v, 430, 28, FONT.sans, '600'); c.fillText(v, x + 24, y + 64);
+  c.fillStyle = P.em; c.font = font(20, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 60, 100);
+  c.fillStyle = P.text; fit(c, s.title, 1160, 74, FONT.sans, '700'); c.fillText(s.title, 60, 180);
+  c.fillStyle = P.mute; c.font = font(28, FONT.sans); c.fillText(s.lead, 60, 228);
+  const COLS = 3, CW = 380, CH = 70, GX = 20, GY = 12; // 3 × 5 grid of label/value cards
+  s.fields.slice(0, COLS * 5).forEach(([k, v], i) => {
+    const x = 60 + (i % COLS) * (CW + GX), y = 260 + Math.floor(i / COLS) * (CH + GY), r = Math.floor(i / COLS);
+    c.fillStyle = P.panel; c.fillRect(x, y, CW, CH); c.fillStyle = r % 2 ? P.sap : P.em; c.fillRect(x, y, 5, CH);
+    c.fillStyle = P.mute; c.font = font(15, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 20, y + 26);
+    c.fillStyle = P.text; fit(c, v, CW - 36, 24, FONT.sans, '600');
+    if (c.measureText(v).width > CW - 36) { c.font = font(18, FONT.sans, '600'); wrap(c, v, x + 20, y + 46, CW - 36, 20); } // too long for one line: wrap instead of shrinking to illegible
+    else c.fillText(v, x + 20, y + 54);
   });
-  pills(c, s.badges.map(b => b.text), 260, 716, 1260, P.emSoft, 20);
+  pills(c, s.badges.map(b => b.text), 60, 744, 1240, P.emSoft, 20);
 }); };
 
 // Desk-distance laptop screen: same canvas size/aspect as laptopTex but ~2x type, no sidebar or cards, so it stays legible when small.

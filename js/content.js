@@ -21,22 +21,27 @@ export const SECTIONS = {
     badges: [acc('BSIT'), tag('University of the Cordilleras'), acc('ERP Track'), tag('Aspiring SAP Specialist')],
   },
 
-  // Laptop = personal information. `fields` is [label, value]; 8 fills the 2×4 screen grid.
+  // Laptop = personal information. `fields` is [label, value]; the screen grid is 3 columns × 5 rows (15 slots max).
   laptop: {
     label: 'Personal Info', kicker: '02 · Personal info', title: 'Personal Info',
     lead: 'Who I am, what I study and where I’m headed.',
-    fields: [ // TODO: add birthday / location / anything else you want public
-      ['Full name', `${PROFILE.first} ${PROFILE.last}`],
-      ['Program', 'BS Information Technology'],
-      ['School', 'University of the Cordilleras'],
-      ['Year level', '1st Year'],
-      ['Specialization', 'Enterprise Resource Planning'],
-      ['Focus areas', 'ERP · SAP · Business Process Analysis'],
-      ['Career goal', 'ERP & Oracle Database Engineer'],
-      ['Status', 'Open to mentorship'],
+    fields: [ // [label, value]; the laptop screen lays these out 3 per row
+      ['Name', 'Drexie Jaira M. Litaoen'],
+      ['Gender', 'Female'],
+      ['Status', 'Single'],
+      ['Age', '18 years old'],
+      ['Birthday', '04/14/08'],
+      ['Year level', '1st year'],
+      ['Program', 'B.S. in Information Technology'],
+      ['College', 'CITCS department'],
+      ['Hobbies', 'Journaling, Reading, Gaming'],
+      ['Skills', 'Time management, Critical thinking, Good communication'],
+      ['Address', 'Sapsing, La Trinidad, Benguet'],
+      ['Email', 'leedrexie@gmail.com'],
+      ['Phone number', '09850883391'],
     ],
     badges: [acc('ERP'), acc('SAP'), tag('Business Process Analysis'), tag('Workflows')],
-    screen: { windowTitle: 'personal-info — profile.json', nav: ['Profile', 'Academics', 'Focus', 'Goals'] },
+    screen: { windowTitle: 'personal-info — profile.json' },
   },
 
   // Notebooks shelf = education. `entries` newest first (one book each on the top shelf, `todo` ones render muted);
