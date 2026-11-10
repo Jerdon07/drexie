@@ -182,7 +182,8 @@ export const laptopTex = () => { const s = SECTIONS.laptop, A = s.accent, flat =
   c.fillStyle = P.text; c.font = font(40, FONT.sans, '700'); c.fillText(s.title, X0, 148);
 
   const half = (XW - GAP) / 2, acd = flat(s.groups[1].fields);
-  label('Personal', 196); s.groups[0].fields.forEach(([k, v], i) => card(k, v, X0 + (i % 2) * (half + GAP), 208 + (i >> 1) * 80, half, A));
+  const third = (XW - 2 * GAP) / 3; // 3 columns x 2 rows: the Personal group is sized for 6 cards; a 7th would collide with the Academics label below
+  label('Personal', 196); s.groups[0].fields.forEach(([k, v], i) => card(k, v, X0 + (i % 3) * (third + GAP), 208 + ((i / 3) | 0) * 80, third, A));
   label('Academics', 384); card('Program', acd.Program, X0, 396, XW, A); card('College', acd.College, X0, 476, half, A); card('Year level', acd['Year level'], X0 + half + GAP, 476, half, A);
   let ly = 590; s.lists.forEach(l => { label(l.title, ly); ly = pills(c, l.items, X0, ly + 40, w - 44, l.title === 'Skills' ? P.sap : P.emSoft, 20) + 12; });
 }); };

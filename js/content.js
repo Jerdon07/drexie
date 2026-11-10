@@ -19,7 +19,7 @@ export const SECTIONS = {
     lead: 'Who I am, what I study and where I’m headed.',
     name: 'Drexie Jaira M. Litaoen',
     groups: [
-      { title: 'Personal', fields: [['Gender', 'Female'], ['Age', '18 years old'], ['Birthday', '04/14/08'], ['Status', 'Single']] },
+      { title: 'Personal', fields: [['Gender', 'Female'], ['Age', '18 years old'], ['Birthday', '04/14/08'], ['Status', 'Single'], ['Height', '149 cm'], ['Weight', '48 kg']] },
       { title: 'Academics', fields: [['Program', 'B.S. in Information Technology'], ['College', 'CITCS department'], ['Year level', '1st year']] },
       { title: 'Contact', fields: [['Email', 'leedrexie@gmail.com'], ['Phone number', '09850883391'], ['Address', 'Sapsing, La Trinidad, Benguet']] },
     ],
