@@ -9,22 +9,13 @@ export const PROFILE = {
 const acc = text => ({ text, accent: true });
 const tag = text => ({ text });
 
+// `accent` (NAV sections only) is the section's colour everywhere: chip dot, 3D glow ring, focus tint, screen/page textures.
+// Avoid orange/amber (the desk is brown) and give neighbouring sections clearly different hues.
 export const SECTIONS = {
-  // ORPHANED: its notebook object was removed and it is not in NAV, so nothing renders this any more. Delete or re-home it.
-  notebook: {
-    label: 'Notebook · About', kicker: '01 · About me', title: 'About Me',
-    lead: 'Curious about how complex systems work.',
-    paragraphs: [
-      'I’m a first-year BSIT student at the University of the Cordilleras, specializing in Enterprise Resource Planning. My curiosity runs from enterprise databases to the chemistry of a good pastry.',
-      'I’m learning under the guidance of tech-minded family mentors, with one goal: bridging business operations with technology to streamline enterprise systems.',
-    ],
-    badges: [acc('BSIT'), tag('University of the Cordilleras'), acc('ERP Track'), tag('Aspiring SAP Specialist')],
-  },
-
   // Laptop = personal information. `groups` drive the laptop screen (sidebar + cards); `fields` is the same data flattened
   // for the HTML panel, so nothing is typed twice. `lists` render as pill rows on the screen.
   laptop: {
-    label: 'Personal Info', kicker: '02 · Personal info', title: 'Personal Info',
+    label: 'Personal Info', kicker: '01 · Personal info', title: 'Personal Info', accent: '#3b82f6',
     lead: 'Who I am, what I study and where I’m headed.',
     name: 'Drexie Jaira M. Litaoen',
     groups: [
@@ -43,7 +34,7 @@ export const SECTIONS = {
   // Notebooks shelf = education. `entries` newest first (one book each on the top shelf, `todo` ones render muted);
   // `coursework` = one book each on the bottom shelf. The HTML panel shows everything.
   notebooks: {
-    label: 'Education', kicker: '03 · Education', title: 'Education',
+    label: 'Education', kicker: '03 · Education', title: 'Education', accent: '#a78bfa',
     lead: 'Where I’m studying and what I’m building on.',
     entries: [
       { tag: 'Current', title: 'BS in Information Technology', school: 'University of the Cordilleras', meta: '1st Year · Enterprise Resource Planning track' },
@@ -54,7 +45,7 @@ export const SECTIONS = {
 
   // Folder = achievements. content.js BOOK_PAGES (below) flips through them, 3 per page.
   folders: {
-    label: 'Achievements', kicker: '04 · Achievements', title: 'Achievements',
+    label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', accent: '#a3e635',
     lead: 'Milestones and recognitions so far.',
     intro: { eyebrow: 'Achievements', text: 'A running list of milestones, awards and recognitions. Flip through the pages.' },
     items: [ // TODO: replace with your real achievements (year / title / one line / category)
@@ -66,7 +57,7 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch',
+    label: 'Contact', kicker: '06 · Contact', title: 'Get in Touch', accent: '#34d399',
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [ // TODO: LinkedIn / email / phone are still placeholders
       { label: 'GitHub', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
@@ -76,8 +67,8 @@ export const SECTIONS = {
   },
 
   // Family frames. Photo files: images/mother.png, images/father.png (generated silhouette if missing).
-  mother: { label: 'Mother Frame', kicker: '06 · Family', title: 'Mother', lead: 'My mother.', photo: 'mother' }, // TODO: name + a few words
-  father: { label: 'Father Frame', kicker: '07 · Family', title: 'Father', lead: 'My father.', photo: 'father' }, // TODO: name + a few words
+  mother: { label: 'Mother Frame', kicker: '04 · Family', title: 'Mother', lead: 'My mother.', photo: 'mother', accent: '#f472b6' }, // TODO: name + a few words
+  father: { label: 'Father Frame', kicker: '05 · Family', title: 'Father', lead: 'My father.', photo: 'father', accent: '#22d3ee' }, // TODO: name + a few words
 
   // 3D-only objects: not in NAV, so the label is just the hover tooltip.
   coffee: { label: 'Coffee · Take a sip', action: 'play' },
@@ -98,4 +89,6 @@ const total = lists.length + 1;
 export const BOOK_PAGES = [
   { eyebrow: f.intro.eyebrow, title: f.title, text: f.intro.text, tags: [`${n} entries`, 'Click the page to flip →'] },
   ...lists.map((rows, i) => ({ eyebrow: `Achievements · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows })),
-].map((p, i) => ({ ...p, folio: `${i + 1} / ${total}` }));
+].map((p, i) => ({ ...p, folio: `${i + 1} / ${total}`, accent: f.accent }));
+// id -> accent for every section that has one (consumed by main.js, ui.js and the scene).
+export const ACCENTS = Object.fromEntries(Object.entries(SECTIONS).filter(([, v]) => v.accent).map(([k, v]) => [k, v.accent]));

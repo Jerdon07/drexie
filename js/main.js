@@ -1,9 +1,9 @@
 // Composition root: wires content, UI and (optionally) the 3D scene. No rendering logic here.
-import { SECTIONS, NAV, PROFILE } from './content.js';
+import { SECTIONS, NAV, PROFILE, ACCENTS } from './content.js';
 import { $, esc, mountChips, mountPanel, mountNav, mountTooltip } from './ui.js';
 import { toggleTheme } from './theme.js';
 
-let scene = null, current = null;
+let scene = null, current = null, chips = null; // chips is assigned after boot wiring; hover callbacks may fire earlier, so they use chips?.
 const action = id => SECTIONS[id].action;
 
 async function boot() {
@@ -12,12 +12,13 @@ async function boot() {
     if (!window.THREE) throw new Error('three.js did not load');
     const { createScene } = await import('./scene/index.js'); // dynamic: a scene failure must not kill the UI
     scene = createScene($('#c'), {
+      accents: ACCENTS,
       onPick: id => {
         if (!id) return current && focus(null);
         if (action(id) === 'play') scene.play(id);
         else if (action(id) === 'theme' || id !== current) activate(id);
       },
-      onHover: (id, x, y) => id ? tip.show(SECTIONS[id].label, x, y) : tip.hide(),
+      onHover: (id, x, y) => { chips?.setHover(id); id ? tip.show(SECTIONS[id].label, x, y, ACCENTS[id]) : tip.hide(); },
     });
   } catch (err) {
     console.warn('3D scene unavailable, using fallback UI.', err);
@@ -36,7 +37,7 @@ async function boot() {
   catch (err) { console.warn('School ID unavailable.', err); $('#portrait').hidden = true; }
 
   // Bottom nav: exactly NAV, in order. Coffee, lamp and the school ID are 3D-only (not nav targets).
-  const chips = mountChips(chipBox, NAV, activate);
+  chips = mountChips(chipBox, NAV, activate, id => scene?.highlight(id));
   const panel = mountPanel($('#panel'), () => focus(null));
   const nav = mountNav({ onBack: () => focus(null), onFlip: d => scene?.bookOf(current)?.flip(d) });
 
@@ -46,6 +47,8 @@ async function boot() {
 
   function focus(id) {
     current = id;
+    const root = document.documentElement.style; // --c drives the kicker, panel edge, Back button; unset = default emerald
+    id && ACCENTS[id] ? root.setProperty('--c', ACCENTS[id]) : root.removeProperty('--c');
     const away = !!(scene && id);
     document.documentElement.classList.toggle('focused', away);
     intro.inert = chipBox.inert = away;

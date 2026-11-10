@@ -8,13 +8,22 @@ export const esc = s => String(s).replace(/[&<>"']/g, c => ENT[c]);
 // Visible AND focusable together: opacity-0 panels must not stay in the tab order.
 const setLayer = (el, cls, on) => { el.classList.toggle(cls, on); el.inert = !on; };
 
-export function mountChips(box, ids, onSelect) {
+// Each chip owns its colour via --c (CSS does the rest). `onHover(id|null)` fires on pointer + keyboard focus so the 3D object can glow.
+// `setHover(id)` is the reverse direction: the 3D object under the pointer lights its chip (.hot).
+export function mountChips(box, ids, onSelect, onHover) {
   const btns = ids.map(id => {
     const b = document.createElement('button');
     Object.assign(b, { className: 'chip', type: 'button', textContent: SECTIONS[id].label, onclick: () => onSelect(id) });
-    b.dataset.id = id; box.append(b); return b;
+    b.dataset.id = id; b.style.setProperty('--c', SECTIONS[id].accent);
+    for (const [on, off] of [['pointerenter', 'pointerleave'], ['focus', 'blur']]) {
+      b.addEventListener(on, () => onHover?.(id)); b.addEventListener(off, () => onHover?.(null));
+    }
+    box.append(b); return b;
   });
-  return { setActive: id => btns.forEach(b => b.classList.toggle('on', b.dataset.id === id)) };
+  return {
+    setActive: id => btns.forEach(b => b.classList.toggle('on', b.dataset.id === id)),
+    setHover: id => btns.forEach(b => b.classList.toggle('hot', b.dataset.id === id)),
+  };
 }
 
 const badge = b => `<span class="b${b.accent ? ' e' : ''}">${esc(b.text)}</span>`;
@@ -58,7 +67,7 @@ export function mountNav({ onBack, onFlip }) {
 export function mountTooltip() {
   const el = $('#tip');
   return {
-    show: (text, x, y) => { el.textContent = text; el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.opacity = 1; },
+    show: (text, x, y, color) => { el.textContent = text; el.style.setProperty('--tc', color || ''); el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.opacity = 1; },
     hide: () => { el.style.opacity = 0; },
   };
 }

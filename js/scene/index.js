@@ -7,7 +7,7 @@ import { createCameraRig } from './camera.js';
 import PROPS from './props.js';
 import OBJECTS from './objects/index.js';
 
-export function createScene(canvas, { onPick, onHover }) {
+export function createScene(canvas, { onPick, onHover, accents = {} }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: true });
   renderer.setClearColor(0, 0); // CSS paints the brown gradient behind the canvas // throws w/o WebGL → main.js fallback
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -27,6 +27,21 @@ export function createScene(canvas, { onPick, onHover }) {
     g.traverse(n => { if (n.isMesh) n.castShadow = n.receiveShadow = true; });
     scene.add(g);
   });
+  /* glow rings: one flat ring on the desk under every object that has an accent. Normal blending (not additive) so it reads on
+     both the dark and the light theme; fog off so distance doesn't wash it out. Not parented to the object, so hover-scale
+     doesn't resize it and it is never raycast (picking only tests `roots`). */
+  const RING_MAX = .8, box3 = new THREE.Box3(), sz = new THREE.Vector3(), ctr = new THREE.Vector3(), glow = [];
+  objects.forEach(o => {
+    if (!accents[o.id]) return;
+    box3.setFromObject(o.group); box3.getSize(sz); box3.getCenter(ctr);
+    const r = Math.max(sz.x, sz.z) / 2 * 1.1 + .25;
+    const m = new THREE.Mesh(new THREE.RingGeometry(r - .14, r, 64),
+      new THREE.MeshBasicMaterial({ color: accents[o.id], transparent: true, opacity: 0, depthWrite: false, fog: false, side: THREE.DoubleSide }));
+    m.rotation.x = -Math.PI / 2; m.position.set(ctr.x, .04, ctr.z); m.visible = false; scene.add(m);
+    glow.push({ id: o.id, m, a: 0 });
+  });
+  let pinned = null; // set from outside (a nav chip being hovered)
+
   const paper = all.flatMap(d => d.paper || []);
   const surfaces = objects.flatMap(o => (o.surfaces || []).map(s => ({ ...s, owner: o.id })));
 
@@ -100,6 +115,12 @@ export function createScene(canvas, { onPick, onHover }) {
     rig.step(REDUCED_MOTION ? 1 : 1 - Math.exp(-dt * 3.4), !cur, mouse.x, mouse.y);
     objects.forEach(o => { const g = o.group, s = g.userData.base * (hover === o.id ? 1.07 : 1); g.scale.setScalar(g.scale.x + (s - g.scale.x) * Math.min(1, dt * 10)); });
     all.forEach(d => d.update?.(dt));
+    glow.forEach(g => { // lit by pointer hover OR chip hover, never while an object is focused
+      const want = !cur && (hover === g.id || pinned === g.id) ? RING_MAX : 0;
+      g.a += (want - g.a) * Math.min(1, dt * (REDUCED_MOTION ? 60 : 12));
+      if (Math.abs(g.a - want) < .004) g.a = want;
+      g.m.material.opacity = g.a; g.m.visible = g.a > 0;
+    });
     const target = themeTarget();
     if (LT !== target) { LT += (target - LT) * Math.min(1, dt * (REDUCED_MOTION ? 60 : 4)); if (Math.abs(LT - target) < .002) LT = target; applyTheme(LT); }
     renderer.render(scene, camera);
@@ -107,5 +128,5 @@ export function createScene(canvas, { onPick, onHover }) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else { last = performance.now(); frame(); } });
   frame();
 
-  return { focus, play: id => byId[id]?.play?.(), hasView: id => !!byId[id]?.view, bookOf: id => byId[id]?.book };
+  return { focus, highlight: id => { pinned = id; }, play: id => byId[id]?.play?.(), hasView: id => !!byId[id]?.view, bookOf: id => byId[id]?.book };
 }

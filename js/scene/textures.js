@@ -128,14 +128,14 @@ export const ribbonTex = () => { const t = tex(RW, RH, (c, w, h) => {
   c.restore();
 }); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
 
-export const phoneTex = () => { const s = SECTIONS.phone; return tex(256, 512, (c, w, h) => {
+export const phoneTex = () => { const s = SECTIONS.phone, A = s.accent; return tex(256, 512, (c, w, h) => {
   const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1a2a3a'); g.addColorStop(1, '#0b1118'); c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.fillStyle = P.text; c.textAlign = 'center'; c.font = font(64, FONT.sans, '300'); c.fillText('09:41', w / 2, 120);
   c.fillStyle = P.mute; c.font = font(15, FONT.mono); c.fillText(s.kicker.toUpperCase(), w / 2, 150);
   c.textAlign = 'left';
   s.contacts.slice(0, 4).forEach((k, i) => { // one row per contact: accent bar, label, value
     const y = 184 + i * 62;
-    c.fillStyle = 'rgba(255,255,255,.07)'; c.fillRect(24, y, 208, 52); c.fillStyle = i % 2 ? P.sap : P.em; c.fillRect(24, y, 5, 52);
+    c.fillStyle = 'rgba(255,255,255,.07)'; c.fillRect(24, y, 208, 52); c.fillStyle = A; c.fillRect(24, y, 5, 52);
     c.fillStyle = P.text; c.font = font(19, FONT.sans, '600'); c.fillText(k.label, 42, y + 22);
     c.fillStyle = P.mute; fit(c, k.value, 180, 14, FONT.mono); c.fillText(k.value, 42, y + 42);
   });
@@ -151,7 +151,7 @@ function avatar(c, cx, cy, r) { // gradient disc with initials (a photo would ne
   c.fillStyle = P.screenBg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = font(r * .85, FONT.sans, '700'); c.fillText(initials(), cx, cy + r * .04);
   c.textAlign = 'left'; c.textBaseline = 'alphabetic';
 }
-export const laptopTex = () => { const s = SECTIONS.laptop, flat = f => Object.fromEntries(f); return tex(1280, 800, (c, w, h) => {
+export const laptopTex = () => { const s = SECTIONS.laptop, A = s.accent, flat = f => Object.fromEntries(f); return tex(1280, 800, (c, w, h) => {
   c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 52);
   P.traffic.forEach((k, i) => { c.fillStyle = k; c.beginPath(); c.arc(30 + i * 26, 26, 8, 0, 7); c.fill(); });
   c.fillStyle = P.mute; c.font = font(20, FONT.mono); c.fillText(s.screen.windowTitle, 130, 33);
@@ -175,33 +175,33 @@ export const laptopTex = () => { const s = SECTIONS.laptop, flat = f => Object.f
     c.fillStyle = P.mute; c.font = font(14, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 20, yy + 24);
     c.fillStyle = P.text; fit(c, v, cw - 40, 24, FONT.sans, '600'); c.fillText(v, x + 20, yy + 52);
   };
-  c.fillStyle = P.em; c.font = font(18, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), X0, 102);
+  c.fillStyle = A; c.font = font(18, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), X0, 102);
   c.fillStyle = P.text; c.font = font(40, FONT.sans, '700'); c.fillText(s.title, X0, 148);
 
   const half = (XW - GAP) / 2, acd = flat(s.groups[1].fields);
-  label('Personal', 196); s.groups[0].fields.forEach(([k, v], i) => card(k, v, X0 + (i % 2) * (half + GAP), 208 + (i >> 1) * 80, half, i >> 1 ? P.sap : P.em));
-  label('Academics', 384); card('Program', acd.Program, X0, 396, XW, P.em); card('College', acd.College, X0, 476, half, P.sap); card('Year level', acd['Year level'], X0 + half + GAP, 476, half, P.sap);
+  label('Personal', 196); s.groups[0].fields.forEach(([k, v], i) => card(k, v, X0 + (i % 2) * (half + GAP), 208 + (i >> 1) * 80, half, A));
+  label('Academics', 384); card('Program', acd.Program, X0, 396, XW, A); card('College', acd.College, X0, 476, half, A); card('Year level', acd['Year level'], X0 + half + GAP, 476, half, A);
   let ly = 590; s.lists.forEach(l => { label(l.title, ly); ly = pills(c, l.items, X0, ly + 40, w - 44, l.title === 'Skills' ? P.sap : P.emSoft, 20) + 12; });
 }); };
 
 // Desk-distance laptop screen: same canvas size/aspect as laptopTex but ~2x type, no sidebar or cards, so it stays legible when small.
-export const laptopPreviewTex = () => { const s = SECTIONS.laptop; return sharp(tex(1280, 800, (c, w, h) => {
+export const laptopPreviewTex = () => { const s = SECTIONS.laptop, A = s.accent; return sharp(tex(1280, 800, (c, w, h) => {
   c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); c.fillStyle = P.panel; c.fillRect(0, 0, w, 84);
   P.traffic.forEach((k, i) => { c.fillStyle = k; c.beginPath(); c.arc(50 + i * 42, 42, 13, 0, 7); c.fill(); });
   c.fillStyle = P.mute; c.font = font(32, FONT.mono); c.fillText(s.screen.windowTitle, 190, 53);
   avatar(c, 270, 440, 150);
-  c.fillStyle = P.em; c.font = font(36, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 500, 320);
+  c.fillStyle = A; c.font = font(36, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 500, 320);
   c.fillStyle = P.text; c.font = font(92, FONT.sans, '700'); const y = wrap(c, s.name.replace(/ M\./, ''), 500, 420, 740, 100);
-  c.fillStyle = P.em; c.fillRect(500, y - 40, 160, 8); c.fillStyle = P.sap; c.fillRect(670, y - 40, 80, 8);
+  c.fillStyle = A; c.fillRect(500, y - 40, 160, 8); c.fillStyle = P.sap; c.fillRect(670, y - 40, 80, 8);
   pills(c, s.badges.slice(0, 2).map(b => b.text), 500, y + 60, 1220, P.emSoft, 40);
 })); };
 
 export const pageTex = p => tex(1024, 732, (c, w, h) => {
-  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = P.pine; c.fillRect(0, 0, 18, h);
+  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = p.accent || P.pine; c.fillRect(0, 0, 18, h);
   c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), 80, p.rows ? 76 : 100);
   if (p.rows) p.rows.forEach((r, i) => { // achievement cards: number, year · category, title, one-liner
     const y = 106 + i * 190;
-    c.fillStyle = 'rgba(29,37,48,.06)'; c.fillRect(60, y, 904, 172); c.fillStyle = P.pine; c.fillRect(60, y, 8, 172);
+    c.fillStyle = 'rgba(29,37,48,.06)'; c.fillRect(60, y, 904, 172); c.fillStyle = p.accent || P.pine; c.fillRect(60, y, 8, 172);
     c.fillStyle = P.folio; c.font = font(64, FONT.serif, '700'); c.fillText(String(r.n).padStart(2, '0'), 96, y + 100);
     c.fillStyle = P.pine; c.font = font(22, FONT.mono, '600'); c.fillText(`${r.year} · ${r.tag}`.toUpperCase(), 196, y + 44);
     c.fillStyle = P.ink; fit(c, r.title, 740, 38, FONT.serif, '700'); c.fillText(r.title, 196, y + 92);
@@ -217,7 +217,7 @@ export const pageTex = p => tex(1024, 732, (c, w, h) => {
 
 // Desk-distance cover page for the folders flip-book (page 0 only): big title + eyebrow + tag, no body copy.
 export const pagePreviewTex = p => sharp(tex(1024, 732, (c, w, h) => {
-  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = P.pine; c.fillRect(0, 0, 28, h);
+  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = p.accent || P.pine; c.fillRect(0, 0, 28, h);
   c.fillStyle = P.pine; c.font = font(44, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), 90, 150);
   c.fillStyle = P.ink; fit(c, p.title, 860, 200, FONT.serif, '700'); c.fillText(p.title, 90, 380);
   c.fillStyle = P.ink; c.fillRect(90, 440, 160, 8);
