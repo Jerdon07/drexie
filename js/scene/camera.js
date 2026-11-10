@@ -31,6 +31,7 @@ export function createCameraRig(camera) {
         if (v.top) { // tall sheet: fit its WIDTH to the screen and frame only the top `v.top` units; the rest runs off the bottom.
           d = Math.max(v.w / (.84 * aspect), v.top / (VIS * (1 - TOP_PAD - BOTTOM_PAD))); // wider than tall screens fall back to showing all of `top`
           s = Math.max(0, v.h / 2 - VIS * d * (.5 - TOP_PAD)); // slide the view toward the top edge until the sheet starts TOP_PAD from the screen top
+          s = Math.max(s - (v.scroll || 0), Math.min(0, VIS * d / 2 - v.h / 2)); // view.scroll slides down the sheet, but never past its bottom edge (step() eases the move)
         }
         pos.set(p.x + ux * s, v.y + d, p.z + uz * s); target.set(p.x + ux * s, v.y, p.z + uz * s); up.set(ux, 0, uz); return;
       }

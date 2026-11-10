@@ -60,7 +60,7 @@ export function mountNav({ onBack, onFlip }) {
   return {
     showBack: on => setLayer(back, 'on', on),
     showBook: on => setLayer(book, 'on', on),
-    setPage: (i, n) => { pg.textContent = `${i + 1} / ${n}`; },
+    setPage: (i, n) => { pg.textContent = `${i + 1} / ${n}`; $('#pv').disabled = i <= 0; $('#nx').disabled = i >= n - 1; },
   };
 }
 

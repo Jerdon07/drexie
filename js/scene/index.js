@@ -71,6 +71,7 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
     rig.aim(id ? byId[id] : null, aspect);
   }
   skin(); // apply previews on load (must run after `cur` is declared)
+  objects.forEach(o => { if (o.book) o.book.onMove = () => { if (cur === o.id) rig.aim(o, aspect); }; }); // e.g. the sheet slid: re-aim; the rig eases there
 
   /* resize */
   function resize() {

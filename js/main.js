@@ -63,8 +63,8 @@ async function boot() {
   addEventListener('keydown', e => {
     if (e.key === 'Escape') focus(null);
     const book = scene?.bookOf(current);
-    if (book && e.key === 'ArrowRight') book.flip(1);
-    if (book && e.key === 'ArrowLeft') book.flip(-1);
+    if (book && (e.key === 'ArrowDown' || e.key === 'ArrowRight')) book.flip(1);
+    if (book && (e.key === 'ArrowUp' || e.key === 'ArrowLeft')) book.flip(-1);
   });
 }
 boot();

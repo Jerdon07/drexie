@@ -216,32 +216,35 @@ export const certCoverTex = () => sheetFace(tex(SHEET.px, SHEET_H, (c, w, h) => 
   pills(c, [`${n} certificates`, 'Click to open'], 90, 600, w - 60, P.pine, 44);
 }));
 
-// Focused face: header + one page of certificate cards (image tile + title). Repainted by t.redraw(i) on page change and whenever an
-// image file finishes loading (tiles show the generated placeholder until then).
-export const certSheetTex = (start = 0) => {
+// Focused face: header + three certificate cards per page, one block per page, SHEET.pitch px apart down the sheet. The camera shows one
+// block at a time and slides down to the next (objects/folders.js). Repainted whenever an image file finishes loading
+// (tiles show the generated placeholder until then).
+export const certSheetTex = () => {
   const W = SHEET.px, cv = Object.assign(document.createElement('canvas'), { width: W, height: SHEET_H }), c = cv.getContext('2d');
   const t = sheetFace(new THREE.CanvasTexture(cv)), tiles = {};
-  let page = start;
   const tile = id => tiles[id] ||= (() => { const { canvas, ready } = portraitCanvas(id, TILE.w, TILE.h); ready.then(ok => ok && t.redraw()); return canvas; })();
-  t.redraw = (i = page) => {
-    page = i; const p = BOOK_PAGES[i], pad = 70, gap = 30, cw = (W - 2 * pad - 2 * gap) / 3, ch = cw * TILE.h / TILE.w, y0 = 226;
+  t.redraw = () => {
+    const pad = 70, gap = 30, cw = (W - 2 * pad - 2 * gap) / 3, ch = cw * TILE.h / TILE.w;
     c.imageSmoothingQuality = 'high'; c.textAlign = 'left';
-    c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = p.accent; c.fillRect(0, 0, 18, SHEET_H);
-    c.fillStyle = P.pine; c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), pad, 84);
-    c.fillStyle = P.folio; c.textAlign = 'right'; c.fillText(p.folio, W - pad, 84); c.textAlign = 'left';
-    c.fillStyle = P.ink; c.font = font(64, FONT.serif, '700'); c.fillText(SECTIONS.folders.title, pad, 160);
-    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(pad, 188, W - 2 * pad, 2); c.fillStyle = p.accent; c.fillRect(pad, 185, 160, 8);
-    p.rows.forEach((r, k) => {
-      const x = pad + k * (cw + gap);
-      c.drawImage(tile(r.image), x, y0, cw, ch);
-      c.strokeStyle = 'rgba(29,37,48,.25)'; c.lineWidth = 2; c.strokeRect(x, y0, cw, ch);
-      c.fillStyle = p.accent; c.fillRect(x, y0, 66, 42);
-      c.fillStyle = P.ink; c.font = font(24, FONT.mono, '700'); c.textAlign = 'center'; c.fillText(String(r.n).padStart(2, '0'), x + 33, y0 + 29); c.textAlign = 'left';
-      c.font = font(30, FONT.serif, '700'); wrap(c, r.title, x, y0 + ch + 48, cw, 36, 2);
+    c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = BOOK_PAGES[0].accent; c.fillRect(0, 0, 18, SHEET_H);
+    BOOK_PAGES.forEach((p, b) => {
+      const o = b * SHEET.pitch, y0 = o + 226; // every block repeats the same header so each camera position looks the same
+      c.fillStyle = P.pine; c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), pad, o + 84);
+      c.fillStyle = P.folio; c.textAlign = 'right'; c.fillText(p.folio, W - pad, o + 84); c.textAlign = 'left';
+      c.fillStyle = P.ink; c.font = font(64, FONT.serif, '700'); c.fillText(SECTIONS.folders.title, pad, o + 160);
+      c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(pad, o + 188, W - 2 * pad, 2); c.fillStyle = p.accent; c.fillRect(pad, o + 185, 160, 8);
+      p.rows.forEach((r, k) => {
+        const x = pad + k * (cw + gap);
+        c.drawImage(tile(r.image), x, y0, cw, ch);
+        c.strokeStyle = 'rgba(29,37,48,.25)'; c.lineWidth = 2; c.strokeRect(x, y0, cw, ch);
+        c.fillStyle = p.accent; c.fillRect(x, y0, 66, 42);
+        c.fillStyle = P.ink; c.font = font(24, FONT.mono, '700'); c.textAlign = 'center'; c.fillText(String(r.n).padStart(2, '0'), x + 33, y0 + 29); c.textAlign = 'left';
+        c.font = font(30, FONT.serif, '700'); wrap(c, r.title, x, y0 + ch + 48, cw, 36, 2);
+      });
     });
     t.needsUpdate = true;
   };
-  BOOK_PAGES.forEach(p => p.rows.forEach(r => tile(r.image))); // start every image loading now so flipping is instant
+  BOOK_PAGES.forEach(p => p.rows.forEach(r => tile(r.image))); // start every image loading now
   t.redraw(); return t;
 };
 

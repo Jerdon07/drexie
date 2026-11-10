@@ -9,6 +9,7 @@ html,body{height:100%;margin:0;overflow:hidden;color:var(--tx);font-family:var(-
 /* buttons / chips */
 .btn{font-family:inherit;font-size:.92rem;font-weight:600;padding:12px 24px;border-radius:999px;border:1px solid var(--bd);background:rgba(255,255,255,.04);color:var(--tx);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px -8px var(--c);border-color:var(--c)}
+.btn:disabled{opacity:.35;cursor:default;pointer-events:none}
 #hback,#bnav .btn,.chip{backdrop-filter:blur(10px);background:var(--surf)}
 /* --c is set inline per chip (ui.js). The dot is always visible so the colour is learnable before any interaction. */
 .chip{--ct:var(--c);display:inline-flex;align-items:center;gap:8px;font:500 .9rem var(--mono);padding:10px 18px;border-radius:999px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s}
