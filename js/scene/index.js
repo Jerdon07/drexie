@@ -1,4 +1,4 @@
-// Scene runtime: renderer, loop, picking, focus. Knows nothing about *which* objects exist.
+// Scene runtime: renderer, loop, picking, focus. Camera near = .5 (closest focus distance is ~1.9): more depth precision, fewer z-fight artefacts. Knows nothing about *which* objects exist.
 import THREE from './three.js';
 import { REDUCED_MOTION, FOG } from '../config.js';
 import { themeTarget } from '../theme.js';
@@ -13,7 +13,7 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; // soft shadow edges
   const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0, FOG.near, FOG.far);
-  const camera = new THREE.PerspectiveCamera(50, 1, .1, 80), rig = createCameraRig(camera);
+  const camera = new THREE.PerspectiveCamera(50, 1, .5, 80), rig = createCameraRig(camera);
 
   const props = PROPS.map(b => b()), objects = OBJECTS.map(b => b()), all = [...props, ...objects], byId = {};
   props.forEach(p => {
@@ -34,10 +34,10 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
   objects.forEach(o => {
     if (!accents[o.id]) return;
     box3.setFromObject(o.group); box3.getSize(sz); box3.getCenter(ctr);
-    const r = Math.max(sz.x, sz.z) / 2 * 1.1 + .25;
-    const m = new THREE.Mesh(new THREE.RingGeometry(r - .14, r, 64),
+    const rx = sz.x / 2 * 1.1 + .25, rz = sz.z / 2 * 1.1 + .25; // an ellipse that follows the object's footprint, not a loose circle
+    const m = new THREE.Mesh(new THREE.RingGeometry(rx - .14, rx, 64),
       new THREE.MeshBasicMaterial({ color: accents[o.id], transparent: true, opacity: 0, depthWrite: false, fog: false, side: THREE.DoubleSide }));
-    m.rotation.x = -Math.PI / 2; m.position.set(ctr.x, .04, ctr.z); m.visible = false; scene.add(m);
+    m.rotation.x = -Math.PI / 2; m.scale.y = rz / rx; m.position.set(ctr.x, .03, ctr.z); m.visible = false; scene.add(m); // y .03: above the pad (.02), below sheet/object tops
     glow.push({ id: o.id, m, a: 0 });
   });
   let pinned = null; // set from outside (a nav chip being hovered)

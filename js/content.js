@@ -43,15 +43,18 @@ export const SECTIONS = {
     coursework: ['ERP fundamentals', 'SAP ecosystem', 'Business process analysis', 'Relational design', 'SQL', 'Normalization'],
   },
 
-  // Folder = achievements. content.js BOOK_PAGES (below) flips through them, 3 per page.
+  // Folder = achievements: ONE portrait resume sheet. The camera frames only its top, so `items` are shown PER_PAGE at a time (pager / arrow keys).
+  // `image` = an id from config.js IMAGES (drop images/certN.jpg or .png); a generated placeholder shows until the file exists.
   folders: {
     label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', accent: '#a3e635',
-    lead: 'Milestones and recognitions so far.',
-    intro: { eyebrow: 'Achievements', text: 'A running list of milestones, awards and recognitions. Flip through the pages.' },
-    items: [ // TODO: replace with your real achievements (year / title / one line / category)
-      { year: 'TODO', title: 'Achievement title', text: 'One line on what it was and why it mattered.', tag: 'Category' },
-      { year: 'TODO', title: 'Achievement title', text: 'One line on what it was and why it mattered.', tag: 'Category' },
-      { year: 'TODO', title: 'Achievement title', text: 'One line on what it was and why it mattered.', tag: 'Category' },
+    lead: 'Certificates and recognitions so far.',
+    items: [ // TODO: replace the titles with your real certificates
+      { title: 'TODO: certificate title', image: 'cert1' },
+      { title: 'TODO: certificate title', image: 'cert2' },
+      { title: 'TODO: certificate title', image: 'cert3' },
+      { title: 'TODO: certificate title', image: 'cert4' },
+      { title: 'TODO: certificate title', image: 'cert5' },
+      { title: 'TODO: certificate title', image: 'cert6' },
     ],
   },
 
@@ -82,13 +85,10 @@ SECTIONS.laptop.fields = [['Name', SECTIONS.laptop.name], ...SECTIONS.laptop.gro
 // Adding a section = add it above + a file in js/scene/objects/ + an id here.
 export const NAV = ['laptop', 'folders', 'notebooks', 'mother', 'father', 'phone'];
 
-// Derived once: flip-book pages (cover + achievements, PER_PAGE each) so nothing is typed twice.
+// Derived once: sheet pages (PER_PAGE certificates each) so nothing is typed twice. No cover page: the desk-distance face is drawn from SECTIONS.folders.
 const f = SECTIONS.folders, PER_PAGE = 3, n = f.items.length;
 const lists = Array.from({ length: Math.ceil(n / PER_PAGE) }, (_, i) => f.items.slice(i * PER_PAGE, (i + 1) * PER_PAGE).map((it, j) => ({ ...it, n: i * PER_PAGE + j + 1 })));
-const total = lists.length + 1;
-export const BOOK_PAGES = [
-  { eyebrow: f.intro.eyebrow, title: f.title, text: f.intro.text, tags: [`${n} entries`, 'Click the page to flip →'] },
-  ...lists.map((rows, i) => ({ eyebrow: `Achievements · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows })),
-].map((p, i) => ({ ...p, folio: `${i + 1} / ${total}`, accent: f.accent }));
+export const BOOK_PAGES = lists.map((rows, i) => ({ eyebrow: `Certificates · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows, folio: `${i + 1} / ${lists.length}`, accent: f.accent }));
+
 // id -> accent for every section that has one (consumed by main.js, ui.js and the scene).
 export const ACCENTS = Object.fromEntries(Object.entries(SECTIONS).filter(([, v]) => v.accent).map(([k, v]) => [k, v.accent]));

@@ -20,7 +20,12 @@ export const IMAGES = {
   mother:  { file: 'mother.png',  tint: '#d4789b' },
   father:  { file: 'father.png',  tint: '#4f86d6' },
   profile: { file: 'profile.png', tint: '#34d399' },
+  // Certificates (Achievements sheet): drop images/cert1.jpg … cert6.jpg (.png works too). Until then a landscape placeholder is drawn.
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map(n => [`cert${n}`, { file: [`cert${n}.jpg`, `cert${n}.png`], tint: '#8a8374', kind: 'cert' }])),
 };
+// Achievements sheet: world size (A4 ratio), texture width in px, and the fraction of its height that carries content.
+// Only the top `content` part is ever framed by the camera (scene/camera.js, view.top), so nothing is drawn below it.
+export const SHEET = { w: 1.8, h: 2.55, px: 1240, content: .34 };
 export const FOG = { near: 14, far: 34 };
 // Smoothness knobs. ROUND = edge radius (world units) for boxes/cylinders; ENV.intensity = how strongly the procedural
 // reflection environment lights materials (metals scale it up automatically). If everything looks washed out, lower it.

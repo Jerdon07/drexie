@@ -2,6 +2,9 @@ import THREE from './three.js';
 import { HOME_LIFT, HOME_SHIFT } from '../config.js';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MAX_YAW = .9, PITCH = [-.2, .4]; // ±~52° left/right; never reaches the back of the desk
+// Tall-sheet framing (view.top). VIS = visible height per unit of camera distance (fov 50° in scene/index.js); the pads keep the
+// sheet clear of the Back button (top) and the pager (bottom).
+const VIS = 2 * Math.tan(25 * Math.PI / 180), TOP_PAD = .09, BOTTOM_PAD = .1;
 
 // Owns where the camera wants to be (aim), the user's orbit offset (rotate), and the easing (step).
 export function createCameraRig(camera) {
@@ -23,8 +26,13 @@ export function createCameraRig(camera) {
       }
       const p = def.group.position;
       if (v?.type === 'flat') { // look straight down at a sheet
-        const ry = def.group.rotation.y, d = Math.max(v.h / .8, v.w / (.84 * aspect));
-        pos.set(p.x, v.y + d, p.z); target.set(p.x, v.y, p.z); up.set(-Math.sin(ry), 0, -Math.cos(ry)); return;
+        const ry = def.group.rotation.y, ux = -Math.sin(ry), uz = -Math.cos(ry); // world direction of the sheet's top edge
+        let d = Math.max(v.h / .8, v.w / (.84 * aspect)), s = 0;
+        if (v.top) { // tall sheet: fit its WIDTH to the screen and frame only the top `v.top` units; the rest runs off the bottom.
+          d = Math.max(v.w / (.84 * aspect), v.top / (VIS * (1 - TOP_PAD - BOTTOM_PAD))); // wider than tall screens fall back to showing all of `top`
+          s = Math.max(0, v.h / 2 - VIS * d * (.5 - TOP_PAD)); // slide the view toward the top edge until the sheet starts TOP_PAD from the screen top
+        }
+        pos.set(p.x + ux * s, v.y + d, p.z + uz * s); target.set(p.x + ux * s, v.y, p.z + uz * s); up.set(ux, 0, uz); return;
       }
       const d = (def.dist || 4.6) * (wide ? 1 : 1.25), ox = wide ? d * .36 : 0; // default 3/4 orbit framing
       pos.set(p.x + ox, p.y + d * (def.rise ?? .55), p.z + d); target.set(p.x + ox, def.lookY ?? p.y + (wide ? .35 : -.5), p.z);

@@ -70,6 +70,8 @@ html.focused #portrait{opacity:0}
 .kv dd{margin:0;font-size:.9rem;color:var(--tx);overflow-wrap:anywhere}
 .ph{margin:0 0 16px;border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
 .ph img{display:block;width:100%;height:min(280px,30vh);object-fit:cover;object-position:center 20%}
+.ph.cert{margin:0 0 10px}
+.ph.cert img{height:auto;aspect-ratio:7/5;object-fit:contain;background:#f1ece0} /* certificates are shown whole, never cropped */
 
 /* fallback when WebGL / three.js is unavailable */
 .no-3d #intro{left:max(28px,env(safe-area-inset-left,0px));right:calc(min(460px,42vw) + 56px);top:calc(env(safe-area-inset-top,0px) + 7vh);width:auto;transform:none;text-align:left;pointer-events:auto}

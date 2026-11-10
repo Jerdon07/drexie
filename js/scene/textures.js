@@ -1,14 +1,17 @@
 // Canvas textures. All text comes from content.js; all colours from config.js.
 import THREE from './three.js';
-import { SECTIONS, PROFILE } from '../content.js';
-import { P, FONT, font, BARS } from '../config.js';
+import { SECTIONS, PROFILE, BOOK_PAGES } from '../content.js';
+import { P, FONT, font, BARS, SHEET } from '../config.js';
+import { portraitCanvas } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
 const sharp = t => (t.anisotropy = 4, t); // keeps small/oblique text from shimmering
-function wrap(c, t, x, y, w, lh) {
-  let l = '';
-  for (const s of t.split(' ')) { const n = l ? l + ' ' + s : s; if (l && c.measureText(n).width > w) { c.fillText(l, x, y); y += lh; l = s; } else l = n; }
-  c.fillText(l, x, y); return y + lh;
+function wrap(c, t, x, y, w, lh, max = 1e9) { // `max` caps the line count and ellipsizes the last line
+  const lines = []; let l = '';
+  for (const s of t.split(' ')) { const n = l ? l + ' ' + s : s; if (l && c.measureText(n).width > w) { lines.push(l); l = s; } else l = n; }
+  lines.push(l);
+  if (lines.length > max) { lines.length = max; let e = lines[max - 1] + '…'; while (e.length > 1 && c.measureText(e).width > w) e = e.slice(0, -2) + '…'; lines[max - 1] = e; }
+  lines.forEach((s, k) => c.fillText(s, x, y + k * lh)); return y + lines.length * lh;
 }
 // Shrinks `size` until `t` fits in `w`, leaves c.font set to the result.
 function fit(c, t, w, size, family, style = '') {
@@ -196,33 +199,51 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop, A = s.accent;
   pills(c, s.badges.slice(0, 2).map(b => b.text), 500, y + 60, 1220, P.emSoft, 40);
 })); };
 
-export const pageTex = p => tex(1024, 732, (c, w, h) => {
-  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = p.accent || P.pine; c.fillRect(0, 0, 18, h);
-  c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), 80, p.rows ? 76 : 100);
-  if (p.rows) p.rows.forEach((r, i) => { // achievement cards: number, year · category, title, one-liner
-    const y = 106 + i * 190;
-    c.fillStyle = 'rgba(29,37,48,.06)'; c.fillRect(60, y, 904, 172); c.fillStyle = p.accent || P.pine; c.fillRect(60, y, 8, 172);
-    c.fillStyle = P.folio; c.font = font(64, FONT.serif, '700'); c.fillText(String(r.n).padStart(2, '0'), 96, y + 100);
-    c.fillStyle = P.pine; c.font = font(22, FONT.mono, '600'); c.fillText(`${r.year} · ${r.tag}`.toUpperCase(), 196, y + 44);
-    c.fillStyle = P.ink; fit(c, r.title, 740, 38, FONT.serif, '700'); c.fillText(r.title, 196, y + 92);
-    c.fillStyle = P.sub; c.font = font(24, FONT.sans); wrap(c, r.text, 196, y + 128, 740, 30);
-  });
-  else {
-    c.fillStyle = P.ink; c.font = font(80, FONT.serif, '700'); let y = wrap(c, p.title, 80, 200, 860, 92);
-    c.fillStyle = P.sub; c.font = font(32, FONT.sans); y = wrap(c, p.text, 80, y + 20, 820, 46);
-    pills(c, p.tags, 80, y + 34, 960, P.pine, 24);
-  }
-  c.fillStyle = P.folio; c.font = font(22, FONT.mono); c.fillText(p.folio, w - 130, h - 40);
-});
+/* ---- Achievements sheet: ONE portrait (A4) sheet. The camera frames only its top SHEET.content part, so that is the only part that
+   carries content; the rest stays blank paper. Both faces go on the sheet box's top face (objects/folders.js). ---- */
+const SHEET_H = Math.round(SHEET.px * SHEET.h / SHEET.w);
+const TILE = { w: 692, h: 488 }; // certificate image tile (canvas px, ~7:5); drawn at about half size on the sheet
+// The sheet's top is the box's -z edge, but roundedBoxGeo runs v along +z: don't flip, so canvas row 0 lands at -z (top of the sheet).
+const sheetFace = t => (t.flipY = false, sharp(t));
 
-// Desk-distance cover page for the folders flip-book (page 0 only): big title + eyebrow + tag, no body copy.
-export const pagePreviewTex = p => sharp(tex(1024, 732, (c, w, h) => {
-  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = p.accent || P.pine; c.fillRect(0, 0, 28, h);
-  c.fillStyle = P.pine; c.font = font(44, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), 90, 150);
-  c.fillStyle = P.ink; fit(c, p.title, 860, 200, FONT.serif, '700'); c.fillText(p.title, 90, 380);
-  c.fillStyle = P.ink; c.fillRect(90, 440, 160, 8);
-  pills(c, p.tags, 90, 560, 980, P.pine, 40);
+// Desk-distance face: big title + count, legible while the whole sheet is small on the desk.
+export const certCoverTex = () => sheetFace(tex(SHEET.px, SHEET_H, (c, w, h) => {
+  const s = SECTIONS.folders, n = s.items.length;
+  c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = s.accent; c.fillRect(0, 0, 28, h);
+  c.fillStyle = P.pine; c.font = font(50, FONT.mono, '600'); c.fillText('CERTIFICATES', 90, 150);
+  c.fillStyle = P.ink; fit(c, s.title, w - 160, 200, FONT.serif, '700'); c.fillText(s.title, 90, 380);
+  c.fillStyle = s.accent; c.fillRect(90, 440, 180, 10);
+  pills(c, [`${n} certificates`, 'Click to open'], 90, 600, w - 60, P.pine, 44);
 }));
+
+// Focused face: header + one page of certificate cards (image tile + title). Repainted by t.redraw(i) on page change and whenever an
+// image file finishes loading (tiles show the generated placeholder until then).
+export const certSheetTex = (start = 0) => {
+  const W = SHEET.px, cv = Object.assign(document.createElement('canvas'), { width: W, height: SHEET_H }), c = cv.getContext('2d');
+  const t = sheetFace(new THREE.CanvasTexture(cv)), tiles = {};
+  let page = start;
+  const tile = id => tiles[id] ||= (() => { const { canvas, ready } = portraitCanvas(id, TILE.w, TILE.h); ready.then(ok => ok && t.redraw()); return canvas; })();
+  t.redraw = (i = page) => {
+    page = i; const p = BOOK_PAGES[i], pad = 70, gap = 30, cw = (W - 2 * pad - 2 * gap) / 3, ch = cw * TILE.h / TILE.w, y0 = 226;
+    c.imageSmoothingQuality = 'high'; c.textAlign = 'left';
+    c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = p.accent; c.fillRect(0, 0, 18, SHEET_H);
+    c.fillStyle = P.pine; c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), pad, 84);
+    c.fillStyle = P.folio; c.textAlign = 'right'; c.fillText(p.folio, W - pad, 84); c.textAlign = 'left';
+    c.fillStyle = P.ink; c.font = font(64, FONT.serif, '700'); c.fillText(SECTIONS.folders.title, pad, 160);
+    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(pad, 188, W - 2 * pad, 2); c.fillStyle = p.accent; c.fillRect(pad, 185, 160, 8);
+    p.rows.forEach((r, k) => {
+      const x = pad + k * (cw + gap);
+      c.drawImage(tile(r.image), x, y0, cw, ch);
+      c.strokeStyle = 'rgba(29,37,48,.25)'; c.lineWidth = 2; c.strokeRect(x, y0, cw, ch);
+      c.fillStyle = p.accent; c.fillRect(x, y0, 66, 42);
+      c.fillStyle = P.ink; c.font = font(24, FONT.mono, '700'); c.textAlign = 'center'; c.fillText(String(r.n).padStart(2, '0'), x + 33, y0 + 29); c.textAlign = 'left';
+      c.font = font(30, FONT.serif, '700'); wrap(c, r.title, x, y0 + ch + 48, cw, 36, 2);
+    });
+    t.needsUpdate = true;
+  };
+  BOOK_PAGES.forEach(p => p.rows.forEach(r => tile(r.image))); // start every image loading now so flipping is instant
+  t.redraw(); return t;
+};
 
 // Procedural oak: 4 planks, wavy grain lines, occasional knots. Seeded so it's identical every load.
 export const woodTex = () => { let s = 7; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;
