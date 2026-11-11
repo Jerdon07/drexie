@@ -1,4 +1,5 @@
 import THREE from './three.js';
+import { hex } from '../colors.js';
 import { mat, box } from './primitives.js';
 
 const clamp01 = t => Math.max(0, Math.min(1, t)), ease = t => t * t * (3 - 2 * t), PI = Math.PI, FLIP_SECONDS = .9;
@@ -15,7 +16,7 @@ const setMap = (m, tex) => { if (m.map !== tex) { const first = !m.map; m.map = 
 export function makeTome({ w: W, l: L, t: T, color, spineMap }) {
   const tc = .026, Tp = T - 2 * tc, pw = W - .04, pl = L - .06, eps = .006, X0 = -W / 2, base = -T / 2 + tc;
   const group = new THREE.Group();
-  const board = mat(color, { roughness: .8 }), edge = mat(0xe8e4d8, { roughness: .9 }), coverOut = mat(0xffffff, { roughness: .8 }), coverIn = mat(0x8a8478, { roughness: .95 }); // endpaper: tinted down and desaturated so the warm key light doesn't blow it out to bright yellow
+  const board = mat(color, { roughness: .8 }), edge = mat(hex('--page-edge'), { roughness: .9 }), coverOut = mat(0xffffff, { roughness: .8 }), coverIn = mat(hex('--cover-in'), { roughness: .95 }); // endpaper: tinted down and desaturated so the warm key light doesn't blow it out to bright yellow
   const pgL = new THREE.MeshBasicMaterial({ color: 0xffffff }), pgR = pgL.clone(), leafF = pgL.clone(), leafB = pgL.clone(); // unlit, like the other readable surfaces
   const paper = [pgL, pgR, leafF, leafB]; // the scene dims these with the theme
 

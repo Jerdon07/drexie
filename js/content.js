@@ -1,3 +1,4 @@
+import { hex } from './colors.js';
 // All copy lives here and nowhere else. Panel HTML and 3D textures both read from it.
 // TODO markers = facts I don't have yet. Replace them; nothing else needs to change.
 export const PROFILE = {
@@ -15,7 +16,7 @@ export const SECTIONS = {
   // Laptop = personal information. `groups` drive the laptop screen (sidebar + cards); `fields` is the same data flattened
   // for the HTML panel, so nothing is typed twice. `lists` render as pill rows on the screen.
   laptop: {
-    label: 'Personal Info', kicker: '01 · Personal info', title: 'Personal Info', accent: '#60a5fa',
+    label: 'Personal Info', kicker: '01 · Personal info', title: 'Personal Info', get accent() { return hex('--acc-laptop'); },
     lead: 'Who I am, what I study and where I’m headed.',
     name: 'Drexie Jaira M. Litaoen',
     groups: [
@@ -34,7 +35,7 @@ export const SECTIONS = {
   // Notebooks shelf = education. `entries` newest first (one book each on the top shelf, `todo` ones render muted);
   // `coursework` = one book each on the bottom shelf. The HTML panel shows everything.
   notebooks: {
-    label: 'Education', kicker: '03 · Education', title: 'Education', accent: '#a78bfa',
+    label: 'Education', kicker: '03 · Education', title: 'Education', get accent() { return hex('--acc-notebooks'); },
     lead: 'Where I’m studying and what I’m building on.',
     entries: [
       { tag: 'Current', title: 'BS in Information Technology', school: 'University of the Cordilleras', meta: '1st Year · Enterprise Resource Planning track' },
@@ -46,7 +47,7 @@ export const SECTIONS = {
   // Folder = achievements: ONE portrait resume sheet. The camera frames only its top, so `items` are shown PER_PAGE at a time (pager / arrow keys).
   // `image` = an id from config.js IMAGES (drop images/certN.jpg or .png); a generated placeholder shows until the file exists.
   folders: {
-    label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', accent: '#fbbf24',
+    label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', get accent() { return hex('--acc-folders'); },
     lead: 'Certificates and recognitions so far.',
     items: [ // TODO: replace the titles with your real certificates
       { title: 'TODO: certificate title', image: 'cert1' },
@@ -60,7 +61,7 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', accent: '#42b883',
+    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', get accent() { return hex('--acc-phone'); },
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [ // TODO: LinkedIn / email / phone are still placeholders
       { label: 'GitHub', icon: 'GH', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
@@ -72,7 +73,7 @@ export const SECTIONS = {
   // Family: ONE object, two frames side by side (so both are in view when you click). Photo files: images/mother.png, images/father.png
   // (a generated silhouette shows until they exist). One accent for the pair.
   parents: {
-    label: 'Parents', kicker: '04 · Family', title: 'My Parents', accent: '#f472b6',
+    label: 'Parents', kicker: '04 · Family', title: 'My Parents', get accent() { return hex('--acc-parents'); },
     lead: 'The two people behind it all.',
     people: [ // TODO: names + a few words each
       { role: 'Mother', name: 'TODO: name', note: 'My mother. TODO: a few words.', photo: 'mother' },
@@ -99,7 +100,8 @@ export const EDU_PAGES = [{ kind: 'title' }, ...SECTIONS.notebooks.entries.map((
 // Derived once: sheet pages (PER_PAGE certificates each) so nothing is typed twice. No cover page: the desk-distance face is drawn from SECTIONS.folders.
 const f = SECTIONS.folders, PER_PAGE = 3, n = f.items.length;
 const lists = Array.from({ length: Math.ceil(n / PER_PAGE) }, (_, i) => f.items.slice(i * PER_PAGE, (i + 1) * PER_PAGE).map((it, j) => ({ ...it, n: i * PER_PAGE + j + 1 })));
-export const BOOK_PAGES = lists.map((rows, i) => ({ eyebrow: `Certificates · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows, folio: `${i + 1} / ${lists.length}`, accent: f.accent }));
+export const BOOK_PAGES = lists.map((rows, i) => ({ eyebrow: `Certificates · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows, folio: `${i + 1} / ${lists.length}`, get accent() { return f.accent; } }));
 
 // id -> accent for every section that has one (consumed by main.js, ui.js and the scene).
-export const ACCENTS = Object.fromEntries(Object.entries(SECTIONS).filter(([, v]) => v.accent).map(([k, v]) => [k, v.accent]));
+export const ACCENTS = {};
+for (const [k, v] of Object.entries(SECTIONS)) if ('accent' in v) Object.defineProperty(ACCENTS, k, { get: () => v.accent, enumerable: true }); // lazy: tokens are read on first use, not at import

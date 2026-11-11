@@ -1,17 +1,100 @@
-/* Design tokens only. Theme switching = overriding these. */
+/* =============================================================================
+   THEME: the ONE file that defines every colour on the site.
+   Edit a value here, reload, done. Nothing else in the codebase holds a theme colour.
+
+   Who reads this file
+     css/ui.css ........ page chrome, dialog, chips, buttons (directly, via var())
+     js/colors.js ...... everything drawn by JavaScript: canvas textures (laptop/phone screens, paper, book pages)
+                         and the three.js scene (room, furniture, lights, books, section accents)
+
+   Any CSS colour syntax works for a token: #hex, rgb(), var(--other), color-mix(...).
+   Scene tokens come in -dark / -light pairs; the lamp toggle blends between them.
+
+   Presets: the data-palette="warm" block at the bottom overrides tokens for the original wood-and-amber look.
+   Switch with <html data-palette="warm"> or ?palette=warm in the URL. Add your own the same way.
+
+   Deliberately NOT here: neutral real-world materials (mug, plush, glasses, pens, laptop aluminium, ID-card
+   hardware) and the university ID card's own brand green. They are not part of the site's theme.
+   ============================================================================= */
+
 :root{
   color-scheme:dark;
-  --bg:#0a1424;--bg-glow:#1d4a5c;--surf:rgba(11,22,38,.84);--bd:rgba(255,255,255,.1);
-  --tx:#f2f7fa;--mu:#9bb0c4;--em:#42b883;--sap:#6b9bd1;
-  --badge-sap:#a9c8ee;--badge-em:#8ee3bf;
-  --c:var(--em);   /* current section accent: set per chip (CSS) and on :root while an object is focused (main.js) */
-  --ct:var(--c);   /* readable-as-text variant of --c; darkened in the light theme */
+
+  /* 1. BRAND PRIMITIVES: change these first and the accents below follow */
+  --mint:#42b883;  --mint-soft:#8ee3bf;  --mint-deep:#14704f;
+  --sky:#6b9bd1;   --sky-soft:#a9c8ee;   --sky-deep:#1f4f82;
+  --navy:#35495e;  --navy-deep:#0a1424;
+
+  /* 2. PAGE + DIALOG (the light theme overrides some of these below) */
+  --bg:var(--navy-deep);  --bg-glow:#1d4a5c;  --surf:rgba(11,22,38,.84);  --bd:rgba(255,255,255,.1);
+  --glass:rgba(255,255,255,.04);  --shadow:rgba(0,0,0,.35);
+  --tx:#f2f7fa;  --mu:#9bb0c4;  --em:var(--mint);  --sap:var(--sky);
+  --badge-sap:var(--sky-soft);  --badge-em:var(--mint-soft);
+  --c:var(--em);   /* current section accent: set per chip (ui.js) and on :root while an object is focused (main.js) */
+  --ct-keep:100%;  /* how much of the accent stays in text colour; the light theme lowers it to darken */
+  --ct:color-mix(in srgb,var(--c) var(--ct-keep),#000);   /* readable-as-text variant of --c */
   --mono:ui-monospace,Menlo,monospace;
   --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+
+  /* 3. SECTION ACCENTS: one hue per nav section (chip dot, glow ring, focus tint, screen/page bars) */
+  --acc-laptop:#60a5fa;  --acc-folders:#fbbf24;  --acc-notebooks:#a78bfa;  --acc-parents:#f472b6;  --acc-phone:var(--mint);
+
+  /* 4. CANVAS TEXTURES: dark screens (laptop, phone) and paper (sheet, book pages) */
+  --em-soft:var(--mint-soft);  --pine:var(--mint-deep);  --cobalt:var(--sky-deep);
+  --p-mute:#9bb0c4;  --p-text:#f2f7fa;  --p-screen:var(--navy-deep);  --p-panel:#0f1f35;  --p-sidebar:#0b172a;
+  --paper:#f1ece0;  --page:#f4efe3;  --ink:#1d2530;  --body:#2b3541;  --sub:#4a5663;  --folio:#8a8374;
+  --margin:#b43c3c;   /* notebook margin line (drawn at 35% opacity) */
+  --traffic-1:#ff5f57;  --traffic-2:#febc2e;  --traffic-3:#28c840;
+  --phone-a:#1b3350;  --phone-b:#0f1f35;  --phone-c:#0a1424;   /* phone wallpaper gradient */
+  --cert-bg:#fbfaf4;  --cert-ink:#6b6558;
+  --ph-mother:#d4789b;  --ph-father:#4f86d6;   /* silhouette tint until a photo file exists */
+
+  /* 5. 3D ROOM: blended between -dark and -light by the lamp toggle */
+  --scene-bg-dark:#0a1424;    --scene-bg-light:#cfe6dc;
+  --scene-desk-dark:#b4c4d8;  --scene-desk-light:#ffffff;   /* tint multiplied onto the wood grain */
+  --scene-pad-dark:#0c1a2e;   --scene-pad-light:#3d5f7a;
+  --wood-1:#223a55;  --wood-2:#1d334d;  --wood-3:#264260;  --wood-4:#203750;   /* the four desk planks */
+  --wood-grain-dark:#040c1a;  --wood-grain-light:#96cdf5;  --wood-seam:#030914;
+  --desk-leg:#1f3552;  --desk-pad:#0f1e33;  --wood:#233d5b;  --wood-deep:#162b47;  --stand:#1e3453;  --chair:#3f5a73;
+
+  /* 6. 3D LIGHTING */
+  --light-sky:#b8e6d4;  --light-ground:#0a1420;  --light-sun:#eafff6;
+  --light-fill-a:#4fdcab;  --light-fill-b:#8fb4e6;  --light-glow:#c4f7e4;
+  --lamp-bulb:#e9fff5;  --lamp-beam:#bff5e0;  --lamp-spot:#cff8e8;
+  --env-room:#1a2c44;  --env-key:#eafff6;  --env-fill:#9ec5ff;   /* reflections on the ID card */
+
+  /* 7. BOOKS: shelf spines (book-1 is also the education book) and its cover art */
+  --book-1:#24509a;  --book-2:#1f8f63;  --book-3:var(--navy);  --book-4:#2f7f8f;  --book-5:#4c6a8c;  --book-6:#5b7f6a;  --book-muted:#4a5663;
+  --cover-a:#2a62c4;  --cover-b:#173f8a;  --gold:#d9b84a;  --cover-sub:#d6e2f7;  --endpaper:#efe6d2;  --weave:#1e4fa8;
+  --page-edge:#e8e4d8;  --cover-in:#8a8478;
 }
+
+/* 8. LIGHT THEME (lamp toggle): only the tokens that change */
 :root[data-theme='light']{
   color-scheme:light;
-  --bg:#cfe6dc;--bg-glow:#f3fffa;--surf:rgba(255,255,255,.88);--bd:rgba(11,22,38,.16);
-  --tx:#0b1626;--mu:#44586c;--badge-sap:#1f4f82;--badge-em:#14704f;
-  --ct:color-mix(in srgb,var(--c) 58%,#000);
+  --bg:#cfe6dc;  --bg-glow:#f3fffa;  --surf:rgba(255,255,255,.88);  --bd:rgba(11,22,38,.16);
+  --tx:#0b1626;  --mu:#44586c;  --badge-sap:var(--sky-deep);  --badge-em:var(--mint-deep);
+  --ct-keep:58%;
+}
+
+/* PRESET "warm": the original wood-and-amber desk. Only differences from the defaults are listed. */
+:root[data-palette='warm']{
+  --mint:#34d399;  --mint-soft:#86efc4;  --mint-deep:#0f6b4f;
+  --sky:#3b82f6;   --sky-soft:#9cc2ff;   --sky-deep:#1d4ed8;
+  --navy-deep:#140d08;
+  --bg-glow:#5c3d27;  --surf:rgba(14,20,28,.82);  --tx:#f4f7fa;  --mu:#9aa7b4;
+  --acc-folders:#a3e635;
+  --p-mute:#9aa7b4;  --p-text:#f4f7fa;  --p-panel:#121b26;  --p-sidebar:#0f1620;
+  --phone-a:#16283a;  --phone-b:#0d1620;  --phone-c:#080c12;
+  --scene-bg-dark:#140d08;  --scene-bg-light:#cdbba3;  --scene-desk-dark:#d8c4b0;  --scene-pad-dark:#2b1d14;  --scene-pad-light:#7a6450;
+  --wood-1:#8a5a36;  --wood-2:#7b4d2c;  --wood-3:#935f39;  --wood-4:#84552f;
+  --wood-grain-dark:#281408;  --wood-grain-light:#ffdcaa;  --wood-seam:#1e0e06;
+  --desk-leg:#6a4126;  --desk-pad:#2b1d14;  --wood:#6a4126;  --wood-deep:#4a2d19;  --stand:#3a2a1e;
+  --light-sky:#d9b896;  --light-ground:#1c120b;  --light-sun:#ffe6c8;  --light-fill-a:#ffb27a;  --light-fill-b:#d9a066;  --light-glow:#ffcf9a;
+  --lamp-bulb:#ffe2a8;  --lamp-beam:#ffd9a0;  --lamp-spot:#ffd9a0;
+  --env-room:#3a2a1e;  --env-key:#ffe6c8;
+  --book-1:#1e4fa8;  --book-2:#0f6b4f;  --book-3:#2f3a48;  --book-4:#7a3b3b;  --book-5:#3b5f8a;  --book-6:#5a4630;
+}
+:root[data-palette='warm'][data-theme='light']{
+  --bg:#cdbba3;  --bg-glow:#f6ebd9;  --tx:#0e1620;  --mu:#4a5663;
 }

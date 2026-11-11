@@ -1,4 +1,5 @@
 import THREE from '../three.js';
+import { hex } from '../../colors.js';
 import { mat, box, cyl } from '../primitives.js';
 
 // Office chair parked behind the desk, facing it. Non-interactive decor.
@@ -8,7 +9,7 @@ const FLOOR = -5.3, SEAT_Y = -2.1;
 
 export default function chair() {
   const group = new THREE.Group(),
-    fabric = mat(0x3f5a73, { roughness: .9, metalness: 0 }), // lighter slate blue: the old near-black vanished against the dark bg
+    fabric = mat(hex('--chair'), { roughness: .9, metalness: 0 }), // lighter slate blue: the old near-black vanished against the dark bg
     metal = mat(0x4a5563, { metalness: .6, roughness: .4 }),
     rubber = mat(0x0d0f12, { roughness: .8 });
 

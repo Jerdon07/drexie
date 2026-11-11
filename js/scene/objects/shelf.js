@@ -1,4 +1,5 @@
 import THREE from '../three.js';
+import { hex } from '../../colors.js';
 import { mat, box } from '../primitives.js';
 import { spineTex, eduPageTexes, eduCoverTex, eduEndTex } from '../textures.js';
 import { makeTome } from '../tome.js';
@@ -9,7 +10,7 @@ import { EDU_BOOK as BK, REDUCED_MOTION } from '../../config.js';
 // Clicking the shelf PULLS the first top-shelf book out, lays it on the desk and opens it: the education content is inside (title page, one page per
 // entry, coursework). Pager / arrows / wheel / clicking a page turn it. Leaving the view reverses it and puts the book back.
 const W = 2.6, D = .8, T = .08, LEVEL = 1.08, H = 2 * LEVEL + T; // LEVEL = board-to-board spacing; clear height per level = LEVEL - T
-const SPINES = ['#24509a', '#1f8f63', '#35495e', '#2f7f8f', '#4c6a8c', '#5b7f6a']; // navy, Vue green and slate tones
+const spines = () => [1, 2, 3, 4, 5, 6].map(n => hex(`--book-${n}`)); // colours come from css/tokens.css
 const SHELF = { x: -5.4, z: -.8, ry: .25 };  // where the scene puts this object (returned below)
 const READ = { x: -5.3, z: 1.5 };            // WORLD xz of the open book's spine (= centre of the spread): clear desk in front of the shelf
 const PULL = .75, LIFT_ARC = .35;            // slide-out distance along the spine direction; extra height at mid-flight so it clears the boards
@@ -17,8 +18,8 @@ const DUR = { pull: .5, lift: 1, open: .9 }, TOTAL = DUR.pull + DUR.lift + DUR.o
 const ease = t => t * t * (3 - 2 * t), clamp01 = t => Math.max(0, Math.min(1, t));
 
 export default function shelf() {
-  const group = new THREE.Group(), wood = mat(0x233d5b, { roughness: .6 }), backWood = mat(0x162b47, { roughness: .7 }), pages = mat(0xe8e4d8, { roughness: .9 });
-  const { entries, coursework, title, accent } = SECTIONS.notebooks;
+  const group = new THREE.Group(), wood = mat(hex('--wood'), { roughness: .6 }), backWood = mat(hex('--wood-deep'), { roughness: .7 }), pages = mat(hex('--page-edge'), { roughness: .9 });
+  const { entries, coursework, title } = SECTIONS.notebooks, SPINES = spines();
 
   // Carcass: 3 boards (bottom, middle, cap), 2 sides, a recessed back.
   for (let i = 0; i < 3; i++) group.add(box(W, T, D, wood, 0, i * LEVEL + T / 2, 0));
@@ -31,7 +32,7 @@ export default function shelf() {
   const row = (level, items, size, skip = -1) => {
     let x = -W / 2 + T + .12; const y0 = level * LEVEL + T;
     items.forEach(({ label, muted }, i) => {
-      const [w, h] = size(i), col = muted ? '#4a5663' : SPINES[i % SPINES.length], d = D - .2 - (i % 2) * .05;
+      const [w, h] = size(i), col = muted ? hex('--book-muted') : SPINES[i % SPINES.length], d = D - .2 - (i % 2) * .05;
       if (i === skip) slot.set(x + w / 2, y0 + h / 2, .04);
       else {
         const cover = mat(col, { roughness: .8 }), spine = mat(0xffffff, { map: spineTex(label, col, muted), roughness: .8 });
