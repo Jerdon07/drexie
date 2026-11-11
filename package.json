@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Jerdon07/jaira/issues"
   },
-  "homepage": "https://github.com/Jerdon07/jaira#readme"
+  "homepage": "https://github.com/Jerdon07/jaira#readme",
+  "dependencies": {
+    "three": "0.128.0"
+  }
 }
