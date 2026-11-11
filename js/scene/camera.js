@@ -5,6 +5,9 @@ const MAX_YAW = .9, PITCH = [-.2, .4]; // ±~52° left/right; never reaches the 
 // Tall-sheet framing (view.top). VIS = visible height per unit of camera distance (fov 50° in scene/index.js); the pads keep the
 // sheet clear of the Back button (top) and the pager (bottom).
 const VIS = 2 * Math.tan(25 * Math.PI / 180), TOP_PAD = .09, BOTTOM_PAD = .1;
+// How much of the viewport a focused content object may fill (width / height). One place so every on-object view (laptop screen,
+// sheet) is framed the same way; the remainder keeps the Back button and rounded window corners clear.
+const FILL = { w: .96, h: .94 };
 
 // Owns where the camera wants to be (aim), the user's orbit offset (rotate), and the easing (step).
 export function createCameraRig(camera) {
@@ -21,15 +24,17 @@ export function createCameraRig(camera) {
       }
       orb.ty = orb.tp = 0;
       if (v?.type === 'screen') { // face a screen head-on
-        v.mesh.getWorldPosition(c); const d = Math.max(2.1, 2.8 / (.84 * aspect));
+        v.mesh.getWorldPosition(c);
+        const { width: sw, height: sh } = v.mesh.geometry.parameters; // the real screen size, not a hardcoded 2.8
+        const d = Math.max(sw / (VIS * FILL.w * aspect), sh / (VIS * FILL.h)); // as close as it gets without cropping either side
         pos.set(c.x, c.y + .296 * d, c.z + .955 * d); target.copy(c); up.set(0, .955, -.296); return;
       }
       const p = def.group.position;
       if (v?.type === 'flat') { // look straight down at a sheet
         const ry = def.group.rotation.y, ux = -Math.sin(ry), uz = -Math.cos(ry); // world direction of the sheet's top edge
-        let d = Math.max(v.h / .8, v.w / (.84 * aspect)), s = 0;
+        let d = Math.max(v.h / (VIS * FILL.h), v.w / (VIS * FILL.w * aspect)), s = 0;
         if (v.top) { // tall sheet: fit its WIDTH to the screen and frame only the top `v.top` units; the rest runs off the bottom.
-          d = Math.max(v.w / (.84 * aspect), v.top / (VIS * (1 - TOP_PAD - BOTTOM_PAD))); // wider than tall screens fall back to showing all of `top`
+          d = Math.max(v.w / (VIS * FILL.w * aspect), v.top / (VIS * (1 - TOP_PAD - BOTTOM_PAD))); // wider than tall screens fall back to showing all of `top`
           s = Math.max(0, v.h / 2 - VIS * d * (.5 - TOP_PAD)); // slide the view toward the top edge until the sheet starts TOP_PAD from the screen top
           s = Math.max(s - (v.scroll || 0), Math.min(0, VIS * d / 2 - v.h / 2)); // view.scroll slides down the sheet, but never past its bottom edge (step() eases the move)
         }
