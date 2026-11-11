@@ -32,6 +32,7 @@ const panelHtml = s => [
   s.photo ? `<figure class="ph"><img data-photo="${esc(s.photo)}" alt="${esc(s.title)}"></figure>` : '',
   `<div class="eb">${esc(s.kicker)}</div><h2>${esc(s.title)}</h2><p class="lead">${esc(s.lead)}</p>`,
   ...(s.paragraphs || []).map(t => `<p>${esc(t)}</p>`),
+  ...(s.people || []).map(p => `<section class="pp"><figure class="ph person"><img data-photo="${esc(p.photo)}" alt="${esc(p.role)}"></figure><div class="eb sub">${esc(p.role)}</div><h3>${esc(p.name)}</h3><p>${esc(p.note)}</p></section>`),
   s.fields ? `<dl class="kv">${s.fields.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : '',
   ...(s.entries || []).map(e => `<div class="pj${e.todo ? ' todo' : ''}"><em>${esc(e.tag)}</em><b>${esc(e.title)}</b><strong>${esc(e.school)}</strong><span>${esc(e.meta)}</span></div>`),
   s.coursework ? `<div class="eb sub">Coursework &amp; focus</div><div class="bd">${s.coursework.map(t => `<span class="b">${esc(t)}</span>`).join('')}</div>` : '',
@@ -59,7 +60,11 @@ export function mountNav({ onBack, onFlip }) {
   back.onclick = onBack; $('#pv').onclick = () => onFlip(-1); $('#nx').onclick = () => onFlip(1);
   return {
     showBack: on => setLayer(back, 'on', on),
-    showBook: on => setLayer(book, 'on', on),
+    showBook: (on, axis = 'y') => { // 'y' = the sheet scrolls (↑ ↓), 'x' = pages turn (‹ ›)
+      const [a, b] = axis === 'x' ? [['‹', 'Previous page'], ['›', 'Next page']] : [['↑', 'Scroll up'], ['↓', 'Scroll down']];
+      if (on) { $('#pv').textContent = a[0]; $('#pv').setAttribute('aria-label', a[1]); $('#nx').textContent = b[0]; $('#nx').setAttribute('aria-label', b[1]); }
+      setLayer(book, 'on', on);
+    },
     setPage: (i, n) => { pg.textContent = `${i + 1} / ${n}`; $('#pv').disabled = i <= 0; $('#nx').disabled = i >= n - 1; },
   };
 }

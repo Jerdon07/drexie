@@ -1,10 +1,11 @@
 import THREE from '../three.js';
 import { mat, box, screen } from '../primitives.js';
 import { portraitCanvas } from '../../images.js';
+import { SECTIONS } from '../../content.js';
 
 // Standing picture frame: wood border, cream mat, photo plane, angled back leg. The photo is a canvas that shows a generated
 // silhouette immediately and swaps in images/<id>.png as soon as it loads (see images.js), so nothing blocks on a missing file.
-function makeFrame({ id, w, h, x, z, ry, dist, rise, accent, wood = 0x6a4126 }) {
+function makeFrame({ id, w, h, accent, wood = 0x6a4126 }) {
   const group = new THREE.Group(), pivot = new THREE.Group(), B = .09, D = .12, pw = w - 2 * B - .1, ph = h - 2 * B - .1; // photo area
   const woodMat = mat(wood, { roughness: .55 }), matte = mat(0xf1ece0, { roughness: .9 });
   const { canvas, ready } = portraitCanvas(id, 512, Math.round(512 * ph / pw)), map = new THREE.CanvasTexture(canvas);
@@ -23,10 +24,14 @@ function makeFrame({ id, w, h, x, z, ry, dist, rise, accent, wood = 0x6a4126 }) 
   const leg = box(.07, Math.hypot(legTop, legBack), .05, woodMat, 0, legTop / 2, zTop - legBack / 2);
   leg.rotation.x = Math.atan2(legBack, legTop);
   group.add(pivot, leg, box(w * .5, .03, .12, woodMat, 0, .015, -.02)); // foot keeps the pivot from looking like it floats
-  return { id, group, x, z, ry, dist, rise, lookY: h / 2 + .1 };
+  return group;
 }
 
-// Parents: identical size/styling, side by side in the front-right corner (clear of the phone and coffee).
-const PARENT = { w: .95, h: 1.3, z: 2.35, ry: -.15, dist: 3.4 };
-export const mother = () => makeFrame({ id: 'mother', x: 5.3, ...PARENT });
-export const father = () => makeFrame({ id: 'father', x: 6.3, ...PARENT });
+// Parents: ONE object holding both frames side by side (identical size/styling) in the front-right corner, clear of the phone and coffee.
+// Clicking either frame opens the pair, and the camera frames both. The pair is centred on the object's origin.
+const FRAME = { w: .95, h: 1.3 }, GAP = 1.2; // GAP = centre-to-centre
+export default function parents() {
+  const group = new THREE.Group(), people = SECTIONS.parents.people;
+  people.forEach((p, i) => { const fr = makeFrame({ id: p.photo, ...FRAME }); fr.position.x = (i - (people.length - 1) / 2) * GAP; group.add(fr); });
+  return { id: 'parents', group, x: 5.7, z: 2.35, ry: -.15, dist: 3.1, lookY: FRAME.h / 2 + .1 };
+}

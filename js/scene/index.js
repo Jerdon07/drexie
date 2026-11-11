@@ -66,7 +66,7 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
   }
   function focus(id) {
     if (cur && cur !== id) byId[cur].onBlur?.();
-    cur = id;
+    cur = id; if (id) byId[id].onFocus?.();
     if (id) skin(); else setTimeout(() => { if (!cur) skin(); }, 700); // swap back after the zoom-out finishes
     rig.aim(id ? byId[id] : null, aspect);
   }
@@ -83,19 +83,25 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
   /* picking */
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), roots = objects.map(o => o.group), mouse = { x: 0, y: 0 };
   let down = null, lastPt = null, dragging = false;
-  function pick(e) {
+  function pickHit(e) { // -> { id, hit } for the object under the pointer (hit = the raycast intersection: .object, .uv, .point), or null
     ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
-    const h = ray.intersectObjects(roots, true)[0]; if (!h) return null;
-    let o = h.object; while (o && !o.userData?.id) o = o.parent;
-    return o ? o.userData.id : null;
+    const hit = ray.intersectObjects(roots, true)[0]; if (!hit) return null;
+    let o = hit.object; while (o && !o.userData?.id) o = o.parent;
+    return o ? { id: o.userData.id, hit } : null;
   }
+  const pick = e => pickHit(e)?.id ?? null;
   canvas.addEventListener('pointermove', e => {
     mouse.x = e.clientX / innerWidth - .5; mouse.y = e.clientY / innerHeight - .5;
     if (down && !cur) { // drag to orbit (camera.js clamps it so you can never reach the back of the desk)
       if (dragging || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) { dragging = true; rig.rotate(e.clientX - lastPt[0], e.clientY - lastPt[1]); lastPt = [e.clientX, e.clientY]; canvas.style.cursor = 'grabbing'; return; }
     }
     if (e.pointerType === 'touch') return;
-    hover = cur ? null : pick(e); canvas.style.cursor = hover ? 'pointer' : 'default'; onHover(hover, e.clientX, e.clientY);
+    if (cur) { // focused: let the object say whether the pointer is over something tappable (e.g. a contact row on the phone)
+      const p = pickHit(e), o = byId[cur], over = p?.id === cur && !!o.hover?.(p.hit);
+      if (p?.id !== cur) o.hover?.(null);
+      hover = null; canvas.style.cursor = over ? 'pointer' : 'default'; onHover(null); return;
+    }
+    hover = pick(e); canvas.style.cursor = hover ? 'pointer' : 'default'; onHover(hover, e.clientX, e.clientY);
   });
   canvas.addEventListener('pointerdown', e => {
     down = lastPt = [e.clientX, e.clientY]; dragging = false; canvas.setPointerCapture?.(e.pointerId);
@@ -103,8 +109,8 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
   canvas.addEventListener('pointerup', e => {
     const d = down; down = null; dragging = false; canvas.style.cursor = 'default';
     if (!d || Math.hypot(e.clientX - d[0], e.clientY - d[1]) > 6) return; // a drag, not a click
-    const id = pick(e);
-    if (id && id === cur && byId[id].onClick) byId[id].onClick(); else onPick(id);
+    const p = pickHit(e), id = p?.id ?? null;
+    if (id && id === cur && byId[id].onClick) byId[id].onClick(p.hit); else onPick(id);
   });
   canvas.addEventListener('pointercancel', () => { down = null; dragging = false; });
 

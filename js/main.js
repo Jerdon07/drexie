@@ -56,7 +56,7 @@ async function boot() {
     chips.setActive(id);
     id && !scene?.hasView(id) ? panel.show(id) : panel.hide(); // sections without a 3D "view" use the HTML panel
     nav.showBack(!!id);
-    nav.showBook(!!(id && scene?.bookOf(id)));
+    nav.showBook(!!(id && scene?.bookOf(id)), scene?.bookOf(id)?.axis);
     scene?.focus(id);
   }
 

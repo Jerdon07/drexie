@@ -27,6 +27,9 @@ export const IMAGES = {
 // (scene/camera.js, view.top), `pitch` = px between page blocks down the sheet. It must exceed the block height + the camera's top
 // padding (~640 px) so that when the camera slides to block 2, block 1 has scrolled out of view.
 export const SHEET = { w: 1.8, h: 2.55, px: 1240, content: .34, pitch: 700 };
+// Education book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
+// (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk, so the pages you read are bigger. PX = texture px per world unit.
+export const EDU_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
 export const FOG = { near: 14, far: 34 };
 // Smoothness knobs. ROUND = edge radius (world units) for boxes/cylinders; ENV.intensity = how strongly the procedural
 // reflection environment lights materials (metals scale it up automatically). If everything looks washed out, lower it.

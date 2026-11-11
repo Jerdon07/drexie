@@ -71,6 +71,11 @@ html.focused #portrait{opacity:0}
 .kv dd{margin:0;font-size:.9rem;color:var(--tx);overflow-wrap:anywhere}
 .ph{margin:0 0 16px;border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
 .ph img{display:block;width:100%;height:min(280px,30vh);object-fit:cover;object-position:center 20%}
+.pp{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--bd)}
+.pp h3{margin:6px 0 4px;font-size:1.3rem;letter-spacing:-.01em}
+.pp p{margin:0}
+.ph.person img{height:min(180px,22vh)}
+html:not(.no-3d) .ph.person{display:none} /* with 3D on, the two frames on the desk ARE the photos */
 .ph.cert{margin:0 0 10px}
 .ph.cert img{height:auto;aspect-ratio:7/5;object-fit:contain;background:#f1ece0} /* certificates are shown whole, never cropped */
 

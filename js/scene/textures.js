@@ -1,7 +1,7 @@
 // Canvas textures. All text comes from content.js; all colours from config.js.
 import THREE from './three.js';
-import { SECTIONS, PROFILE, BOOK_PAGES } from '../content.js';
-import { P, FONT, font, BARS, SHEET } from '../config.js';
+import { SECTIONS, PROFILE, BOOK_PAGES, EDU_PAGES } from '../content.js';
+import { P, FONT, font, BARS, SHEET, EDU_BOOK } from '../config.js';
 import { portraitCanvas } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
@@ -131,20 +131,55 @@ export const ribbonTex = () => { const t = tex(RW, RH, (c, w, h) => {
   c.restore();
 }); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
 
-export const phoneTex = () => { const s = SECTIONS.phone, A = s.accent; return tex(256, 512, (c, w, h) => {
-  const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1a2a3a'); g.addColorStop(1, '#0b1118'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-  c.fillStyle = P.text; c.textAlign = 'center'; c.font = font(64, FONT.sans, '300'); c.fillText('09:41', w / 2, 120);
-  c.fillStyle = P.mute; c.font = font(15, FONT.mono); c.fillText(s.kicker.toUpperCase(), w / 2, 150);
-  c.textAlign = 'left';
-  s.contacts.slice(0, 4).forEach((k, i) => { // one row per contact: accent bar, label, value
-    const y = 184 + i * 62;
-    c.fillStyle = 'rgba(255,255,255,.07)'; c.fillRect(24, y, 208, 52); c.fillStyle = A; c.fillRect(24, y, 5, 52);
-    c.fillStyle = P.text; c.font = font(19, FONT.sans, '600'); c.fillText(k.label, 42, y + 22);
-    c.fillStyle = P.mute; fit(c, k.value, 180, 14, FONT.mono); c.fillText(k.value, 42, y + 42);
-  });
-  c.fillStyle = P.text; c.textAlign = 'center'; c.font = font(22, FONT.sans, '600'); c.fillText(s.title, w / 2, 468);
-  c.fillStyle = 'rgba(255,255,255,.4)'; c.fillRect(88, h - 26, 80, 5); c.textAlign = 'left';
-}); };
+/* ---- Phone. Focused: a real "contacts" screen (header + tappable rows). Desk distance: a lock screen with a big clock. ----
+   PHONE is shared with objects/phone.js so the hit-test and the drawing use the SAME row rectangles (canvas px). */
+export const PHONE = { w: 540, h: 1156, rows: 4, row: i => ({ x: 34, y: 508 + i * 150, w: 472, h: 126 }) }; // aspect = the .7 x 1.5 screen
+const rr = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
+const wallpaper = (c, w, h) => { const g = c.createLinearGradient(0, 0, w * .6, h); g.addColorStop(0, '#16283a'); g.addColorStop(.55, '#0d1620'); g.addColorStop(1, '#080c12'); c.fillStyle = g; c.fillRect(0, 0, w, h); };
+function statusBar(c, w) {
+  c.fillStyle = P.text; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.font = font(30, FONT.sans, '600'); c.fillText('9:41', 40, 58);
+  c.beginPath(); c.arc(w / 2, 40, 12, 0, 7); c.fillStyle = '#04070a'; c.fill(); // front camera
+  c.fillStyle = P.text; for (let i = 0; i < 4; i++) c.fillRect(w - 196 + i * 14, 56 - (i + 1) * 8, 9, (i + 1) * 8); // signal
+  c.strokeStyle = P.text; c.lineWidth = 3; rr(c, w - 120, 32, 56, 26, 8); c.stroke(); rr(c, w - 115, 37, 40, 16, 4); c.fill(); c.fillRect(w - 61, 40, 5, 10); // battery
+}
+const homeBar = (c, w, h) => { c.fillStyle = 'rgba(255,255,255,.42)'; rr(c, w / 2 - 84, h - 34, 168, 9, 4.5); c.fill(); };
+
+export const phoneTex = () => { // focused: t.redraw(hoverRow) repaints with that row highlighted
+  const s = SECTIONS.phone, A = s.accent, { w, h } = PHONE, cv = Object.assign(document.createElement('canvas'), { width: w, height: h }), c = cv.getContext('2d');
+  const t = sharp(new THREE.CanvasTexture(cv)); let hov = -1;
+  t.redraw = (row = hov) => {
+    hov = row; wallpaper(c, w, h); statusBar(c, w);
+    c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    c.fillStyle = A; c.font = font(24, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), 44, 190);
+    c.fillStyle = P.text; fit(c, s.title, w - 88, 72, FONT.sans, '700'); c.fillText(s.title, 44, 268);
+    c.fillStyle = P.mute; c.font = font(28, FONT.sans); wrap(c, s.lead, 44, 328, w - 88, 38);
+    const list = s.contacts.slice(0, PHONE.rows);
+    list.forEach((k, i) => {
+      const r = PHONE.row(i), on = i === hov;
+      rr(c, r.x, r.y, r.w, r.h, 30); c.fillStyle = on ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.07)'; c.fill();
+      if (on) { c.strokeStyle = A; c.lineWidth = 3; c.stroke(); }
+      c.fillStyle = A; c.beginPath(); c.arc(r.x + 66, r.y + r.h / 2, 40, 0, 7); c.fill(); // app-icon disc
+      c.fillStyle = P.screenBg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = font(k.icon?.length > 1 ? 30 : 38, FONT.sans, '800'); c.fillText(k.icon || k.label[0], r.x + 66, r.y + r.h / 2 + 2);
+      c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+      c.fillStyle = P.text; c.font = font(32, FONT.sans, '600'); c.fillText(k.label, r.x + 126, r.y + 54);
+      c.fillStyle = P.mute; fit(c, k.value, r.w - 126 - 64, 25, FONT.mono); c.fillText(k.value, r.x + 126, r.y + 92);
+      c.strokeStyle = on ? A : 'rgba(255,255,255,.4)'; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(r.x + r.w - 46, r.y + 46); c.lineTo(r.x + r.w - 32, r.y + 63); c.lineTo(r.x + r.w - 46, r.y + 80); c.stroke();
+    });
+    const last = PHONE.row(Math.max(0, list.length - 1)); c.fillStyle = 'rgba(255,255,255,.4)'; c.font = font(22, FONT.mono); c.textAlign = 'center'; c.fillText('Tap a contact to open', w / 2, last.y + last.h + 54); c.textAlign = 'left';
+    homeBar(c, w, h); t.needsUpdate = true;
+  };
+  t.redraw(); return t;
+};
+
+// Desk-distance lock screen: the phone is ~60 px wide at home, so only a huge clock and a short title stay legible.
+export const phonePreviewTex = () => { const s = SECTIONS.phone; return sharp(tex(PHONE.w, PHONE.h, (c, w, h) => {
+  wallpaper(c, w, h); statusBar(c, w); c.textAlign = 'center';
+  c.fillStyle = P.text; c.font = font(210, FONT.sans, '300'); c.fillText('9:41', w / 2, 420);
+  c.fillStyle = s.accent; c.font = font(34, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), w / 2, 500);
+  c.fillStyle = P.text; fit(c, s.title, w - 80, 76, FONT.sans, '700'); c.fillText(s.title, w / 2, 640);
+  s.contacts.slice(0, PHONE.rows).forEach((k, i, a) => { c.fillStyle = s.accent; c.beginPath(); c.arc(w / 2 + (i - (a.length - 1) / 2) * 90, 760, 30, 0, 7); c.fill(); }); // one dot per contact
+  homeBar(c, w, h);
+})); };
 
 // Laptop screen. Left: identity sidebar (avatar, name, headline, contact). Right: grouped cards + hobby/skill pills. All text from content.js.
 const initials = () => PROFILE.first[0] + PROFILE.last[0];
@@ -248,6 +283,60 @@ export const certSheetTex = () => {
   BOOK_PAGES.forEach(p => p.rows.forEach(r => tile(r.image))); // start every image loading now
   t.redraw(); return t;
 };
+
+/* ---- Education book (scene/tome.js, objects/shelf.js). Page faces are the top faces of the page-stack boxes, so flipY = false (row 0 = head of the page).
+   Portrait canvases sized from the grown page (EDU_BOOK), one per EDU_PAGES entry, in reading order: even index = left page, odd = right. ---- */
+const shade = (hex, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, '0')).join(''); // darker accent for text on paper
+const flat = t => (t.flipY = false, t);
+const BP = { w: Math.round((EDU_BOOK.w - .04) * EDU_BOOK.grow.x * EDU_BOOK.px), h: Math.round((EDU_BOOK.l - .06) * EDU_BOOK.grow.z * EDU_BOOK.px) }, MX = 100;
+
+export const eduPageTexes = () => {
+  const s = SECTIONS.notebooks, A = shade(s.accent, .5), { w, h } = BP;
+  return EDU_PAGES.map((pg, i) => flat(sharp(tex(w, h, c => {
+    c.fillStyle = P.page; c.fillRect(0, 0, w, h);
+    const left = i % 2 === 0, g = c.createLinearGradient(left ? w : 0, 0, left ? w - 110 : 110, 0); // the page curls into the gutter
+    g.addColorStop(0, 'rgba(60,40,20,.2)'); g.addColorStop(1, 'rgba(60,40,20,0)'); c.fillStyle = g; c.fillRect(left ? w - 110 : 0, 0, 110, h);
+    c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    const head = (txt, y = 150) => { c.fillStyle = A; c.font = font(32, FONT.mono, '600'); c.fillText(txt.toUpperCase(), MX, y); c.fillStyle = s.accent; c.fillRect(MX, y + 22, 170, 10); };
+    if (pg.kind === 'title') {
+      head(s.kicker);
+      c.fillStyle = P.ink; fit(c, s.title, w - 2 * MX, 150, FONT.serif, '700'); c.fillText(s.title, MX, 400);
+      c.fillStyle = P.body; c.font = font(52, FONT.serif, 'italic'); wrap(c, s.lead, MX, 540, w - 2 * MX, 72);
+      c.fillStyle = P.sub; c.font = font(34, FONT.mono, '600'); c.fillText(PROFILE.school, MX, h - 250); c.fillStyle = P.folio; c.fillText(PROFILE.program, MX, h - 200);
+    } else if (pg.kind === 'entry') {
+      const e = pg.e, ink = e.todo ? P.folio : P.ink;
+      c.globalAlpha = .06; c.fillStyle = P.ink; c.font = font(360, FONT.serif, '700'); c.textAlign = 'right'; c.fillText(String(pg.n).padStart(2, '0'), w - MX + 20, h - 130); c.globalAlpha = 1; c.textAlign = 'left'; // watermark: low and small so it never sits under the text
+      head(e.tag);
+      c.fillStyle = ink; c.font = font(92, FONT.serif, '700'); let y = wrap(c, e.title, MX, 320, w - 2 * MX, 110, 4);
+      c.fillStyle = e.todo ? P.folio : A; c.font = font(56, FONT.serif, '700'); y = wrap(c, e.school, MX, y + 50, w - 2 * MX, 70, 3);
+      c.fillStyle = e.todo ? P.folio : P.sub; c.font = font(44, FONT.sans); wrap(c, e.meta, MX, y + 40, w - 2 * MX, 62, 4);
+    } else {
+      head('Coursework & focus');
+      const list = s.coursework, pitch = Math.min(122, 800 / list.length);
+      list.forEach((t, k) => {
+        const y = 330 + k * pitch;
+        c.fillStyle = s.accent; c.fillRect(MX, y - 30, 22, 22);
+        c.fillStyle = P.folio; c.font = font(30, FONT.mono, '600'); c.fillText(String(k + 1).padStart(2, '0'), MX + 50, y - 6);
+        c.fillStyle = P.ink; fit(c, t, w - 2 * MX - 150, 58, FONT.serif, '700'); c.fillText(t, MX + 150, y + 8);
+        c.fillStyle = 'rgba(29,37,48,.13)'; c.fillRect(MX, y + 34, w - 2 * MX, 2);
+      });
+    }
+    c.fillStyle = P.folio; c.font = font(30, FONT.mono); c.textAlign = 'center'; c.fillText(String(i + 1), w / 2, h - 64);
+  }))));
+};
+
+export const eduCoverTex = () => flat(sharp(tex(620, 950, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#2a62c4'); g.addColorStop(1, '#173f8a'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.strokeStyle = '#d9b84a'; c.lineWidth = 5; c.strokeRect(34, 34, w - 68, h - 68); c.lineWidth = 2; c.strokeRect(50, 50, w - 100, h - 100);
+  c.fillStyle = '#f4efe3'; c.textAlign = 'center'; c.font = font(78, FONT.serif, '700'); spaced(c, SECTIONS.notebooks.title.toUpperCase(), w / 2, 440, 10);
+  c.fillStyle = '#d9b84a'; c.fillRect(w / 2 - 70, 480, 140, 6);
+  c.fillStyle = '#d6e2f7'; c.font = font(30, FONT.serif, 'italic'); wrap(c, PROFILE.school, w / 2, 560, w - 160, 40);
+})));
+export const eduEndTex = () => flat(tex(620, 950, (c, w, h) => { // endpaper: warm paper with a fine diagonal weave
+  c.fillStyle = '#efe6d2'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(30,79,168,.13)'; c.lineWidth = 2;
+  for (let k = -h; k < w; k += 16) { c.beginPath(); c.moveTo(k, h); c.lineTo(k + h, 0); c.stroke(); }
+  for (let k = 0; k < w + h; k += 16) { c.beginPath(); c.moveTo(k, h); c.lineTo(k - h, 0); c.stroke(); }
+}));
 
 // Procedural oak: 4 planks, wavy grain lines, occasional knots. Seeded so it's identical every load.
 export const woodTex = () => { let s = 7; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;

@@ -60,18 +60,25 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Contact', kicker: '06 · Contact', title: 'Get in Touch', accent: '#34d399',
+    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', accent: '#34d399',
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [ // TODO: LinkedIn / email / phone are still placeholders
-      { label: 'GitHub', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
-      { label: 'LinkedIn', value: 'your-profile', href: 'https://www.linkedin.com/' },
-      { label: 'Email', value: 'your@email.com', href: 'mailto:your@email.com' },
+      { label: 'GitHub', icon: 'GH', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
+      { label: 'LinkedIn', icon: 'in', value: 'your-profile', href: 'https://www.linkedin.com/' },
+      { label: 'Email', icon: '@', value: 'your@email.com', href: 'mailto:your@email.com' },
     ],
   },
 
-  // Family frames. Photo files: images/mother.png, images/father.png (generated silhouette if missing).
-  mother: { label: 'Mother Frame', kicker: '04 · Family', title: 'Mother', lead: 'My mother.', photo: 'mother', accent: '#f472b6' }, // TODO: name + a few words
-  father: { label: 'Father Frame', kicker: '05 · Family', title: 'Father', lead: 'My father.', photo: 'father', accent: '#22d3ee' }, // TODO: name + a few words
+  // Family: ONE object, two frames side by side (so both are in view when you click). Photo files: images/mother.png, images/father.png
+  // (a generated silhouette shows until they exist). One accent for the pair.
+  parents: {
+    label: 'Parents', kicker: '04 · Family', title: 'My Parents', accent: '#f472b6',
+    lead: 'The two people behind it all.',
+    people: [ // TODO: names + a few words each
+      { role: 'Mother', name: 'TODO: name', note: 'My mother. TODO: a few words.', photo: 'mother' },
+      { role: 'Father', name: 'TODO: name', note: 'My father. TODO: a few words.', photo: 'father' },
+    ],
+  },
 
   // 3D-only objects: not in NAV, so the label is just the hover tooltip.
   coffee: { label: 'Coffee · Take a sip', action: 'play' },
@@ -83,7 +90,11 @@ SECTIONS.laptop.fields = [['Name', SECTIONS.laptop.name], ...SECTIONS.laptop.gro
 
 // Bottom nav: exactly these, in this order. Each id must match a 3D object id (js/scene/objects/*).
 // Adding a section = add it above + a file in js/scene/objects/ + an id here.
-export const NAV = ['laptop', 'folders', 'notebooks', 'mother', 'father', 'phone'];
+export const NAV = ['laptop', 'folders', 'notebooks', 'parents', 'phone'];
+
+// Education book pages in reading order (textures.js draws them, objects/shelf.js counts them): title, one per entry, coursework.
+// Two pages per spread, so the pager has ceil(n / 2) positions. Adding an entry adds a page.
+export const EDU_PAGES = [{ kind: 'title' }, ...SECTIONS.notebooks.entries.map((e, i) => ({ kind: 'entry', e, n: i + 1 })), { kind: 'courses' }];
 
 // Derived once: sheet pages (PER_PAGE certificates each) so nothing is typed twice. No cover page: the desk-distance face is drawn from SECTIONS.folders.
 const f = SECTIONS.folders, PER_PAGE = 3, n = f.items.length;
