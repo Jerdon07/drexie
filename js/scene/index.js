@@ -12,6 +12,7 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
   renderer.setClearColor(0, 0); // CSS paints the brown gradient behind the canvas // throws w/o WebGL → main.js fallback
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; // soft shadow edges
+  let markReady; const ready = new Promise(r => (markReady = r)); // resolves once the first frame is on screen
   const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0, FOG.near, FOG.far);
   const camera = new THREE.PerspectiveCamera(50, 1, .5, 80), rig = createCameraRig(camera);
 
@@ -131,9 +132,10 @@ export function createScene(canvas, { onPick, onHover, accents = {} }) {
     const target = themeTarget();
     if (LT !== target) { LT += (target - LT) * Math.min(1, dt * (REDUCED_MOTION ? 60 : 4)); if (Math.abs(LT - target) < .002) LT = target; applyTheme(LT); }
     renderer.render(scene, camera);
+    if (markReady) { const done = markReady; markReady = null; requestAnimationFrame(() => { performance.measure('scene-build+first-frame'); done(); }); }
   }
   document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else { last = performance.now(); frame(); } });
   frame();
 
-  return { focus, highlight: id => { pinned = id; }, play: id => byId[id]?.play?.(), hasView: id => !!byId[id]?.view, bookOf: id => byId[id]?.book };
+  return { ready, focus, highlight: id => { pinned = id; }, play: id => byId[id]?.play?.(), hasView: id => !!byId[id]?.view, bookOf: id => byId[id]?.book };
 }

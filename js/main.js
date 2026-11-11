@@ -7,10 +7,22 @@ let scene = null, current = null, chips = null; // chips is assigned after boot 
 const action = id => SECTIONS[id].action;
 
 async function boot() {
+  performance.mark('boot');
+  const loader = $('#loader');
+  const hideLoader = () => {
+    if (!loader) return;
+    loader.classList.add('done');
+    setTimeout(() => { loader.hidden = true; }, 600);
+  };
   const tip = mountTooltip();
+
+  // Start both downloads now; they used to run one after the other.
+  const sceneMod = import('./scene/index.js');
+  const idMod = import('./idcard.js'); idMod.catch(() => {}); // handled below; stops an unhandled-rejection warning if the scene fails first
+
   try {
     if (!window.THREE) throw new Error('three.js did not load');
-    const { createScene } = await import('./scene/index.js'); // dynamic: a scene failure must not kill the UI
+    const { createScene } = await sceneMod;
     scene = createScene($('#c'), {
       accents: ACCENTS,
       onPick: id => {
@@ -24,17 +36,20 @@ async function boot() {
     console.warn('3D scene unavailable, using fallback UI.', err);
     document.documentElement.classList.add('no-3d');
     $('#intro').append($('#chips'));
+    hideLoader();
   }
 
-  // Home UI (title + description, top center) is shown on every path, not just the fallback.
   const intro = $('#intro'), chipBox = $('#chips');
   intro.querySelector('h1').innerHTML = `${esc(PROFILE.first)} <span>${esc(PROFILE.last)}</span>`;
   intro.querySelector('.tag').textContent = PROFILE.headline;
 
-  // School ID overlay (right side). Own try/catch: if its second WebGL context fails the desk still works.
   let idCard = null;
-  if (scene) try { const { mountIdCard } = await import('./idcard.js'); idCard = mountIdCard($('#portrait')); }
-  catch (err) { console.warn('School ID unavailable.', err); $('#portrait').hidden = true; }
+  // The ID card builds a second WebGL context and big textures: do it AFTER the desk is visible, not before.
+  if (scene) scene.ready.then(async () => {
+    try { const { mountIdCard } = await idMod; idCard = mountIdCard($('#portrait')); idCard.setActive(!current); }
+    catch (err) { console.warn('School ID unavailable:', err); $('#portrait').hidden = true; }
+    hideLoader();
+  });
 
   // Bottom nav: exactly NAV, in order. Coffee, lamp and the school ID are 3D-only (not nav targets).
   chips = mountChips(chipBox, NAV, activate, id => scene?.highlight(id));

@@ -96,3 +96,9 @@ html:not(.no-3d) .ph.person{display:none} /* with 3D on, the two frames on the d
   .no-3d #intro{top:calc(env(safe-area-inset-top,0px) + 70px);right:24px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* loader: covers the canvas until the first 3D frame has been drawn */
+#loader{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(ellipse 75% 70% at 50% 38%,var(--bg-glow) 0%,var(--bg) 100%);color:var(--mu);font:500 .85rem var(--mono);letter-spacing:.12em;text-transform:uppercase;transition:opacity .5s}
+#loader.done{opacity:0;pointer-events:none}
+#loader i{width:34px;height:34px;border-radius:50%;border:3px solid var(--bd);border-top-color:var(--em);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
