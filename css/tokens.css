@@ -52,10 +52,10 @@
   /* 5. 3D ROOM: blended between -dark and -light by the lamp toggle */
   --scene-bg-dark:#0a1424;    --scene-bg-light:#cfe6dc;
   --scene-desk-dark:#b4c4d8;  --scene-desk-light:#ffffff;   /* tint multiplied onto the wood grain */
-  --scene-pad-dark:#0c1a2e;   --scene-pad-light:#3d5f7a;
-  --wood-1:#223a55;  --wood-2:#1d334d;  --wood-3:#264260;  --wood-4:#203750;   /* the four desk planks */
+  --scene-pad-dark:#00311d;   --scene-pad-light:#3d5f7a;
+  --wood-1:#754b2b;  --wood-2:#80522f;  --wood-3:#885732;  --wood-4:#8f5c34;   /* the four desk planks */
   --wood-grain-dark:#040c1a;  --wood-grain-light:#96cdf5;  --wood-seam:#030914;
-  --desk-leg:#1f3552;  --desk-pad:#0f1e33;  --wood:#233d5b;  --wood-deep:#162b47;  --stand:#1e3453;  --chair:#3f5a73;
+  --desk-leg:#754b2b;  --desk-pad:#1e7d76;  --wood:rgb(101, 65, 38);  --wood-deep:#162b47;  --stand:#1e3453;  --chair:#0c150e;
 
   /* 6. 3D LIGHTING */
   --light-sky:#b8e6d4;  --light-ground:#0a1420;  --light-sun:#eafff6;
@@ -64,7 +64,7 @@
   --env-room:#1a2c44;  --env-key:#eafff6;  --env-fill:#9ec5ff;   /* reflections on the ID card */
 
   /* 7. BOOKS: shelf spines (book-1 is also the education book) and its cover art */
-  --book-1:#24509a;  --book-2:#1f8f63;  --book-3:var(--navy);  --book-4:#2f7f8f;  --book-5:#4c6a8c;  --book-6:#5b7f6a;  --book-muted:#4a5663;
+  --book-1:#24509a;  --book-2:#1f8f63;  --book-3:var(--navy);  --book-4:#8f2f2f;  --book-5:#4c6a8c;  --book-6:#5b7f6a;  --book-muted:#4a5663;
   --cover-a:#2a62c4;  --cover-b:#173f8a;  --gold:#d9b84a;  --cover-sub:#d6e2f7;  --endpaper:#efe6d2;  --weave:#1e4fa8;
   --page-edge:#e8e4d8;  --cover-in:#8a8478;
 }
@@ -72,7 +72,7 @@
 /* 8. LIGHT THEME (lamp toggle): only the tokens that change */
 :root[data-theme='light']{
   color-scheme:light;
-  --bg:#cfe6dc;  --bg-glow:#f3fffa;  --surf:rgba(255,255,255,.88);  --bd:rgba(11,22,38,.16);
+  --bg:#00ff91;  --bg-glow:#f3fffa;  --surf:rgba(255,255,255,.88);  --bd:rgba(11,22,38,.16);
   --tx:#0b1626;  --mu:#44586c;  --badge-sap:var(--sky-deep);  --badge-em:var(--mint-deep);
   --ct-keep:58%;
 }
