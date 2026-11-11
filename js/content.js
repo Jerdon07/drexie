@@ -10,12 +10,12 @@ const acc = text => ({ text, accent: true });
 const tag = text => ({ text });
 
 // `accent` (NAV sections only) is the section's colour everywhere: chip dot, 3D glow ring, focus tint, screen/page textures.
-// Avoid orange/amber (the desk is brown) and give neighbouring sections clearly different hues.
+// Palette: Vue mint on navy. Gold is free to use now that the desk is navy; keep neighbouring sections clearly different hues.
 export const SECTIONS = {
   // Laptop = personal information. `groups` drive the laptop screen (sidebar + cards); `fields` is the same data flattened
   // for the HTML panel, so nothing is typed twice. `lists` render as pill rows on the screen.
   laptop: {
-    label: 'Personal Info', kicker: '01 · Personal info', title: 'Personal Info', accent: '#3b82f6',
+    label: 'Personal Info', kicker: '01 · Personal info', title: 'Personal Info', accent: '#60a5fa',
     lead: 'Who I am, what I study and where I’m headed.',
     name: 'Drexie Jaira M. Litaoen',
     groups: [
@@ -46,7 +46,7 @@ export const SECTIONS = {
   // Folder = achievements: ONE portrait resume sheet. The camera frames only its top, so `items` are shown PER_PAGE at a time (pager / arrow keys).
   // `image` = an id from config.js IMAGES (drop images/certN.jpg or .png); a generated placeholder shows until the file exists.
   folders: {
-    label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', accent: '#a3e635',
+    label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', accent: '#fbbf24',
     lead: 'Certificates and recognitions so far.',
     items: [ // TODO: replace the titles with your real certificates
       { title: 'TODO: certificate title', image: 'cert1' },
@@ -60,7 +60,7 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', accent: '#34d399',
+    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', accent: '#42b883',
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [ // TODO: LinkedIn / email / phone are still placeholders
       { label: 'GitHub', icon: 'GH', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },

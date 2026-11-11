@@ -8,7 +8,7 @@ import { SECTIONS } from '../../content.js';
 const open = href => (href.startsWith('mailto:') ? (location.href = href) : window.open(href, '_blank', 'noopener'));
 
 export default function phone() {
-  const group = new THREE.Group(), metal = mat(0x2b3038, { metalness: .7, roughness: .3 }), stand = mat(0x3a2a1e, { metalness: .2, roughness: .5 }), dark = mat(0x0b0d10);
+  const group = new THREE.Group(), metal = mat(0x2b3038, { metalness: .7, roughness: .3 }), stand = mat(0x1e3453, { metalness: .2, roughness: .5 }), dark = mat(0x0b0d10);
   group.add(box(1.2, .08, .85, stand, 0, .04, 0), box(.9, .14, .1, stand, 0, .12, .3), box(.14, 1, .06, stand, 0, .52, -.02));
   group.children[2].rotation.x = -.28;
 

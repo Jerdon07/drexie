@@ -9,7 +9,7 @@ import { EDU_BOOK as BK, REDUCED_MOTION } from '../../config.js';
 // Clicking the shelf PULLS the first top-shelf book out, lays it on the desk and opens it: the education content is inside (title page, one page per
 // entry, coursework). Pager / arrows / wheel / clicking a page turn it. Leaving the view reverses it and puts the book back.
 const W = 2.6, D = .8, T = .08, LEVEL = 1.08, H = 2 * LEVEL + T; // LEVEL = board-to-board spacing; clear height per level = LEVEL - T
-const SPINES = ['#1e4fa8', '#0f6b4f', '#2f3a48', '#7a3b3b', '#3b5f8a', '#5a4630']; // cobalt/emerald echo the old notebook covers
+const SPINES = ['#24509a', '#1f8f63', '#35495e', '#2f7f8f', '#4c6a8c', '#5b7f6a']; // navy, Vue green and slate tones
 const SHELF = { x: -5.4, z: -.8, ry: .25 };  // where the scene puts this object (returned below)
 const READ = { x: -5.3, z: 1.5 };            // WORLD xz of the open book's spine (= centre of the spread): clear desk in front of the shelf
 const PULL = .75, LIFT_ARC = .35;            // slide-out distance along the spine direction; extra height at mid-flight so it clears the boards
@@ -17,7 +17,7 @@ const DUR = { pull: .5, lift: 1, open: .9 }, TOTAL = DUR.pull + DUR.lift + DUR.o
 const ease = t => t * t * (3 - 2 * t), clamp01 = t => Math.max(0, Math.min(1, t));
 
 export default function shelf() {
-  const group = new THREE.Group(), wood = mat(0x6a4126, { roughness: .6 }), backWood = mat(0x4a2d19, { roughness: .7 }), pages = mat(0xe8e4d8, { roughness: .9 });
+  const group = new THREE.Group(), wood = mat(0x233d5b, { roughness: .6 }), backWood = mat(0x162b47, { roughness: .7 }), pages = mat(0xe8e4d8, { roughness: .9 });
   const { entries, coursework, title, accent } = SECTIONS.notebooks;
 
   // Carcass: 3 boards (bottom, middle, cap), 2 sides, a recessed back.

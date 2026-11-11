@@ -135,7 +135,7 @@ export const ribbonTex = () => { const t = tex(RW, RH, (c, w, h) => {
    PHONE is shared with objects/phone.js so the hit-test and the drawing use the SAME row rectangles (canvas px). */
 export const PHONE = { w: 540, h: 1156, rows: 4, row: i => ({ x: 34, y: 508 + i * 150, w: 472, h: 126 }) }; // aspect = the .7 x 1.5 screen
 const rr = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
-const wallpaper = (c, w, h) => { const g = c.createLinearGradient(0, 0, w * .6, h); g.addColorStop(0, '#16283a'); g.addColorStop(.55, '#0d1620'); g.addColorStop(1, '#080c12'); c.fillStyle = g; c.fillRect(0, 0, w, h); };
+const wallpaper = (c, w, h) => { const g = c.createLinearGradient(0, 0, w * .6, h); g.addColorStop(0, '#1b3350'); g.addColorStop(.55, '#0f1f35'); g.addColorStop(1, '#0a1424'); c.fillStyle = g; c.fillRect(0, 0, w, h); };
 function statusBar(c, w) {
   c.fillStyle = P.text; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.font = font(30, FONT.sans, '600'); c.fillText('9:41', 40, 58);
   c.beginPath(); c.arc(w / 2, 40, 12, 0, 7); c.fillStyle = '#04070a'; c.fill(); // front camera
@@ -341,16 +341,16 @@ export const eduEndTex = () => flat(tex(620, 950, (c, w, h) => { // endpaper: wa
 // Procedural oak: 4 planks, wavy grain lines, occasional knots. Seeded so it's identical every load.
 export const woodTex = () => { let s = 7; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;
   const t = tex(1024, 512, (c, w, h) => {
-    const cols = ['#8a5a36', '#7b4d2c', '#935f39', '#84552f'], ph = h / cols.length;
+    const cols = ['#223a55', '#1d334d', '#264260', '#203750'], ph = h / cols.length;
     cols.forEach((col, i) => {
       const y0 = i * ph; c.fillStyle = col; c.fillRect(0, y0, w, ph);
       for (let k = 0; k < 46; k++) {
         const y = y0 + rnd() * ph, a = .05 + rnd() * .12, amp = 1 + rnd() * 3, f = .004 + rnd() * .01, p0 = rnd() * 6;
-        c.strokeStyle = rnd() > .5 ? `rgba(40,20,8,${a})` : `rgba(255,220,170,${a * .6})`; c.lineWidth = .6 + rnd() * 1.4; c.beginPath();
+        c.strokeStyle = rnd() > .5 ? `rgba(4,12,26,${a})` : `rgba(150,205,245,${a * .55})`; c.lineWidth = .6 + rnd() * 1.4; c.beginPath();
         for (let x = 0; x <= w; x += 16) c.lineTo(x, y + Math.sin(x * f + p0) * amp); c.stroke();
       }
-      if (rnd() > .4) { const kx = rnd() * w; for (let r = 3; r > 0; r--) { c.strokeStyle = `rgba(40,20,8,${.12 * r / 3})`; c.lineWidth = 2; c.beginPath(); c.ellipse(kx, y0 + ph / 2, r * 14, r * 5, 0, 0, 7); c.stroke(); } }
-      c.fillStyle = 'rgba(30,14,6,.55)'; c.fillRect(0, y0, w, 2); // plank seam
+      if (rnd() > .4) { const kx = rnd() * w; for (let r = 3; r > 0; r--) { c.strokeStyle = `rgba(4,12,26,${.12 * r / 3})`; c.lineWidth = 2; c.beginPath(); c.ellipse(kx, y0 + ph / 2, r * 14, r * 5, 0, 0, 7); c.stroke(); } }
+      c.fillStyle = 'rgba(3,9,20,.55)'; c.fillRect(0, y0, w, 2); // plank seam
     });
   }); t.anisotropy = 4; return t; };
 

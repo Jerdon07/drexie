@@ -5,7 +5,7 @@ import { SECTIONS } from '../../content.js';
 
 // Standing picture frame: wood border, cream mat, photo plane, angled back leg. The photo is a canvas that shows a generated
 // silhouette immediately and swaps in images/<id>.png as soon as it loads (see images.js), so nothing blocks on a missing file.
-function makeFrame({ id, w, h, accent, wood = 0x6a4126 }) {
+function makeFrame({ id, w, h, accent, wood = 0x233d5b }) {
   const group = new THREE.Group(), pivot = new THREE.Group(), B = .09, D = .12, pw = w - 2 * B - .1, ph = h - 2 * B - .1; // photo area
   const woodMat = mat(wood, { roughness: .55 }), matte = mat(0xf1ece0, { roughness: .9 });
   const { canvas, ready } = portraitCanvas(id, 512, Math.round(512 * ph / pw)), map = new THREE.CanvasTexture(canvas);

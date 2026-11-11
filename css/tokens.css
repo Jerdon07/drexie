@@ -1,9 +1,9 @@
 /* Design tokens only. Theme switching = overriding these. */
 :root{
   color-scheme:dark;
-  --bg:#140d08;--bg-glow:#5c3d27;--surf:rgba(14,20,28,.82);--bd:rgba(255,255,255,.1);
-  --tx:#f4f7fa;--mu:#9aa7b4;--em:#34d399;--sap:#3b82f6;
-  --badge-sap:#9cc2ff;--badge-em:#86efc4;
+  --bg:#0a1424;--bg-glow:#1d4a5c;--surf:rgba(11,22,38,.84);--bd:rgba(255,255,255,.1);
+  --tx:#f2f7fa;--mu:#9bb0c4;--em:#42b883;--sap:#6b9bd1;
+  --badge-sap:#a9c8ee;--badge-em:#8ee3bf;
   --c:var(--em);   /* current section accent: set per chip (CSS) and on :root while an object is focused (main.js) */
   --ct:var(--c);   /* readable-as-text variant of --c; darkened in the light theme */
   --mono:ui-monospace,Menlo,monospace;
@@ -11,7 +11,7 @@
 }
 :root[data-theme='light']{
   color-scheme:light;
-  --bg:#cdbba3;--bg-glow:#f6ebd9;--surf:rgba(255,255,255,.88);--bd:rgba(10,20,30,.16);
-  --tx:#0e1620;--mu:#4a5663;--badge-sap:#1d4ed8;--badge-em:#0f6b4f;
+  --bg:#cfe6dc;--bg-glow:#f3fffa;--surf:rgba(255,255,255,.88);--bd:rgba(11,22,38,.16);
+  --tx:#0b1626;--mu:#44586c;--badge-sap:#1f4f82;--badge-em:#14704f;
   --ct:color-mix(in srgb,var(--c) 58%,#000);
 }
