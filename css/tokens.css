@@ -56,6 +56,7 @@
   --wood-1:#754b2b;  --wood-2:#80522f;  --wood-3:#885732;  --wood-4:#8f5c34;   /* the four desk planks */
   --wood-grain-dark:#040c1a;  --wood-grain-light:#96cdf5;  --wood-seam:#030914;
   --desk-leg:#754b2b;  --desk-pad:#1e7d76;  --wood:rgb(101, 65, 38);  --wood-deep:#162b47;  --stand:#1e3453;  --chair:#0c150e;
+  --mat-trim:#2c4a66;  --mat-field:#17304a;   /* round floor mat under the desk (scene/decor/floormat.js) */
 
   /* 6. 3D LIGHTING */
   --light-sky:#b8e6d4;  --light-ground:#0a1420;  --light-sun:#eafff6;
@@ -90,6 +91,7 @@
   --wood-1:#8a5a36;  --wood-2:#7b4d2c;  --wood-3:#935f39;  --wood-4:#84552f;
   --wood-grain-dark:#281408;  --wood-grain-light:#ffdcaa;  --wood-seam:#1e0e06;
   --desk-leg:#6a4126;  --desk-pad:#2b1d14;  --wood:#6a4126;  --wood-deep:#4a2d19;  --stand:#3a2a1e;
+  --mat-trim:#5a3a22;  --mat-field:#3a2517;
   --light-sky:#d9b896;  --light-ground:#1c120b;  --light-sun:#ffe6c8;  --light-fill-a:#ffb27a;  --light-fill-b:#d9a066;  --light-glow:#ffcf9a;
   --lamp-bulb:#ffe2a8;  --lamp-beam:#ffd9a0;  --lamp-spot:#ffd9a0;
   --env-room:#3a2a1e;  --env-key:#ffe6c8;

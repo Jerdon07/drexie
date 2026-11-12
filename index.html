@@ -10,6 +10,8 @@
 </head>
 <body>
 <div id="loader" role="status" aria-live="polite"><i></i><span>Setting up the desk…</span></div>
+<!-- Ambient backdrop: blurred colour blobs drifting behind the transparent 3D canvas (css/ui.css #bg). Must stay BEFORE #c in the DOM. -->
+<div id="bg" aria-hidden="true"><i></i><i></i><i></i></div>
 <canvas id="c" aria-label="Interactive 3D desk. Click an object to explore."></canvas>
 
 <header id="intro" class="ui"><div class="eb">The Desk</div><h1></h1><p class="tag"></p></header>
