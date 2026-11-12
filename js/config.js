@@ -23,9 +23,6 @@ export const IMAGES = {
   father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
-  // Key tags on the desk keys (scene/decor/keys.js): drop images/keytag1.png and images/keytag2.png (.jpg works too). Until then each tag shows an empty plate.
-  keytag1: { file: ['keytag1.png', 'keytag1.jpg'], get tint() { return hex('--folio'); } },
-  keytag2: { file: ['keytag2.png', 'keytag2.jpg'], get tint() { return hex('--folio'); } },
   // Certificates (Achievements sheet): drop images/cert1.jpg … cert6.jpg (.png works too). Until then a landscape placeholder is drawn.
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map(n => [`cert${n}`, { file: [`cert${n}.jpg`, `cert${n}.png`], get tint() { return hex('--folio'); }, kind: 'cert' }])),
 };

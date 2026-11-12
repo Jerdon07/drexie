@@ -57,6 +57,7 @@
   --wood-grain-dark:#040c1a;  --wood-grain-light:#96cdf5;  --wood-seam:#030914;
   --desk-leg:#754b2b;  --desk-pad:#1e7d76;  --wood:rgb(101, 65, 38);  --wood-deep:#162b47;  --stand:#1e3453;  --chair:#0c150e;
   --mat-trim:#2c4a66;  --mat-field:#17304a;   /* round floor mat under the desk (scene/decor/floormat.js) */
+  --brand-oracle:#c74634;  --brand-sap:#0070f2;   /* key tags on the desk keys (scene/decor/keys.js): Oracle red, SAP blue */
 
   /* 6. 3D LIGHTING */
   --light-sky:#b8e6d4;  --light-ground:#0a1420;  --light-sun:#eafff6;
