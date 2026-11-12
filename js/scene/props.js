@@ -8,6 +8,7 @@ import glasses from './decor/glasses.js';
 import plush from './decor/plush.js';
 import penStand from './decor/penstand.js';
 import chair from './decor/chair.js';
+import plant from './decor/plant.js';
 
 function lighting() {
   const group = new THREE.Group();
@@ -32,4 +33,4 @@ function desk() {
   return { group, onTheme(t) { mixTheme('desk', t, topMat.color); mixTheme('pad', t, pad.material.color); } };
 }
 
-export default [lighting, desk, glasses, plush, penStand, chair];
+export default [lighting, desk, glasses, plush, penStand, chair, plant];
