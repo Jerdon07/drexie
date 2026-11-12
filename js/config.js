@@ -22,6 +22,7 @@ export const IMAGES = {
   mother:  { file: 'mother.png',  get tint() { return hex('--ph-mother'); } },
   father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
+  uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
   // Certificates (Achievements sheet): drop images/cert1.jpg … cert6.jpg (.png works too). Until then a landscape placeholder is drawn.
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map(n => [`cert${n}`, { file: [`cert${n}.jpg`, `cert${n}.png`], get tint() { return hex('--folio'); }, kind: 'cert' }])),
 };

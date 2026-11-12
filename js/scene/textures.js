@@ -3,7 +3,7 @@ import { hex, rgba } from '../colors.js';
 import THREE from './three.js';
 import { SECTIONS, PROFILE, BOOK_PAGES, EDU_PAGES } from '../content.js';
 import { P, FONT, font, BARS, SHEET, EDU_BOOK } from '../config.js';
-import { portraitCanvas } from '../images.js';
+import { portraitCanvas, loadPortrait } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
 const sharp = t => (t.anisotropy = 4, t); // keeps small/oblique text from shimmering
@@ -46,8 +46,8 @@ export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
   fit(c, label, h - 100, 40, FONT.serif, '700'); c.fillText(label, 0, 0); c.restore();
 }));
 
-/* ---- School ID (CR80, portrait) + lanyard ribbon. University of the Cordilleras' school colour is forest green; the mark below is
-   an original generic emblem (mountains + sun), NOT the university's seal. ---- */
+/* ---- School ID (CR80, portrait) + lanyard ribbon. University of the Cordilleras' school colour is forest green. The ID's logo is the
+   real file images/uc.png; until it loads (or if it is missing) the generated emblem below (mountains + sun, NOT the university's seal) stands in. ---- */
 const UC = { green: '#14633d', dark: '#0c3f27', deep: '#0a2d1c', lite: '#1b7a4b', gold: '#c9a227', cream: '#f4efe3', mint: '#b9e4cf', ink: '#10301f' };
 const ID_W = 864, ID_H = 1370; // 53.98 : 85.60 (CR80); keep in sync with CARD in js/idcard.js
 export const ID_PHOTO = { w: 592, h: 740 }; // portrait area on the card (4:5). idcard.js sizes its source canvas from this, so they can't drift apart.
@@ -64,14 +64,21 @@ const emblem = (c, cx, cy, r) => {
   c.restore(); c.strokeStyle = UC.cream; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, r + 8, 0, 7); c.stroke();
   c.strokeStyle = UC.gold; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, r + 18, 0, 7); c.stroke();
 };
+// The real logo, letterboxed (never cropped or stretched) into a size × size box centred on (cx, cy).
+const logoImg = (c, img, cx, cy, size) => {
+  const k = Math.min(size / img.width, size / img.height), w = img.width * k, h = img.height * k;
+  c.imageSmoothingQuality = 'high'; c.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+};
 
 // `photo` = the profile portrait canvas (images.js). t.redraw() repaints after the real file loads.
-export const idFrontTex = photo => {
+// `onLogo` runs once images/uc.png has been drawn in: the ID overlay's render loop sleeps when idle, so the owner must wake it.
+export const idFrontTex = (photo, onLogo) => {
+  let logo = null; // images/uc.png once loaded
   const draw = (c, w, h) => {
     c.fillStyle = '#fbfbf7'; c.fillRect(0, 0, w, h); guilloche(c, w, h, .06);
     const hg = c.createLinearGradient(0, 0, w, 340); hg.addColorStop(0, '#0a3a24'); hg.addColorStop(1, UC.lite); c.fillStyle = hg; c.fillRect(0, 0, w, 330); // header (the slot punches through its top)
     c.fillStyle = UC.gold; c.fillRect(0, 330, w, 8); c.fillStyle = 'rgba(20,99,61,.55)'; c.fillRect(0, 346, w, 3);
-    emblem(c, 140, 196, 66);
+    logo ? logoImg(c, logo, 140, 196, 168) : emblem(c, 140, 196, 66); // 168 = the emblem's outer ring diameter, so the layout is unchanged
     c.textAlign = 'left'; c.fillStyle = UC.cream; c.font = font(40, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE', 250, 182);
     fit(c, 'CORDILLERAS', 570, 72, FONT.serif, '700'); c.fillText('CORDILLERAS', 250, 256);
     c.fillStyle = UC.mint; c.font = font(24, FONT.mono, '600'); c.fillText('BAGUIO CITY · PHILIPPINES', 252, 300);
@@ -83,12 +90,10 @@ export const idFrontTex = photo => {
     const bg = c.createLinearGradient(0, 1250, w, 1370); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1256, w, 114);
     c.fillStyle = UC.gold; c.fillRect(0, 1250, w, 6);
     c.fillStyle = UC.cream; c.font = font(42, FONT.mono, '700'); spaced(c, 'STUDENT', w / 2 - 70, 1330, 14);
-    c.save(); c.beginPath(); c.arc(736, 1196, 52, 0, 7); c.clip(); // security-hologram patch
-    const hl = c.createLinearGradient(684, 1144, 788, 1248); ['#ff6ec7', '#ffe36e', '#6effb0', '#6ec7ff', '#b06eff'].forEach((k, i) => hl.addColorStop(i / 4, k));
-    c.globalAlpha = .6; c.fillStyle = hl; c.fillRect(684, 1144, 104, 104); c.globalAlpha = .5; c.strokeStyle = '#fff'; c.lineWidth = 2;
-    for (let r = 10; r < 56; r += 9) { c.beginPath(); c.arc(736, 1196, r, 0, 7); c.stroke(); } c.restore(); c.globalAlpha = 1;
   };
-  const t = tex(ID_W, ID_H, draw); t.anisotropy = 8; t.redraw = () => { draw(t.image.getContext('2d'), ID_W, ID_H); t.needsUpdate = true; }; return t;
+  const t = tex(ID_W, ID_H, draw); t.anisotropy = 8; t.redraw = () => { draw(t.image.getContext('2d'), ID_W, ID_H); t.needsUpdate = true; };
+  loadPortrait('uc').then(img => { if (img) { logo = img; t.redraw(); onLogo?.(); } }); // real file wins; null (missing) keeps the generated emblem
+  return t;
 };
 
 export const idBackTex = () => { const t = tex(ID_W, ID_H, (c, w, h) => {

@@ -77,7 +77,8 @@ export function createIdModel(photoSrc) {
   // The existing profile photo: portraitSrc() resolves to the real file, or the generated silhouette if it is missing.
   const photo = Object.assign(document.createElement('canvas'), { width: ID_PHOTO.w, height: ID_PHOTO.h }), pc = photo.getContext('2d');
   pc.fillStyle = '#14633d'; pc.fillRect(0, 0, ID_PHOTO.w, ID_PHOTO.h);
-  const front = idFrontTex(photo), back = idBackTex(), ribbon = ribbonTex(), bump = weaveTex();
+  // the logo (images/uc.png) arrives async like the photo, so it gets the same wake-up call for the sleeping render loop
+  const front = idFrontTex(photo, () => model.onPhoto?.()), back = idBackTex(), ribbon = ribbonTex(), bump = weaveTex();
   [front, back, ribbon].forEach(t => { t.encoding = THREE.sRGBEncoding; });
   Promise.resolve(photoSrc).then(src => new Promise(ok => { const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(null); img.src = src; })).then(img => {
     if (!img) return; const k = Math.max(ID_PHOTO.w / img.width, ID_PHOTO.h / img.height), w = img.width * k, h = img.height * k;
