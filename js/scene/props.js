@@ -1,5 +1,5 @@
 import { hex } from '../colors.js';
-// Non-interactive scene furniture. Contract: () => { group, x?, z?, ry?, cast?, onTheme?(t), update?(dt) }
+// Non-interactive scene furniture. Contract: () => { group, x?, z?, ry?, cast?, paper?, onTheme?(t), update?(dt) }  (paper = unlit materials the theme dims)
 import THREE from './three.js';
 import { mat, box, roundedBoxGeo } from './primitives.js';
 import { mixTheme } from './palette.js';
@@ -10,6 +10,7 @@ import penStand from './decor/penstand.js';
 import chair from './decor/chair.js';
 import plant from './decor/plant.js';
 import floorMat from './decor/floormat.js';
+import keys from './decor/keys.js';
 
 function lighting() {
   const group = new THREE.Group();
@@ -35,4 +36,4 @@ function desk() {
   return { group, cast: true, onTheme(t) { mixTheme('desk', t, topMat.color); mixTheme('pad', t, pad.material.color); } };
 }
 
-export default [lighting, desk, floorMat, glasses, plush, penStand, chair, plant];
+export default [lighting, desk, floorMat, glasses, plush, penStand, chair, plant, keys];
