@@ -31,7 +31,8 @@ function desk() {
   const pad = box(8.6, .02, 3.8, mat(hex('--desk-pad'), { roughness: .9 }), 0, .01, .4); pad.receiveShadow = true;
   group.add(top, pad);
   [[-6.5, -2.9], [6.5, -2.9], [-6.5, 2.9], [6.5, 2.9]].forEach(([x, z]) => group.add(box(.6, 5, .6, side, x, -2.8, z)));
-  return { group, onTheme(t) { mixTheme('desk', t, topMat.color); mixTheme('pad', t, pad.material.color); } };
+  // cast: the desk must block the sun, or the shadows of everything on it fall straight through onto the floor mat below.
+  return { group, cast: true, onTheme(t) { mixTheme('desk', t, topMat.color); mixTheme('pad', t, pad.material.color); } };
 }
 
 export default [lighting, desk, floorMat, glasses, plush, penStand, chair, plant];
