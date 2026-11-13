@@ -59,6 +59,8 @@ export const SECTIONS = {
         'With honors', 'Campus Journalism Excellence Award', 'Best in Research Innovation'] },
       { title: 'Buwan ng Wika', image: 'wika', highlights: [
         'Champion — Scrabble (Women’s Division)', '1st Place — Filipino Quiz Bee'] },
+      { title: 'Sci Damath', image: 'scimath', highlights: [
+        '1st place — Sci Damath Women’s Division (Intramurals)'] },
     ],
   },
 

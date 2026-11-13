@@ -28,11 +28,13 @@ export const IMAGES = {
   graduation: cert('graduation-recognition.jpg', 1.5),
   movingup:   cert('moving-up-recognition.jpg', .667),
   wika:       cert('buwan-ng-wika.jpg', 1.5),
+  scimath:    cert('sci-math.jpg', 1.5), // TODO: set the real width / height once the file is in public/images
 };
 function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
 // Achievements sheet: ONE landscape page (all achievements visible at once). World size (it must stay clear of the laptop, glasses and the
-// shelf's open book: x -2.7 ± 1.4, z 1.7 ± 1), and texture width in px (height follows the aspect).
-export const SHEET = { w: 2.8, h: 2, px: 1680 };
+// shelf's open book: x -2.3 ± 1.8, z 1.7 ± 1), and texture width in px (height follows the aspect). 1.8:1 is close to a widescreen window, so
+// the camera (folders.js fill) can cover nearly all of it. Each achievement is a column: ≈470 px wide at 4 columns; add a 5th → widen the sheet.
+export const SHEET = { w: 3.6, h: 2, px: 2160 };
 // Education book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
 // (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk, so the pages you read are bigger. PX = texture px per world unit.
 export const EDU_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
