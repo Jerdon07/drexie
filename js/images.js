@@ -23,7 +23,7 @@ function silhouette(c, w, h, tint) {
 // Centre-crop (nudged up so faces survive) to fill w×h.
 function cover(c, img, w, h) {
   const k = Math.max(w / img.width, h / img.height), dw = img.width * k, dh = img.height * k;
-  c.drawImage(img, (w - dw) / 2, (h - dh) * .25, dw, dh);
+  c.imageSmoothingQuality = 'high'; c.drawImage(img, (w - dw) / 2, (h - dh) * .25, dw, dh);
 }
 
 // Certificate stand-in (landscape): a framed blank certificate plus the file name to drop into images/.
@@ -42,7 +42,7 @@ function certPlaceholder(c, w, h, tint, id) {
 function contain(c, img, w, h) {
   c.fillStyle = hex('--paper'); c.fillRect(0, 0, w, h);
   const k = Math.min(w / img.width, h / img.height), dw = img.width * k, dh = img.height * k;
-  c.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  c.imageSmoothingQuality = 'high'; c.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh); // 'high': scans are 3-4x the canvas, the default filter aliases text
 }
 
 // Canvas that shows the fallback immediately and repaints with the real image if one turns up. `ready` resolves true in that case.
@@ -58,5 +58,5 @@ export function portraitCanvas(id, w, h) {
 export async function portraitSrc(id) {
   const img = await loadPortrait(id);
   if (img) return img.src;
-  const cert = IMAGES[id].kind === 'cert', { canvas } = portraitCanvas(id, cert ? 480 : 400, cert ? 340 : 500); return canvas.toDataURL();
+  const cert = IMAGES[id].kind === 'cert', h = cert ? 340 : 500, { canvas } = portraitCanvas(id, cert ? Math.round(h * IMAGES[id].ratio) : 400, h); return canvas.toDataURL();
 }

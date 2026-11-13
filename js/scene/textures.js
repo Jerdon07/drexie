@@ -2,17 +2,20 @@
 import { hex, rgba } from '../colors.js';
 import THREE from './three.js';
 import { SECTIONS, PROFILE, BOOK_PAGES, EDU_PAGES } from '../content.js';
-import { P, FONT, font, BARS, SHEET, EDU_BOOK } from '../config.js';
+import { P, FONT, font, BARS, SHEET, EDU_BOOK, IMAGES } from '../config.js';
 import { portraitCanvas, loadPortrait } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
 const sharp = t => (t.anisotropy = 4, t); // keeps small/oblique text from shimmering
+function lines(c, t, w) { // greedy word wrap -> array of lines (uses c.font)
+  const out = []; let l = '';
+  for (const s of t.split(' ')) { const n = l ? l + ' ' + s : s; if (l && c.measureText(n).width > w) { out.push(l); l = s; } else l = n; }
+  out.push(l); return out;
+}
 function wrap(c, t, x, y, w, lh, max = 1e9) { // `max` caps the line count and ellipsizes the last line
-  const lines = []; let l = '';
-  for (const s of t.split(' ')) { const n = l ? l + ' ' + s : s; if (l && c.measureText(n).width > w) { lines.push(l); l = s; } else l = n; }
-  lines.push(l);
-  if (lines.length > max) { lines.length = max; let e = lines[max - 1] + '…'; while (e.length > 1 && c.measureText(e).width > w) e = e.slice(0, -2) + '…'; lines[max - 1] = e; }
-  lines.forEach((s, k) => c.fillText(s, x, y + k * lh)); return y + lines.length * lh;
+  const ls = lines(c, t, w);
+  if (ls.length > max) { ls.length = max; let e = ls[max - 1] + '…'; while (e.length > 1 && c.measureText(e).width > w) e = e.slice(0, -2) + '…'; ls[max - 1] = e; }
+  ls.forEach((s, k) => c.fillText(s, x, y + k * lh)); return y + ls.length * lh;
 }
 // Shrinks `size` until `t` fits in `w`, leaves c.font set to the result.
 function fit(c, t, w, size, family, style = '') {
@@ -241,52 +244,83 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop, A = s.accent;
   pills(c, s.badges.slice(0, 2).map(b => b.text), 500, y + 60, 1220, P.emSoft, 40);
 })); };
 
-/* ---- Achievements sheet: ONE portrait (A4) sheet. The camera frames only its top SHEET.content part, so that is the only part that
-   carries content; the rest stays blank paper. Both faces go on the sheet box's top face (objects/folders.js). ---- */
+/* ---- Achievements sheet: ONE long sheet, one block (SHEET.block px tall) per achievement, SHEET.pitch px apart. The camera frames a block at a time
+   and slides down to the next (objects/folders.js); the cover is what you see at desk distance. Both go on the sheet box's top face. ---- */
 const SHEET_H = Math.round(SHEET.px * SHEET.h / SHEET.w);
-const TILE = { w: 692, h: 488 }; // certificate image tile (canvas px, ~7:5); drawn at about half size on the sheet
+const SHEET_PAD = 64, FRAME_BOX = { w: 520, h: 430 }; // a certificate frame fits inside this box, whatever its orientation
+const frameSize = id => { const r = IMAGES[id].ratio; return r >= 1 ? [FRAME_BOX.w, Math.round(FRAME_BOX.w / r)] : [Math.round(FRAME_BOX.h * r), FRAME_BOX.h]; };
 // The sheet's top is the box's -z edge, but roundedBoxGeo runs v along +z: don't flip, so canvas row 0 lands at -z (top of the sheet).
 const sheetFace = t => (t.flipY = false, sharp(t));
 
-// Desk-distance face: big title + count, legible while the whole sheet is small on the desk.
+// Gold medal carrying the achievement number.
+function medal(c, cx, cy, r, n, gold) {
+  c.fillStyle = gold; c.beginPath(); c.arc(cx, cy, r, 0, 7); c.fill();
+  c.strokeStyle = 'rgba(29,37,48,.55)'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, r, 0, 7); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, r * .78, 0, 7); c.stroke();
+  c.fillStyle = P.ink; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = font(r * .95, FONT.serif, '700'); c.fillText(String(n), cx, cy + r * .04);
+  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+}
+
+// Diamond-bullet list in a w×h box at (x, y). It picks the largest type size (≤ 38) at which every item fits, so adding or lengthening
+// a highlight in content.js can never overflow the block.
+function bullets(c, items, x, y, w, h, ink, mark) {
+  const HEAD = 46, IND = 40, tw = w - IND, avail = h - HEAD;
+  c.fillStyle = ink; c.font = font(22, FONT.mono, '600'); c.fillText('HIGHLIGHTS', x, y + 20);
+  const lay = s => { c.font = font(s, FONT.sans, '600'); const ls = items.map(t => lines(c, t, tw)), lh = s * 1.26, text = ls.reduce((a, l) => a + l.length * lh, 0);
+    return { s, ls, lh, text, gap: Math.max(s * .45, Math.min(s * .8, (avail - text) / Math.max(1, ls.length - 1))) }; }; // short lists breathe, long ones pack
+  let L = lay(38); while (L.text + L.gap * (L.ls.length - 1) > avail && L.s > 18) L = lay(L.s - 2);
+  c.font = font(L.s, FONT.sans, '600'); let cy = y + HEAD;
+  L.ls.forEach(ls => {
+    const base = cy + L.s * .95, my = base - L.s * .3, d = L.s * .2;
+    c.fillStyle = mark; c.strokeStyle = ink; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(x + 10, my - d); c.lineTo(x + 10 + d, my); c.lineTo(x + 10, my + d); c.lineTo(x + 10 - d, my); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = P.ink; ls.forEach((s, k) => c.fillText(s, x + IND, base + k * L.lh));
+    cy += ls.length * L.lh + L.gap;
+  });
+}
+
+// Desk-distance face: big title, one row per achievement, legible while the whole sheet is small on the desk.
 export const certCoverTex = () => sheetFace(tex(SHEET.px, SHEET_H, (c, w, h) => {
-  const s = SECTIONS.folders, n = s.items.length;
+  const s = SECTIONS.folders, A = shade(s.accent, .5), n = s.items.length, ROW = 420, y0 = 620;
   c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = s.accent; c.fillRect(0, 0, 28, h);
-  c.fillStyle = P.pine; c.font = font(50, FONT.mono, '600'); c.fillText('CERTIFICATES', 90, 150);
+  c.fillStyle = A; c.font = font(50, FONT.mono, '600'); c.fillText('RECOGNITIONS', 90, 150);
   c.fillStyle = P.ink; fit(c, s.title, w - 160, 200, FONT.serif, '700'); c.fillText(s.title, 90, 380);
   c.fillStyle = s.accent; c.fillRect(90, 440, 180, 10);
-  pills(c, [`${n} certificates`, 'Click to open'], 90, 600, w - 60, P.pine, 44);
+  s.items.forEach((it, i) => {
+    const y = y0 + i * ROW, k = it.highlights.length;
+    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(90, y, w - 180, 3);
+    medal(c, 200, y + 200, 96, i + 1, s.accent);
+    c.fillStyle = P.ink; fit(c, it.title, w - 440, 80, FONT.serif, '700'); c.fillText(it.title, 350, y + 190);
+    c.fillStyle = A; c.font = font(38, FONT.mono, '600'); c.fillText(`${k} ${k === 1 ? 'highlight' : 'highlights'}`.toUpperCase(), 352, y + 262);
+  });
+  c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(90, y0 + n * ROW, w - 180, 3);
+  pills(c, ['Click to open'], 90, y0 + n * ROW + 130, w - 60, A, 44);
 }));
 
-// Focused face: header + three certificate cards per page, one block per page, SHEET.pitch px apart down the sheet. The camera shows one
-// block at a time and slides down to the next (objects/folders.js). Repainted whenever an image file finishes loading
-// (tiles show the generated placeholder until then).
+// Focused face: per block a header (eyebrow, title, medal), the certificate in a frame on the left, the highlights on the right.
+// Every block repeats the same layout so each camera position looks the same. Repainted whenever an image file finishes loading
+// (frames show the generated placeholder until then).
 export const certSheetTex = () => {
   const W = SHEET.px, cv = Object.assign(document.createElement('canvas'), { width: W, height: SHEET_H }), c = cv.getContext('2d');
-  const t = sheetFace(new THREE.CanvasTexture(cv)), tiles = {};
-  const tile = id => tiles[id] ||= (() => { const { canvas, ready } = portraitCanvas(id, TILE.w, TILE.h); ready.then(ok => ok && t.redraw()); return canvas; })();
+  const t = sheetFace(new THREE.CanvasTexture(cv)), tiles = {}, A = shade(SECTIONS.folders.accent, .5), PAD = SHEET_PAD;
+  const tile = id => tiles[id] ||= (() => { const [fw, fh] = frameSize(id), { canvas, ready } = portraitCanvas(id, fw * 2, fh * 2); ready.then(ok => ok && t.redraw()); return canvas; })(); // 2x: downscaled with 'high' smoothing so scan text stays crisp
   t.redraw = () => {
-    const pad = 70, gap = 30, cw = (W - 2 * pad - 2 * gap) / 3, ch = cw * TILE.h / TILE.w;
-    c.imageSmoothingQuality = 'high'; c.textAlign = 'left';
+    c.imageSmoothingQuality = 'high'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
     c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = BOOK_PAGES[0].accent; c.fillRect(0, 0, 18, SHEET_H);
     BOOK_PAGES.forEach((p, b) => {
-      const o = b * SHEET.pitch, y0 = o + 226; // every block repeats the same header so each camera position looks the same
-      c.fillStyle = P.pine; c.font = font(26, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), pad, o + 84);
-      c.fillStyle = P.folio; c.textAlign = 'right'; c.fillText(p.folio, W - pad, o + 84); c.textAlign = 'left';
-      c.fillStyle = P.ink; c.font = font(64, FONT.serif, '700'); c.fillText(SECTIONS.folders.title, pad, o + 160);
-      c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(pad, o + 188, W - 2 * pad, 2); c.fillStyle = p.accent; c.fillRect(pad, o + 185, 160, 8);
-      p.rows.forEach((r, k) => {
-        const x = pad + k * (cw + gap);
-        c.drawImage(tile(r.image), x, y0, cw, ch);
-        c.strokeStyle = 'rgba(29,37,48,.25)'; c.lineWidth = 2; c.strokeRect(x, y0, cw, ch);
-        c.fillStyle = p.accent; c.fillRect(x, y0, 66, 42);
-        c.fillStyle = P.ink; c.font = font(24, FONT.mono, '700'); c.textAlign = 'center'; c.fillText(String(r.n).padStart(2, '0'), x + 33, y0 + 29); c.textAlign = 'left';
-        c.font = font(30, FONT.serif, '700'); wrap(c, r.title, x, y0 + ch + 48, cw, 36, 2);
-      });
+      const o = b * SHEET.pitch, it = p.item, [fw, fh] = frameSize(it.image), y0 = o + 184, bx = PAD + fw + 56;
+      c.fillStyle = A; c.font = font(24, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), PAD, o + 52);
+      medal(c, W - PAD - 36, o + 78, 36, it.n, p.accent);
+      c.fillStyle = P.ink; fit(c, it.title, W - 2 * PAD - 110, 64, FONT.serif, '700'); c.fillText(it.title, PAD, o + 122);
+      c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(PAD, o + 150, W - 2 * PAD, 2); c.fillStyle = p.accent; c.fillRect(PAD, o + 147, 160, 8);
+      c.fillStyle = 'rgba(29,37,48,.16)'; c.fillRect(PAD + 10, y0 + 12, fw, fh); // drop shadow
+      c.drawImage(tile(it.image), PAD, y0, fw, fh);
+      c.strokeStyle = 'rgba(29,37,48,.35)'; c.lineWidth = 2; c.strokeRect(PAD, y0, fw, fh);
+      bullets(c, it.highlights, bx, y0, W - PAD - bx, FRAME_BOX.h, A, p.accent);
     });
     t.needsUpdate = true;
   };
-  BOOK_PAGES.forEach(p => p.rows.forEach(r => tile(r.image))); // start every image loading now
+  BOOK_PAGES.forEach(p => tile(p.item.image)); // start every image loading now
   t.redraw(); return t;
 };
 

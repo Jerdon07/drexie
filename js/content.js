@@ -44,18 +44,21 @@ export const SECTIONS = {
     coursework: ['ERP fundamentals', 'SAP ecosystem', 'Business process analysis', 'Relational design', 'SQL', 'Normalization'],
   },
 
-  // Folder = achievements: ONE portrait resume sheet. The camera frames only its top, so `items` are shown PER_PAGE at a time (pager / arrow keys).
-  // `image` = an id from config.js IMAGES (drop images/certN.jpg or .png); a generated placeholder shows until the file exists.
+  // Folder = achievements: ONE long sheet, one block per item (certificate image + highlights). The camera frames a block at a time (pager / arrow keys).
+  // `image` = an id from config.js IMAGES (PNG in public/images/); a generated placeholder shows until the file exists.
   folders: {
     label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', get accent() { return hex('--acc-folders'); },
-    lead: 'Certificates and recognitions so far.',
-    items: [ // TODO: replace the titles with your real certificates
-      { title: 'TODO: certificate title', image: 'cert1' },
-      { title: 'TODO: certificate title', image: 'cert2' },
-      { title: 'TODO: certificate title', image: 'cert3' },
-      { title: 'TODO: certificate title', image: 'cert4' },
-      { title: 'TODO: certificate title', image: 'cert5' },
-      { title: 'TODO: certificate title', image: 'cert6' },
+    lead: 'Honors, awards and recognitions earned in school.',
+    items: [ // one block on the sheet each; `image` = an id from config.js IMAGES; `highlights` auto-fit their block, so keep them short
+      { title: 'Graduation Recognition', image: 'graduation', highlights: [
+        'With honors', 'Best in Research Defense', 'Best in Work Immersion', 'Best TVL student',
+        'Outstanding performance in Communication Arts - Filipino',
+        'Outstanding Performance in Technical-Vocational Education (Tech-Voc)',
+        'Outstanding Campus Journalist (Feature Writer)'] },
+      { title: 'Moving-Up Recognition', image: 'movingup', highlights: [
+        'With honors', 'Campus Journalism Excellence Award', 'Best in Research Innovation'] },
+      { title: 'Buwan ng Wika', image: 'wika', highlights: [
+        'Champion — Scrabble (Women’s Division)', '1st Place — Filipino Quiz Bee'] },
     ],
   },
 
@@ -97,10 +100,9 @@ export const NAV = ['laptop', 'folders', 'notebooks', 'parents', 'phone'];
 // Two pages per spread, so the pager has ceil(n / 2) positions. Adding an entry adds a page.
 export const EDU_PAGES = [{ kind: 'title' }, ...SECTIONS.notebooks.entries.map((e, i) => ({ kind: 'entry', e, n: i + 1 })), { kind: 'courses' }];
 
-// Derived once: sheet pages (PER_PAGE certificates each) so nothing is typed twice. No cover page: the desk-distance face is drawn from SECTIONS.folders.
-const f = SECTIONS.folders, PER_PAGE = 3, n = f.items.length;
-const lists = Array.from({ length: Math.ceil(n / PER_PAGE) }, (_, i) => f.items.slice(i * PER_PAGE, (i + 1) * PER_PAGE).map((it, j) => ({ ...it, n: i * PER_PAGE + j + 1 })));
-export const BOOK_PAGES = lists.map((rows, i) => ({ eyebrow: `Certificates · ${rows[0].n}–${rows.at(-1).n} of ${n}`, rows, folio: `${i + 1} / ${lists.length}`, get accent() { return f.accent; } }));
+// Derived once: one sheet block per achievement so nothing is typed twice. No cover page: the desk-distance face is drawn from SECTIONS.folders.
+const f = SECTIONS.folders, n = f.items.length, pad2 = k => String(k).padStart(2, '0');
+export const BOOK_PAGES = f.items.map((item, i) => ({ eyebrow: `Achievement ${pad2(i + 1)} / ${pad2(n)}`, item: { ...item, n: i + 1 }, get accent() { return f.accent; } }));
 
 // id -> accent for every section that has one (consumed by main.js, ui.js and the scene).
 export const ACCENTS = {};

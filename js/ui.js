@@ -1,6 +1,7 @@
 // DOM-side widgets. Pure functions of content; no knowledge of three.js.
 import { SECTIONS } from './content.js';
 import { portraitSrc } from './images.js';
+import { IMAGES } from './config.js';
 
 export const $ = s => document.querySelector(s);
 const ENT = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -36,7 +37,7 @@ const panelHtml = s => [
   s.fields ? `<dl class="kv">${s.fields.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : '',
   ...(s.entries || []).map(e => `<div class="pj${e.todo ? ' todo' : ''}"><em>${esc(e.tag)}</em><b>${esc(e.title)}</b><strong>${esc(e.school)}</strong><span>${esc(e.meta)}</span></div>`),
   s.coursework ? `<div class="eb sub">Coursework &amp; focus</div><div class="bd">${s.coursework.map(t => `<span class="b">${esc(t)}</span>`).join('')}</div>` : '',
-  ...(s.items || []).map(i => `<div class="pj">${i.image ? `<figure class="ph cert"><img data-photo="${esc(i.image)}" alt="${esc(i.title)}"></figure>` : ''}${i.year || i.tag ? `<em>${esc([i.year, i.tag].filter(Boolean).join(' · '))}</em>` : ''}<b>${esc(i.title)}</b>${i.text ? `<span>${esc(i.text)}</span>` : ''}</div>`),
+  ...(s.items || []).map(i => `<div class="pj">${i.image ? `<figure class="ph cert${IMAGES[i.image].ratio < 1 ? ' port' : ''}"><img data-photo="${esc(i.image)}" alt="${esc(i.title)}"></figure>` : ''}${i.year || i.tag ? `<em>${esc([i.year, i.tag].filter(Boolean).join(' · '))}</em>` : ''}<b>${esc(i.title)}</b>${i.text ? `<span>${esc(i.text)}</span>` : ''}${i.highlights ? `<ul class="hl">${i.highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}</div>`),
   ...(s.contacts || []).map(c => `<a class="lk" rel="noopener" href="${esc(c.href)}"><span class="k">${esc(c.label)}</span><span class="v">${esc(c.value)}</span></a>`),
   s.badges ? `<div class="bd">${s.badges.map(badge).join('')}</div>` : '',
   '<button class="btn" type="button" data-back>← Back to desk</button>',

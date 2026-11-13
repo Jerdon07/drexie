@@ -23,13 +23,18 @@ export const IMAGES = {
   father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
-  // Certificates (Achievements sheet): drop images/cert1.jpg … cert6.jpg (.png works too). Until then a landscape placeholder is drawn.
-  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map(n => [`cert${n}`, { file: [`cert${n}.jpg`, `cert${n}.png`], get tint() { return hex('--folio'); }, kind: 'cert' }])),
+  // Certificates (Achievements sheet): drop the PNGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
+  // (landscape vs portrait) and the placeholder shown until the file exists. Add one: entry here + an item in content.js SECTIONS.folders.
+  graduation: cert('graduation-recognition.png', 1.4),
+  movingup:   cert('moving-up-recognition.png', .72),
+  wika:       cert('buwan-ng-wika.png', 1.4),
 };
-// Achievements sheet: world size (A4 ratio), texture width in px, `content` = fraction of its height the camera frames at once
-// (scene/camera.js, view.top), `pitch` = px between page blocks down the sheet. It must exceed the block height + the camera's top
-// padding (~640 px) so that when the camera slides to block 2, block 1 has scrolled out of view.
-export const SHEET = { w: 1.8, h: 2.55, px: 1240, content: .34, pitch: 700 };
+function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
+// Achievements sheet: world size (a long one-page résumé strip; it must stay inside the desk: z 1.55 ± 1.6), texture width in px,
+// `content` = fraction of its height the camera frames at once (scene/camera.js, view.top), `pitch` = px between achievement blocks.
+// One block = 620 px tall; content (.29 of 2204 px ≈ 640 px) fits it exactly, and pitch (730) exceeds block + the camera's top padding
+// so that when the camera slides to block N+1, block N has scrolled out of view. Change a number → re-check both constraints.
+export const SHEET = { w: 1.8, h: 3.2, px: 1240, content: .29, pitch: 730, block: 620 };
 // Education book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
 // (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk, so the pages you read are bigger. PX = texture px per world unit.
 export const EDU_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
