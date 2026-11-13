@@ -1,7 +1,7 @@
 // Canvas textures. All text comes from content.js; all colours from config.js.
 import { hex, rgba } from '../colors.js';
 import THREE from './three.js';
-import { SECTIONS, PROFILE, BOOK_PAGES, EDU_PAGES } from '../content.js';
+import { SECTIONS, PROFILE, EDU_PAGES } from '../content.js';
 import { P, FONT, font, BARS, SHEET, EDU_BOOK, IMAGES } from '../config.js';
 import { portraitCanvas, loadPortrait } from '../images.js';
 
@@ -244,11 +244,13 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop, A = s.accent;
   pills(c, s.badges.slice(0, 2).map(b => b.text), 500, y + 60, 1220, P.emSoft, 40);
 })); };
 
-/* ---- Achievements sheet: ONE long sheet, one block (SHEET.block px tall) per achievement, SHEET.pitch px apart. The camera frames a block at a time
-   and slides down to the next (objects/folders.js); the cover is what you see at desk distance. Both go on the sheet box's top face. ---- */
+/* ---- Achievements sheet: ONE landscape page with every achievement at once, a column each (certificate frame on top, highlights below).
+   The cover is what you see at desk distance. Both go on the sheet box's top face (objects/folders.js). ---- */
 const SHEET_H = Math.round(SHEET.px * SHEET.h / SHEET.w);
-const SHEET_PAD = 64, FRAME_BOX = { w: 520, h: 430 }; // a certificate frame fits inside this box, whatever its orientation
-const frameSize = id => { const r = IMAGES[id].ratio; return r >= 1 ? [FRAME_BOX.w, Math.round(FRAME_BOX.w / r)] : [Math.round(FRAME_BOX.h * r), FRAME_BOX.h]; };
+const GRID = { pad: 64, gap: 48, top: 210, bottom: 60, frameH: 400, rule: 34 }; // px on the sheet; frameH = tallest a certificate frame may be
+const BULLET = { head: 46, indent: 40, max: 32, min: 18 };
+const colW = n => (SHEET.px - 2 * GRID.pad - (n - 1) * GRID.gap) / n;
+const frameSize = (id, cw) => { const r = IMAGES[id].ratio, w = Math.min(cw, GRID.frameH * r); return [Math.round(w), Math.round(w / r)]; }; // fits the column AND the height, any orientation
 // The sheet's top is the box's -z edge, but roundedBoxGeo runs v along +z: don't flip, so canvas row 0 lands at -z (top of the sheet).
 const sheetFace = t => (t.flipY = false, sharp(t));
 
@@ -261,66 +263,64 @@ function medal(c, cx, cy, r, n, gold) {
   c.textAlign = 'left'; c.textBaseline = 'alphabetic';
 }
 
-// Diamond-bullet list in a w×h box at (x, y). It picks the largest type size (≤ 38) at which every item fits, so adding or lengthening
-// a highlight in content.js can never overflow the block.
-function bullets(c, items, x, y, w, h, ink, mark) {
-  const HEAD = 46, IND = 40, tw = w - IND, avail = h - HEAD;
+const lay = (c, items, s, tw) => { c.font = font(s, FONT.sans, '600'); const ls = items.map(t => lines(c, t, tw)), lh = s * 1.26; return { ls, lh, h: ls.reduce((a, l) => a + l.length * lh, 0) + s * .6 * (ls.length - 1) }; };
+// Largest type size at which EVERY column's list fits `avail` px. One shared size keeps the page reading as one, and adding or lengthening a
+// highlight in content.js can never overflow.
+const bulletSize = (c, lists, tw, avail) => { let s = BULLET.max; while (s > BULLET.min && lists.some(l => lay(c, l, s, tw).h > avail)) s -= 2; return s; };
+// Diamond-bullet list; (x, y) = top-left of the column, tw = text width.
+function bullets(c, items, x, y, tw, s, ink, mark) {
   c.fillStyle = ink; c.font = font(22, FONT.mono, '600'); c.fillText('HIGHLIGHTS', x, y + 20);
-  const lay = s => { c.font = font(s, FONT.sans, '600'); const ls = items.map(t => lines(c, t, tw)), lh = s * 1.26, text = ls.reduce((a, l) => a + l.length * lh, 0);
-    return { s, ls, lh, text, gap: Math.max(s * .45, Math.min(s * .8, (avail - text) / Math.max(1, ls.length - 1))) }; }; // short lists breathe, long ones pack
-  let L = lay(38); while (L.text + L.gap * (L.ls.length - 1) > avail && L.s > 18) L = lay(L.s - 2);
-  c.font = font(L.s, FONT.sans, '600'); let cy = y + HEAD;
+  const L = lay(c, items, s, tw); c.font = font(s, FONT.sans, '600'); let cy = y + BULLET.head;
   L.ls.forEach(ls => {
-    const base = cy + L.s * .95, my = base - L.s * .3, d = L.s * .2;
+    const base = cy + s * .95, my = base - s * .3, d = s * .2, bx = x + 10;
     c.fillStyle = mark; c.strokeStyle = ink; c.lineWidth = 2;
-    c.beginPath(); c.moveTo(x + 10, my - d); c.lineTo(x + 10 + d, my); c.lineTo(x + 10, my + d); c.lineTo(x + 10 - d, my); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle = P.ink; ls.forEach((s, k) => c.fillText(s, x + IND, base + k * L.lh));
-    cy += ls.length * L.lh + L.gap;
+    c.beginPath(); c.moveTo(bx, my - d); c.lineTo(bx + d, my); c.lineTo(bx, my + d); c.lineTo(bx - d, my); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = P.ink; ls.forEach((t, k) => c.fillText(t, x + BULLET.indent, base + k * L.lh));
+    cy += ls.length * L.lh + s * .6;
   });
 }
 
-// Desk-distance face: big title, one row per achievement, legible while the whole sheet is small on the desk.
+// Desk-distance face: the whole sheet is small on the desk, so only a huge title and three medals stay legible.
 export const certCoverTex = () => sheetFace(tex(SHEET.px, SHEET_H, (c, w, h) => {
-  const s = SECTIONS.folders, A = shade(s.accent, .5), n = s.items.length, ROW = 420, y0 = 620;
+  const s = SECTIONS.folders, A = shade(s.accent, .5), n = s.items.length, cw = (w - 180) / n;
   c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = s.accent; c.fillRect(0, 0, 28, h);
-  c.fillStyle = A; c.font = font(50, FONT.mono, '600'); c.fillText('RECOGNITIONS', 90, 150);
-  c.fillStyle = P.ink; fit(c, s.title, w - 160, 200, FONT.serif, '700'); c.fillText(s.title, 90, 380);
-  c.fillStyle = s.accent; c.fillRect(90, 440, 180, 10);
+  c.fillStyle = A; c.font = font(56, FONT.mono, '600'); c.fillText('RECOGNITIONS', 90, 170);
+  c.fillStyle = P.ink; fit(c, s.title, w - 180, 260, FONT.serif, '700'); c.fillText(s.title, 90, 430);
+  c.fillStyle = s.accent; c.fillRect(90, 490, 200, 12);
   s.items.forEach((it, i) => {
-    const y = y0 + i * ROW, k = it.highlights.length;
-    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(90, y, w - 180, 3);
-    medal(c, 200, y + 200, 96, i + 1, s.accent);
-    c.fillStyle = P.ink; fit(c, it.title, w - 440, 80, FONT.serif, '700'); c.fillText(it.title, 350, y + 190);
-    c.fillStyle = A; c.font = font(38, FONT.mono, '600'); c.fillText(`${k} ${k === 1 ? 'highlight' : 'highlights'}`.toUpperCase(), 352, y + 262);
+    const cx = 90 + cw * (i + .5), k = it.highlights.length;
+    medal(c, cx, 710, 130, i + 1, s.accent);
+    c.fillStyle = A; c.font = font(44, FONT.mono, '600'); c.textAlign = 'center'; c.fillText(`${k} ${k === 1 ? 'highlight' : 'highlights'}`.toUpperCase(), cx, 930); c.textAlign = 'left';
   });
-  c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(90, y0 + n * ROW, w - 180, 3);
-  pills(c, ['Click to open'], 90, y0 + n * ROW + 130, w - 60, A, 44);
+  pills(c, ['Click to open'], 90, h - 90, w - 60, A, 50);
 }));
 
-// Focused face: per block a header (eyebrow, title, medal), the certificate in a frame on the left, the highlights on the right.
-// Every block repeats the same layout so each camera position looks the same. Repainted whenever an image file finishes loading
-// (frames show the generated placeholder until then).
+// Focused face: header, then one column per achievement (numbered medal on the certificate's corner, highlights underneath). Repainted whenever
+// an image file finishes loading (frames show the generated placeholder until then).
 export const certSheetTex = () => {
   const W = SHEET.px, cv = Object.assign(document.createElement('canvas'), { width: W, height: SHEET_H }), c = cv.getContext('2d');
-  const t = sheetFace(new THREE.CanvasTexture(cv)), tiles = {}, A = shade(SECTIONS.folders.accent, .5), PAD = SHEET_PAD;
-  const tile = id => tiles[id] ||= (() => { const [fw, fh] = frameSize(id), { canvas, ready } = portraitCanvas(id, fw * 2, fh * 2); ready.then(ok => ok && t.redraw()); return canvas; })(); // 2x: downscaled with 'high' smoothing so scan text stays crisp
+  const s = SECTIONS.folders, items = s.items, n = items.length, cw = colW(n), A = shade(s.accent, .5), G = GRID, tiles = {};
+  const t = sheetFace(new THREE.CanvasTexture(cv));
+  const tile = (id, fw, fh) => tiles[id] ||= (() => { const { canvas, ready } = portraitCanvas(id, fw * 2, fh * 2); ready.then(ok => ok && t.redraw()); return canvas; })(); // 2x: downscaled with 'high' smoothing so scan text stays crisp
   t.redraw = () => {
     c.imageSmoothingQuality = 'high'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-    c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = BOOK_PAGES[0].accent; c.fillRect(0, 0, 18, SHEET_H);
-    BOOK_PAGES.forEach((p, b) => {
-      const o = b * SHEET.pitch, it = p.item, [fw, fh] = frameSize(it.image), y0 = o + 184, bx = PAD + fw + 56;
-      c.fillStyle = A; c.font = font(24, FONT.mono, '600'); c.fillText(p.eyebrow.toUpperCase(), PAD, o + 52);
-      medal(c, W - PAD - 36, o + 78, 36, it.n, p.accent);
-      c.fillStyle = P.ink; fit(c, it.title, W - 2 * PAD - 110, 64, FONT.serif, '700'); c.fillText(it.title, PAD, o + 122);
-      c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(PAD, o + 150, W - 2 * PAD, 2); c.fillStyle = p.accent; c.fillRect(PAD, o + 147, 160, 8);
-      c.fillStyle = 'rgba(29,37,48,.16)'; c.fillRect(PAD + 10, y0 + 12, fw, fh); // drop shadow
-      c.drawImage(tile(it.image), PAD, y0, fw, fh);
-      c.strokeStyle = 'rgba(29,37,48,.35)'; c.lineWidth = 2; c.strokeRect(PAD, y0, fw, fh);
-      bullets(c, it.highlights, bx, y0, W - PAD - bx, FRAME_BOX.h, A, p.accent);
+    c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = s.accent; c.fillRect(0, 0, 18, SHEET_H);
+    c.fillStyle = A; c.font = font(28, FONT.mono, '600'); c.fillText('RECOGNITIONS', G.pad, 62);
+    c.fillStyle = P.ink; fit(c, s.title, W - 2 * G.pad, 84, FONT.serif, '700'); c.fillText(s.title, G.pad, 140);
+    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(G.pad, 168, W - 2 * G.pad, 2); c.fillStyle = s.accent; c.fillRect(G.pad, 165, 160, 8);
+    const by = G.top + G.frameH + G.rule, size = bulletSize(c, items.map(i => i.highlights), cw - BULLET.indent, SHEET_H - G.bottom - by - BULLET.head);
+    items.forEach((it, i) => {
+      const x = G.pad + i * (cw + G.gap), [fw, fh] = frameSize(it.image, cw), fx = x + (cw - fw) / 2, fy = G.top + (G.frameH - fh) / 2;
+      if (i) { c.fillStyle = 'rgba(29,37,48,.12)'; c.fillRect(x - G.gap / 2 - 1, G.top, 2, SHEET_H - G.bottom - G.top); }
+      c.fillStyle = 'rgba(29,37,48,.16)'; c.fillRect(fx + 10, fy + 12, fw, fh); // drop shadow
+      c.drawImage(tile(it.image, fw, fh), fx, fy, fw, fh);
+      c.strokeStyle = 'rgba(29,37,48,.35)'; c.lineWidth = 2; c.strokeRect(fx, fy, fw, fh);
+      medal(c, fx, fy, 30, i + 1, s.accent);
+      bullets(c, it.highlights, x, by, cw - BULLET.indent, size, A, s.accent);
     });
     t.needsUpdate = true;
   };
-  BOOK_PAGES.forEach(p => tile(p.item.image)); // start every image loading now
+  items.forEach(it => { const [fw, fh] = frameSize(it.image, cw); tile(it.image, fw, fh); }); // start every image loading now
   t.redraw(); return t;
 };
 

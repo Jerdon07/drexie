@@ -30,11 +30,9 @@ export const IMAGES = {
   wika:       cert('buwan-ng-wika.jpg', 1.4),
 };
 function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
-// Achievements sheet: world size (a long one-page résumé strip; it must stay inside the desk: z 1.55 ± 1.6), texture width in px,
-// `content` = fraction of its height the camera frames at once (scene/camera.js, view.top), `pitch` = px between achievement blocks.
-// One block = 620 px tall; content (.29 of 2204 px ≈ 640 px) fits it exactly, and pitch (730) exceeds block + the camera's top padding
-// so that when the camera slides to block N+1, block N has scrolled out of view. Change a number → re-check both constraints.
-export const SHEET = { w: 1.8, h: 3.2, px: 1240, content: .29, pitch: 730, block: 620 };
+// Achievements sheet: ONE landscape page (all achievements visible at once). World size (it must stay clear of the laptop, glasses and the
+// shelf's open book: x -2.7 ± 1.4, z 1.7 ± 1), and texture width in px (height follows the aspect).
+export const SHEET = { w: 2.8, h: 2, px: 1680 };
 // Education book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
 // (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk, so the pages you read are bigger. PX = texture px per world unit.
 export const EDU_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };

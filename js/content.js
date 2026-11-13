@@ -44,7 +44,7 @@ export const SECTIONS = {
     coursework: ['ERP fundamentals', 'SAP ecosystem', 'Business process analysis', 'Relational design', 'SQL', 'Normalization'],
   },
 
-  // Folder = achievements: ONE long sheet, one block per item (certificate image + highlights). The camera frames a block at a time (pager / arrow keys).
+  // Folder = achievements: ONE landscape page, one column per item (certificate image + highlights), all visible at once. `title` is not drawn on the sheet (alt text only).
   // `image` = an id from config.js IMAGES (PNG in public/images/); a generated placeholder shows until the file exists.
   folders: {
     label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', get accent() { return hex('--acc-folders'); },
@@ -100,9 +100,6 @@ export const NAV = ['laptop', 'folders', 'notebooks', 'parents', 'phone'];
 // Two pages per spread, so the pager has ceil(n / 2) positions. Adding an entry adds a page.
 export const EDU_PAGES = [{ kind: 'title' }, ...SECTIONS.notebooks.entries.map((e, i) => ({ kind: 'entry', e, n: i + 1 })), { kind: 'courses' }];
 
-// Derived once: one sheet block per achievement so nothing is typed twice. No cover page: the desk-distance face is drawn from SECTIONS.folders.
-const f = SECTIONS.folders, n = f.items.length, pad2 = k => String(k).padStart(2, '0');
-export const BOOK_PAGES = f.items.map((item, i) => ({ eyebrow: `Achievement ${pad2(i + 1)} / ${pad2(n)}`, item: { ...item, n: i + 1 }, get accent() { return f.accent; } }));
 
 // id -> accent for every section that has one (consumed by main.js, ui.js and the scene).
 export const ACCENTS = {};
