@@ -23,11 +23,11 @@ export const IMAGES = {
   father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
-  // Certificates (Achievements sheet): drop the PNGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
+  // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
   // (landscape vs portrait) and the placeholder shown until the file exists. Add one: entry here + an item in content.js SECTIONS.folders.
-  graduation: cert('graduation-recognition.png', 1.4),
-  movingup:   cert('moving-up-recognition.png', .72),
-  wika:       cert('buwan-ng-wika.png', 1.4),
+  graduation: cert('graduation-recognition.jpg', 1.4),
+  movingup:   cert('moving-up-recognition.jpg', .72),
+  wika:       cert('buwan-ng-wika.jpg', 1.4),
 };
 function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
 // Achievements sheet: world size (a long one-page résumé strip; it must stay inside the desk: z 1.55 ± 1.6), texture width in px,
