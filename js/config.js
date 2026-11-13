@@ -25,9 +25,9 @@ export const IMAGES = {
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
   // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
   // (landscape vs portrait) and the placeholder shown until the file exists. Add one: entry here + an item in content.js SECTIONS.folders.
-  graduation: cert('graduation-recognition.jpg', 1.4),
-  movingup:   cert('moving-up-recognition.jpg', .72),
-  wika:       cert('buwan-ng-wika.jpg', 1.4),
+  graduation: cert('graduation-recognition.jpg', 1.5),
+  movingup:   cert('moving-up-recognition.jpg', .667),
+  wika:       cert('buwan-ng-wika.jpg', 1.5),
 };
 function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
 // Achievements sheet: ONE landscape page (all achievements visible at once). World size (it must stay clear of the laptop, glasses and the
