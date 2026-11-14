@@ -68,10 +68,10 @@ export const SECTIONS = {
   phone: {
     label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', get accent() { return hex('--acc-phone'); },
     lead: 'Open to mentorship, collaboration and conversation.',
-    contacts: [ // TODO: LinkedIn / email / phone are still placeholders
-      { label: 'GitHub', icon: 'GH', value: 'Jerdon07', href: 'https://github.com/Jerdon07' },
-      { label: 'LinkedIn', icon: 'in', value: 'your-profile', href: 'https://www.linkedin.com/' },
-      { label: 'Email', icon: '@', value: 'your@email.com', href: 'mailto:your@email.com' },
+    contacts: [
+      { label: 'Phone', icon: 'Ph', value: '09850883391', href: 'tel:09850883391' },
+      { label: 'Email', icon: '@', value: 'leedrexie@gmail.com', href: 'mailto:leedrexie@gmail.com' },
+      { label: 'Messenger', icon: 'Ms', value: 'Drexie Jaira Litaoen', href: 'https://m.me/jairalitaoen' },
     ],
   },
 
