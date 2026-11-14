@@ -2,7 +2,7 @@
 import { hex, rgba } from '../colors.js';
 import THREE from './three.js';
 import { SECTIONS, PROFILE, EDU_PAGES } from '../content.js';
-import { P, FONT, font, BARS, SHEET, EDU_BOOK, IMAGES } from '../config.js';
+import { P, FONT, font, BARS, SHEET, BENTO, EDU_BOOK, IMAGES } from '../config.js';
 import { portraitCanvas, loadPortrait } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
@@ -244,15 +244,32 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop, A = s.accent;
   pills(c, s.badges.slice(0, 2).map(b => b.text), 500, y + 60, 1220, P.emSoft, 40);
 })); };
 
-/* ---- Achievements sheet: ONE landscape page with every achievement at once, a column each (certificate frame on top, highlights below).
-   The cover is what you see at desk distance. Both go on the sheet box's top face (objects/folders.js). ---- */
+/* ---- Achievements sheet: ONE landscape page laid out as a BENTO grid (config.js BENTO): one tile per achievement (medal + title, certificate, highlights),
+   all visible at once. The cover is what you see at desk distance. Both go on the sheet box's top face (objects/folders.js). ---- */
 const SHEET_H = Math.round(SHEET.px * SHEET.h / SHEET.w);
-const GRID = { pad: 64, gap: 48, top: 210, bottom: 60, frameH: 400, rule: 34 }; // px on the sheet; frameH = tallest a certificate frame may be
-const BULLET = { head: 46, indent: 40, max: 32, min: 18 };
-const colW = n => (SHEET.px - 2 * GRID.pad - (n - 1) * GRID.gap) / n;
-const frameSize = (id, cw) => { const r = IMAGES[id].ratio, w = Math.min(cw, GRID.frameH * r); return [Math.round(w), Math.round(w / r)]; }; // fits the column AND the height, any orientation
+const GRID = { pad: 64, top: 200, bottom: 56 }; // px on the sheet; top = space for the header
+const TILE = { pad: 24, head: 84, share: .45 }; // head = title strip; share = most of a tile's width a side-by-side certificate may take
+const BULLET = { indent: 30, max: 30, min: 16 };
 // The sheet's top is the box's -z edge, but roundedBoxGeo runs v along +z: don't flip, so canvas row 0 lands at -z (top of the sheet).
 const sheetFace = t => (t.flipY = false, sharp(t));
+
+// Pixel rectangle of an achievement's tile, from the BENTO grid. Null (with a warning) if config.js has no cell for it.
+const tileRect = id => {
+  const L = BENTO.layout[id]; if (!L) { console.warn(`[sheet] BENTO.layout has no cell for "${id}"`); return null; }
+  const { cols, rows, gap } = BENTO, cw = (SHEET.px - 2 * GRID.pad - (cols - 1) * gap) / cols, ch = (SHEET_H - GRID.top - GRID.bottom - (rows - 1) * gap) / rows, cs = L.cs || 1, rs = L.rs || 1;
+  return { x: GRID.pad + L.c * (cw + gap), y: GRID.top + L.r * (ch + gap), w: cs * cw + (cs - 1) * gap, h: rs * ch + (rs - 1) * gap };
+};
+// Splits a tile's body into the certificate frame and the text box. Portrait scans and wide tiles go side by side (frame left, text right);
+// a landscape scan in a roughly square tile stacks (frame on top, text below).
+function tileParts(id, r) {
+  const { pad, head, share } = TILE, bx = r.x + pad, by = r.y + head, bw = r.w - 2 * pad, bh = r.h - head - pad, ratio = IMAGES[id].ratio;
+  if (ratio < 1 || r.w > r.h * 1.6) {
+    const fw = Math.round(Math.min(bw * share, bh * ratio)), fh = Math.round(fw / ratio);
+    return { img: [Math.round(bx), Math.round(by), fw, fh], txt: { x: bx + fw + pad, y: by, w: bw - fw - pad, h: bh } };
+  }
+  const fh = Math.round(Math.min(bh * .58, bw / ratio)), fw = Math.round(fh * ratio);
+  return { img: [Math.round(bx + (bw - fw) / 2), Math.round(by), fw, fh], txt: { x: bx, y: by + fh + 16, w: bw, h: bh - fh - 16 } };
+}
 
 // Gold medal carrying the achievement number.
 function medal(c, cx, cy, r, n, gold) {
@@ -264,63 +281,64 @@ function medal(c, cx, cy, r, n, gold) {
 }
 
 const lay = (c, items, s, tw) => { c.font = font(s, FONT.sans, '600'); const ls = items.map(t => lines(c, t, tw)), lh = s * 1.26; return { ls, lh, h: ls.reduce((a, l) => a + l.length * lh, 0) + s * .6 * (ls.length - 1) }; };
-// Largest type size at which EVERY column's list fits `avail` px. One shared size keeps the page reading as one, and adding or lengthening a
-// highlight in content.js can never overflow.
-const bulletSize = (c, lists, tw, avail) => { let s = BULLET.max; while (s > BULLET.min && lists.some(l => lay(c, l, s, tw).h > avail)) s -= 2; return s; };
-// Diamond-bullet list; (x, y) = top-left of the column, tw = text width.
-function bullets(c, items, x, y, tw, s, ink, mark) {
-  c.fillStyle = ink; c.font = font(22, FONT.mono, '600'); c.fillText('HIGHLIGHTS', x, y + 20);
-  const L = lay(c, items, s, tw); c.font = font(s, FONT.sans, '600'); let cy = y + BULLET.head;
+// Largest type size at which EVERY tile's list fits its text box (`jobs` = [{ items, w, h }]). One shared size keeps the page reading as one, and
+// adding or lengthening a highlight in content.js can never overflow.
+const bulletSize = (c, jobs) => { let s = BULLET.max; while (s > BULLET.min && jobs.some(j => lay(c, j.items, s, j.w - BULLET.indent).h > j.h)) s -= 2; return s; };
+// Diamond-bullet list inside text box `t` ({ x, y, w }).
+function bullets(c, items, t, s, ink, mark) {
+  const L = lay(c, items, s, t.w - BULLET.indent); c.font = font(s, FONT.sans, '600'); let cy = t.y;
   L.ls.forEach(ls => {
-    const base = cy + s * .95, my = base - s * .3, d = s * .2, bx = x + 10;
+    const base = cy + s * .95, my = base - s * .3, d = s * .2, bx = t.x + 10;
     c.fillStyle = mark; c.strokeStyle = ink; c.lineWidth = 2;
     c.beginPath(); c.moveTo(bx, my - d); c.lineTo(bx + d, my); c.lineTo(bx, my + d); c.lineTo(bx - d, my); c.closePath(); c.fill(); c.stroke();
-    c.fillStyle = P.ink; ls.forEach((t, k) => c.fillText(t, x + BULLET.indent, base + k * L.lh));
+    c.fillStyle = P.ink; ls.forEach((x, k) => c.fillText(x, t.x + BULLET.indent, base + k * L.lh));
     cy += ls.length * L.lh + s * .6;
   });
 }
 
-// Desk-distance face: the whole sheet is small on the desk, so only a huge title and three medals stay legible.
+// Desk-distance face: the whole sheet is small on the desk, so only a huge title and one medal per achievement stay legible.
 export const certCoverTex = () => sheetFace(tex(SHEET.px, SHEET_H, (c, w, h) => {
-  const s = SECTIONS.folders, A = shade(s.accent, .5), n = s.items.length, cw = (w - 180) / n;
+  const s = SECTIONS.folders, A = shade(s.accent, .5), n = s.items.length, cw = (w - 180) / n, mr = Math.min(130, cw * .38);
   c.fillStyle = P.page; c.fillRect(0, 0, w, h); c.fillStyle = s.accent; c.fillRect(0, 0, 28, h);
   c.fillStyle = A; c.font = font(56, FONT.mono, '600'); c.fillText('RECOGNITIONS', 90, 170);
   c.fillStyle = P.ink; fit(c, s.title, w - 180, 260, FONT.serif, '700'); c.fillText(s.title, 90, 430);
   c.fillStyle = s.accent; c.fillRect(90, 490, 200, 12);
   s.items.forEach((it, i) => {
     const cx = 90 + cw * (i + .5), k = it.highlights.length;
-    medal(c, cx, 710, 130, i + 1, s.accent);
-    c.fillStyle = A; c.font = font(44, FONT.mono, '600'); c.textAlign = 'center'; c.fillText(`${k} ${k === 1 ? 'highlight' : 'highlights'}`.toUpperCase(), cx, 930); c.textAlign = 'left';
+    medal(c, cx, 710, mr, i + 1, s.accent);
+    c.fillStyle = A; c.font = font(30, FONT.mono, '600'); c.textAlign = 'center'; c.fillText(`${k} ${k === 1 ? 'highlight' : 'highlights'}`.toUpperCase(), cx, 710 + mr + 70); c.textAlign = 'left';
   });
   pills(c, ['Click to open'], 90, h - 90, w - 60, A, 50);
 }));
 
-// Focused face: header, then one column per achievement (numbered medal on the certificate's corner, highlights underneath). Repainted whenever
+// Focused face: header, then the bento grid (numbered medal + title, certificate, highlights per tile). Repainted whenever
 // an image file finishes loading (frames show the generated placeholder until then).
 export const certSheetTex = () => {
   const W = SHEET.px, cv = Object.assign(document.createElement('canvas'), { width: W, height: SHEET_H }), c = cv.getContext('2d');
-  const s = SECTIONS.folders, items = s.items, n = items.length, cw = colW(n), A = shade(s.accent, .5), G = GRID, tiles = {};
+  const s = SECTIONS.folders, A = shade(s.accent, .5), G = GRID, tiles = {};
   const t = sheetFace(new THREE.CanvasTexture(cv));
   const tile = (id, fw, fh) => tiles[id] ||= (() => { const { canvas, ready } = portraitCanvas(id, fw * 2, fh * 2); ready.then(ok => ok && t.redraw()); return canvas; })(); // 2x: downscaled with 'high' smoothing so scan text stays crisp
+  const cells = s.items.map(it => { const r = tileRect(it.image); return r && { it, r, ...tileParts(it.image, r) }; }).filter(Boolean); // geometry never changes: compute once
   t.redraw = () => {
     c.imageSmoothingQuality = 'high'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
     c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = s.accent; c.fillRect(0, 0, 18, SHEET_H);
     c.fillStyle = A; c.font = font(28, FONT.mono, '600'); c.fillText('RECOGNITIONS', G.pad, 62);
     c.fillStyle = P.ink; fit(c, s.title, W - 2 * G.pad, 84, FONT.serif, '700'); c.fillText(s.title, G.pad, 140);
     c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(G.pad, 168, W - 2 * G.pad, 2); c.fillStyle = s.accent; c.fillRect(G.pad, 165, 160, 8);
-    const by = G.top + G.frameH + G.rule, size = bulletSize(c, items.map(i => i.highlights), cw - BULLET.indent, SHEET_H - G.bottom - by - BULLET.head);
-    items.forEach((it, i) => {
-      const x = G.pad + i * (cw + G.gap), [fw, fh] = frameSize(it.image, cw), fx = x + (cw - fw) / 2, fy = G.top + (G.frameH - fh) / 2;
-      if (i) { c.fillStyle = 'rgba(29,37,48,.12)'; c.fillRect(x - G.gap / 2 - 1, G.top, 2, SHEET_H - G.bottom - G.top); }
-      c.fillStyle = 'rgba(29,37,48,.16)'; c.fillRect(fx + 10, fy + 12, fw, fh); // drop shadow
+    const size = bulletSize(c, cells.map(k => ({ items: k.it.highlights, w: k.txt.w, h: k.txt.h })));
+    cells.forEach(({ it, r, img: [fx, fy, fw, fh], txt }, i) => {
+      c.fillStyle = 'rgba(29,37,48,.06)'; rr(c, r.x, r.y, r.w, r.h, 22); c.fill(); c.strokeStyle = 'rgba(29,37,48,.2)'; c.lineWidth = 2; c.stroke(); // tile card
+      c.fillStyle = s.accent; c.fillRect(r.x + 22, r.y, r.w - 44, 6);
+      medal(c, r.x + TILE.pad + 30, r.y + 46, 28, i + 1, s.accent);
+      c.fillStyle = P.ink; fit(c, it.title, r.w - 2 * TILE.pad - 76, 38, FONT.serif, '700'); c.fillText(it.title, r.x + TILE.pad + 74, r.y + 58);
+      c.fillStyle = 'rgba(29,37,48,.16)'; c.fillRect(fx + 8, fy + 10, fw, fh); // drop shadow
       c.drawImage(tile(it.image, fw, fh), fx, fy, fw, fh);
       c.strokeStyle = 'rgba(29,37,48,.35)'; c.lineWidth = 2; c.strokeRect(fx, fy, fw, fh);
-      medal(c, fx, fy, 30, i + 1, s.accent);
-      bullets(c, it.highlights, x, by, cw - BULLET.indent, size, A, s.accent);
+      bullets(c, it.highlights, txt, size, A, s.accent);
     });
     t.needsUpdate = true;
   };
-  items.forEach(it => { const [fw, fh] = frameSize(it.image, cw); tile(it.image, fw, fh); }); // start every image loading now
+  cells.forEach(k => tile(k.it.image, k.img[2], k.img[3])); // start every image loading now
   t.redraw(); return t;
 };
 
