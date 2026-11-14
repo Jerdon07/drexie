@@ -57,10 +57,16 @@ export const SECTIONS = {
         'Outstanding Campus Journalist (Feature Writer)'] },
       { title: 'Moving-Up Recognition', image: 'movingup', highlights: [
         'With honors', 'Campus Journalism Excellence Award', 'Best in Research Innovation'] },
+      { title: 'Junior High Completion', image: 'junior', highlights: [
+        'With honors', 'Certificate of completion (JHS)'] },
       { title: 'Buwan ng Wika', image: 'wika', highlights: [
         'Champion — Scrabble (Women’s Division)', '1st Place — Filipino Quiz Bee'] },
       { title: 'Sci Damath', image: 'scimath', highlights: [
         '1st place — Sci Damath Women’s Division (Intramurals)'] },
+      { title: 'Drum and Lyre', image: 'drumlyre', highlights: [
+        '1st Runner-up — Drum and Lyre (2015)'] },
+      { title: 'Elementary Recognitions', image: 'elementary', highlights: [
+        'Elementary recognitions'] },
     ],
   },
 

@@ -29,12 +29,21 @@ export const IMAGES = {
   movingup:   cert('moving-up-recognition.jpg', .667),
   wika:       cert('buwan-ng-wika.jpg', 1.5),
   scimath:    cert('sci-math.jpg', 1.5), // TODO: set the real width / height once the file is in public/images
+  junior:     cert('junior-certificate.jpg', 1.5),   // landscape
+  drumlyre:   cert('drum-and-lyre.jpg', .667),       // portrait
+  elementary: cert('elementary-recognitions.jpg', .667), // portrait. TODO: set the real width / height of the scans once they are in public/images
 };
 function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
 // Achievements sheet: ONE landscape page (all achievements visible at once). World size (it must stay clear of the laptop, glasses and the
 // shelf's open book: x -2.3 ± 1.8, z 1.7 ± 1), and texture width in px (height follows the aspect). 1.8:1 is close to a widescreen window, so
 // the camera (folders.js fill) can cover nearly all of it. Each achievement is a column: ≈470 px wide at 4 columns; add a 5th → widen the sheet.
 export const SHEET = { w: 3.6, h: 2, px: 2160 };
+// Bento layout of the sheet: a cols x rows grid, one tile per achievement, keyed by the item's `image` id. c/r = top-left cell, cs/rs = column/row span
+// (default 1). Every cell should be covered exactly once; a new achievement needs a free cell (or grow rows/cols) here AND an item in content.js.
+export const BENTO = { cols: 4, rows: 2, gap: 28, layout: {
+  graduation: { c: 0, r: 0, cs: 2 }, movingup: { c: 2, r: 0 }, drumlyre: { c: 3, r: 0 },
+  junior: { c: 0, r: 1 }, wika: { c: 1, r: 1 }, scimath: { c: 2, r: 1 }, elementary: { c: 3, r: 1 },
+} };
 // Education book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
 // (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk, so the pages you read are bigger. PX = texture px per world unit.
 export const EDU_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
