@@ -1,7 +1,7 @@
-// School ID overlay (right side of the screen, as before). A CR80 card on a UC-style woven lanyard that hangs from above the top edge.
+// School ID overlay (right side of the screen, as before). A 1:2 profile card on a UC-style woven lanyard that hangs from above the top edge.
 // It has its own small transparent WebGL canvas, so the card gets real PVC / metal shading without touching the desk scene.
 // Pull the card or the strap: ONLY the lanyard gives (js/scene/lanyard.js). The card + hardware are one rigid pose: they are moved
-// and tilted, never scaled or bent. Scale: 1 unit = 140 mm, so CR80 = 53.98 × 85.60 × 0.76 mm exactly (portrait).
+// and tilted, never scaled or bent. Scale: 1 unit = 140 mm. The card is 1:2 (53.98 × 107.96 × 0.76 mm, portrait): CR80 width, double height.
 import THREE from './scene/three.js';
 import { REDUCED_MOTION } from './config.js';
 import { portraitSrc } from './images.js';
@@ -10,7 +10,7 @@ import { createLanyard } from './scene/lanyard.js';
 import { makeStudioEnv } from './scene/env.js';
 
 const MM = 1 / 140;
-const CARD = { w: 53.98 * MM, h: 85.6 * MM, t: .76 * MM, r: 3.18 * MM, top: 6.5 * MM }; // top = slot centre below the top edge
+const CARD = { w: 53.98 * MM, h: 107.96 * MM, t: .76 * MM, r: 3.18 * MM, top: 6.5 * MM }; // top = slot centre below the top edge
 const SLOT = { w: 12.7 * MM, h: 3.2 * MM };
 const HW = .192;                                   // strap end → slot centre (crimp + swivel + ring stack)
 const WIDTH = .15;                                 // 21 mm strap
