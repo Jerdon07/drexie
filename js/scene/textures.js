@@ -53,7 +53,7 @@ export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
    real file images/uc.png; until it loads (or if it is missing) the generated emblem below (mountains + sun, NOT the university's seal) stands in. ---- */
 const UC = { green: '#14633d', dark: '#0c3f27', deep: '#0a2d1c', lite: '#1b7a4b', gold: '#c9a227', cream: '#f4efe3', mint: '#b9e4cf', ink: '#10301f' };
 const ID_W = 864, ID_H = 1370; // 53.98 : 85.60 (CR80); keep in sync with CARD in js/idcard.js
-export const ID_PHOTO = { w: 555, h: 740 }; // full-body portrait area on the card (3:4, matches public/images/profile.png). idcard.js sizes its source canvas from this, so they can't drift apart.
+export const ID_PHOTO = { w: 630, h: 840 }; // full-body portrait area on the card (3:4, matches public/images/profile.png), unframed so it can be as large as the layout allows. idcard.js sizes its source canvas from this, so they can't drift apart.
 const spaced = (c, s, cx, y, gap) => { // canvas letter-spacing without relying on c.letterSpacing
   const ws = [...s].map(ch => c.measureText(ch).width), total = ws.reduce((a, b) => a + b, 0) + gap * (ws.length - 1);
   let x = cx - total / 2; [...s].forEach((ch, i) => { c.fillText(ch, x, y); x += ws[i] + gap; });
@@ -85,14 +85,13 @@ export const idFrontTex = (photo, onLogo) => {
     c.textAlign = 'left'; c.fillStyle = UC.cream; c.font = font(40, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE', 250, 182);
     fit(c, 'CORDILLERAS', 570, 72, FONT.serif, '700'); c.fillText('CORDILLERAS', 250, 256);
     c.fillStyle = UC.mint; c.font = font(24, FONT.mono, '600'); c.fillText('BAGUIO CITY · PHILIPPINES', 252, 300);
-    // Portrait fills the space the name used to take (the name is already in the page header). 4px gold frame + 4px green rim around it.
-    const px = (w - ID_PHOTO.w) / 2, py = 382;
-    c.fillStyle = UC.gold; c.fillRect(px - 8, py - 8, ID_PHOTO.w + 16, ID_PHOTO.h + 16); c.fillStyle = UC.green; c.fillRect(px - 4, py - 4, ID_PHOTO.w + 8, ID_PHOTO.h + 8); c.drawImage(photo, px, py, ID_PHOTO.w, ID_PHOTO.h);
-    c.fillStyle = UC.gold; c.fillRect(w / 2 - 90, 1148, 180, 4);
-    c.textAlign = 'center'; c.fillStyle = '#4a5663'; c.font = font(32, FONT.mono, '600'); c.fillText(PROFILE.program.toUpperCase(), w / 2, 1204);
+    // Full-body portrait fills everything between the header and the program line. No frame, so the face gets every pixel.
+    const px = (w - ID_PHOTO.w) / 2, py = 360;
+    c.drawImage(photo, px, py, ID_PHOTO.w, ID_PHOTO.h);
+    c.textAlign = 'center'; c.fillStyle = '#4a5663'; c.font = font(30, FONT.mono, '600'); c.fillText(PROFILE.program.toUpperCase(), w / 2, 1234);
     const bg = c.createLinearGradient(0, 1250, w, 1370); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1256, w, 114);
     c.fillStyle = UC.gold; c.fillRect(0, 1250, w, 6);
-    c.fillStyle = UC.cream; c.font = font(42, FONT.mono, '700'); spaced(c, 'STUDENT', w / 2 - 70, 1330, 14);
+    c.fillStyle = UC.cream; c.font = font(42, FONT.mono, '700'); spaced(c, 'PROFILE', w / 2 - 70, 1330, 14);
   };
   const t = tex(ID_W, ID_H, draw); t.anisotropy = 8; t.redraw = () => { draw(t.image.getContext('2d'), ID_W, ID_H); t.needsUpdate = true; };
   loadPortrait('uc').then(img => { if (img) { logo = img; t.redraw(); onLogo?.(); } }); // real file wins; null (missing) keeps the generated emblem
