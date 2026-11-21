@@ -21,7 +21,7 @@ export const IMG_DIRS = ['images/', ''];
 export const IMAGES = {
   mother:  { file: 'mother.png',  get tint() { return hex('--ph-mother'); } },
   father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
-  profile: { file: 'profile.png', get tint() { return hex('--em'); } },
+  profile: { file: 'profile.jpg', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
   // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
   // (landscape vs portrait) and the placeholder shown until the file exists. Add one: entry here + an item in content.js SECTIONS.folders.
