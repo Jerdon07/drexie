@@ -81,8 +81,8 @@ export function createIdModel(photoSrc) {
   const front = idFrontTex(photo, () => model.onPhoto?.()), back = idBackTex(), ribbon = ribbonTex(), bump = weaveTex();
   [front, back, ribbon].forEach(t => { t.encoding = THREE.sRGBEncoding; });
   Promise.resolve(photoSrc).then(src => new Promise(ok => { const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(null); img.src = src; })).then(img => {
-    if (!img) return; const k = Math.max(ID_PHOTO.w / img.width, ID_PHOTO.h / img.height), w = img.width * k, h = img.height * k;
-    pc.drawImage(img, (ID_PHOTO.w - w) / 2, Math.min(0, (ID_PHOTO.h - h) * .2), w, h); front.redraw(); // bias toward the top so faces aren't cropped
+    if (!img) return; const k = Math.min(ID_PHOTO.w / img.width, ID_PHOTO.h / img.height), w = img.width * k, h = img.height * k;
+    pc.imageSmoothingQuality = 'high'; pc.drawImage(img, (ID_PHOTO.w - w) / 2, (ID_PHOTO.h - h) / 2, w, h); front.redraw(); // contain: a full-body shot must never be cropped (a 3:4 file fills the slot exactly)
     model.onPhoto?.();
   });
 
