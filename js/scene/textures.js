@@ -3,7 +3,7 @@ import { hex, rgba } from '../colors.js';
 import THREE from './three.js';
 import { SECTIONS, PROFILE, EDU_PAGES } from '../content.js';
 import { P, FONT, font, BARS, SHEET, BENTO, EDU_BOOK, IMAGES } from '../config.js';
-import { portraitCanvas, loadPortrait } from '../images.js';
+import { portraitCanvas } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
 const sharp = t => (t.anisotropy = 4, t); // keeps small/oblique text from shimmering
@@ -49,96 +49,10 @@ export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
   fit(c, label, h - 100, 40, FONT.serif, '700'); c.fillText(label, 0, 0); c.restore();
 }));
 
-/* ---- School ID (CR80, portrait) + lanyard ribbon. University of the Cordilleras' school colour is forest green. The ID's logo is the
-   real file images/uc.png; until it loads (or if it is missing) the generated emblem below (mountains + sun, NOT the university's seal) stands in. ---- */
-const UC = { green: '#14633d', dark: '#0c3f27', deep: '#0a2d1c', lite: '#1b7a4b', gold: '#c9a227', cream: '#f4efe3', mint: '#b9e4cf', ink: '#10301f' };
-const ID_W = 864, ID_H = 1728; // 1 : 2 profile card; keep in sync with CARD in js/idcard.js
-export const ID_PHOTO = { w: 864, h: 1152 }; // full-body portrait, full card width (3:4, matches public/images/profile.jpg), unframed and edge to edge. idcard.js sizes its source canvas from this, so they can't drift apart.
 const spaced = (c, s, cx, y, gap) => { // canvas letter-spacing without relying on c.letterSpacing
   const ws = [...s].map(ch => c.measureText(ch).width), total = ws.reduce((a, b) => a + b, 0) + gap * (ws.length - 1);
   let x = cx - total / 2; [...s].forEach((ch, i) => { c.fillText(ch, x, y); x += ws[i] + gap; });
 };
-const guilloche = (c, w, h, a) => { c.strokeStyle = `rgba(20,99,61,${a})`; c.lineWidth = 2; for (let x = -h; x < w; x += 18) { c.beginPath(); c.moveTo(x, h); c.lineTo(x + h, 0); c.stroke(); } };
-const emblem = (c, cx, cy, r) => {
-  c.save(); c.beginPath(); c.arc(cx, cy, r, 0, 7); c.clip();
-  const g = c.createLinearGradient(0, cy - r, 0, cy + r); g.addColorStop(0, UC.lite); g.addColorStop(1, UC.deep); c.fillStyle = g; c.fillRect(cx - r, cy - r, r * 2, r * 2);
-  c.fillStyle = UC.gold; c.beginPath(); c.arc(cx + r * .3, cy - r * .35, r * .17, 0, 7); c.fill();
-  c.fillStyle = UC.cream; c.beginPath(); c.moveTo(cx - r, cy + r * .6); c.lineTo(cx - r * .45, cy - r * .1); c.lineTo(cx - r * .15, cy + r * .25); c.lineTo(cx + r * .25, cy - r * .35); c.lineTo(cx + r, cy + r * .6); c.closePath(); c.fill();
-  c.restore(); c.strokeStyle = UC.cream; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, r + 8, 0, 7); c.stroke();
-  c.strokeStyle = UC.gold; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, r + 18, 0, 7); c.stroke();
-};
-// The real logo, letterboxed (never cropped or stretched) into a size × size box centred on (cx, cy).
-const logoImg = (c, img, cx, cy, size) => {
-  const k = Math.min(size / img.width, size / img.height), w = img.width * k, h = img.height * k;
-  c.imageSmoothingQuality = 'high'; c.drawImage(img, cx - w / 2, cy - h / 2, w, h);
-};
-
-// `photo` = the profile portrait canvas (images.js). t.redraw() repaints after the real file loads.
-// `onLogo` runs once images/uc.png has been drawn in: the ID overlay's render loop sleeps when idle, so the owner must wake it.
-export const idFrontTex = (photo, onLogo) => {
-  let logo = null; // images/uc.png once loaded
-  const draw = (c, w, h) => {
-    c.fillStyle = '#fbfbf7'; c.fillRect(0, 0, w, h); guilloche(c, w, h, .06);
-    const hg = c.createLinearGradient(0, 0, w, 340); hg.addColorStop(0, '#0a3a24'); hg.addColorStop(1, UC.lite); c.fillStyle = hg; c.fillRect(0, 0, w, 330); // header (the slot punches through its top)
-    c.fillStyle = UC.gold; c.fillRect(0, 330, w, 8); c.fillStyle = 'rgba(20,99,61,.55)'; c.fillRect(0, 346, w, 3);
-    logo ? logoImg(c, logo, 140, 196, 168) : emblem(c, 140, 196, 66); // 168 = the emblem's outer ring diameter, so the layout is unchanged
-    c.textAlign = 'left'; c.fillStyle = UC.cream; c.font = font(40, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE', 250, 182);
-    fit(c, 'CORDILLERAS', 570, 72, FONT.serif, '700'); c.fillText('CORDILLERAS', 250, 256);
-    c.fillStyle = UC.mint; c.font = font(24, FONT.mono, '600'); c.fillText('BAGUIO CITY · PHILIPPINES', 252, 300);
-    // Full-body portrait fills everything between the header and the program line. No frame, so the face gets every pixel.
-    const px = (w - ID_PHOTO.w) / 2, py = 352;
-    c.drawImage(photo, px, py, ID_PHOTO.w, ID_PHOTO.h);
-    c.textAlign = 'center'; c.fillStyle = '#4a5663'; c.font = font(30, FONT.mono, '600'); c.fillText(PROFILE.program.toUpperCase(), w / 2, 1568);
-    const bg = c.createLinearGradient(0, 1608, w, 1728); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1614, w, 114);
-    c.fillStyle = UC.gold; c.fillRect(0, 1608, w, 6);
-    c.fillStyle = UC.cream; c.font = font(42, FONT.mono, '700'); spaced(c, 'PROFILE', w / 2 - 70, 1688, 14);
-  };
-  const t = tex(ID_W, ID_H, draw); t.anisotropy = 8; t.redraw = () => { draw(t.image.getContext('2d'), ID_W, ID_H); t.needsUpdate = true; };
-  loadPortrait('uc').then(img => { if (img) { logo = img; t.redraw(); onLogo?.(); } }); // real file wins; null (missing) keeps the generated emblem
-  return t;
-};
-
-export const idBackTex = () => { const t = tex(ID_W, ID_H, (c, w, h) => {
-  c.fillStyle = '#f2f2ec'; c.fillRect(0, 0, w, h); guilloche(c, w, h, .05);
-  c.fillStyle = UC.green; c.fillRect(0, 0, w, 150); c.fillStyle = UC.gold; c.fillRect(0, 150, w, 6);
-  const ms = c.createLinearGradient(0, 190, 0, 360); ms.addColorStop(0, '#2a2d31'); ms.addColorStop(.5, '#0a0b0d'); ms.addColorStop(1, '#1b1d20'); c.fillStyle = ms; c.fillRect(0, 190, w, 170); // magnetic-stripe look
-  c.fillStyle = '#fff'; c.fillRect(70, 420, 724, 150); c.strokeStyle = UC.green; c.lineWidth = 3; c.strokeRect(70, 420, 724, 150);
-  c.fillStyle = 'rgba(20,99,61,.16)'; c.font = font(18, FONT.mono, '600'); for (let y = 446; y < 566; y += 26) for (let x = 78 - (y % 52); x < 790; x += 250) c.fillText('UNIVERSITY OF THE CORDILLERAS', x, y);
-  c.fillStyle = '#4a5663'; c.font = font(20, FONT.mono, '600'); c.textAlign = 'left'; c.fillText('AUTHORIZED SIGNATURE', 72, 606);
-  c.fillStyle = '#33403a'; c.font = font(28, FONT.sans); wrap(c, 'This card is the property of the University of the Cordilleras and is not transferable. If found, please return it to the university.', 70, 690, 724, 40);
-  let s = 0; for (const ch of `${PROFILE.first}${PROFILE.last}`) s = (s * 31 + ch.charCodeAt(0)) >>> 0; // decorative barcode seeded from the name (not a real ID number)
-  const rnd = () => (s = s * 16807 % 2147483647) / 2147483647; c.fillStyle = '#0a0b0d'; let x = 120;
-  while (x < 740) { const bw = 2 + Math.floor(rnd() * 5), gap = 2 + Math.floor(rnd() * 4); c.fillRect(x, 1100, bw, 170); x += bw + gap; }
-  const bg = c.createLinearGradient(0, 1614, w, 1728); bg.addColorStop(0, '#0a3a24'); bg.addColorStop(1, UC.lite); c.fillStyle = bg; c.fillRect(0, 1614, w, 114); c.fillStyle = UC.gold; c.fillRect(0, 1608, w, 6);
-  c.textAlign = 'center'; c.fillStyle = UC.cream; fit(c, 'UNIVERSITY OF THE CORDILLERAS', 760, 36, FONT.serif, '700'); c.fillText('UNIVERSITY OF THE CORDILLERAS', w / 2, 1684);
-}); t.anisotropy = 8; return t; };
-
-// Woven ribbon. Colour map and bump map share one canvas size so they stay registered; both repeat down the strap.
-const RW = 256, RH = 1280; // one repeat = 1280/256 × strap width ≈ 105 mm of strap
-export const RIBBON = { w: RW, h: RH };
-let _weave;
-const weaveCanvas = () => _weave ||= (() => { // 2/2 twill at ~0.3 mm per thread
-  const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH;
-  const g = cv.getContext('2d'), im = g.createImageData(RW, RH), px = im.data;
-  for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) { const k = (y * RW + x) * 4, v = ((x + (y >> 1)) & 3) < 2 ? 150 : 108; px[k] = px[k + 1] = px[k + 2] = v + ((x * 7 + y * 13) & 7); px[k + 3] = 255; }
-  g.putImageData(im, 0, 0); return cv;
-})();
-export const weaveTex = () => { const t = new THREE.CanvasTexture(weaveCanvas()); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
-export const ribbonTex = () => { const t = tex(RW, RH, (c, w, h) => {
-  c.fillStyle = UC.green; c.fillRect(0, 0, w, h);
-  c.globalCompositeOperation = 'overlay'; c.globalAlpha = .55; c.drawImage(weaveCanvas(), 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; // thread shading
-  c.fillStyle = UC.dark; c.fillRect(0, 0, 14, h); c.fillRect(w - 14, 0, 14, h); // selvedge
-  [[44, 5, UC.cream], [54, 3, UC.gold], [w - 54, 3, UC.gold], [w - 44, 5, UC.cream]].forEach(([x, lw, col]) => { c.fillStyle = col; c.fillRect(x - lw / 2, 0, lw, h); });
-  c.strokeStyle = UC.mint; c.lineWidth = 3; c.setLineDash([18, 12]); [28, w - 28].forEach(x => { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }); c.setLineDash([]); // edge stitching
-  c.save(); c.translate(w / 2, 0); c.rotate(Math.PI / 2); // print reads down the strap
-  const label = 'UNIVERSITY OF THE CORDILLERAS';
-  c.textBaseline = 'middle'; c.textAlign = 'left'; c.fillStyle = UC.cream; fit(c, label, 880, 46, FONT.sans, '700'); c.fillText(label, 96, 0);
-  c.fillStyle = UC.gold; [48, 1010].forEach(x => { c.beginPath(); c.moveTo(x, -13); c.lineTo(x + 11, 0); c.lineTo(x, 13); c.lineTo(x - 11, 0); c.fill(); });
-  c.beginPath(); c.moveTo(1082, 22); c.lineTo(1116, -22); c.lineTo(1140, 4); c.lineTo(1170, -28); c.lineTo(1226, 22); c.closePath(); c.fill(); // mountain mark
-  c.fillStyle = UC.cream; c.beginPath(); c.arc(1190, -20, 6, 0, 7); c.fill();
-  c.restore();
-}); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
-
 /* ---- Phone. Focused: a real "contacts" screen (header + tappable rows). Desk distance: a lock screen with a big clock. ----
    PHONE is shared with objects/phone.js so the hit-test and the drawing use the SAME row rectangles (canvas px). */
 export const PHONE = { w: 540, h: 1156, rows: 4, row: i => ({ x: 34, y: 508 + i * 150, w: 472, h: 126 }) }; // aspect = the .7 x 1.5 screen
@@ -191,7 +105,7 @@ export const phonePreviewTex = () => { const s = SECTIONS.phone; return sharp(te
 
 // Laptop screen. Left: identity sidebar (avatar, name, headline, contact). Right: grouped cards + hobby/skill pills. All text from content.js.
 const initials = () => PROFILE.first[0] + PROFILE.last[0];
-function avatar(c, cx, cy, r) { // gradient disc with initials (a photo would need an async repaint; the ID card already carries the photo)
+function avatar(c, cx, cy, r) { // gradient disc with initials (the full-length portrait lives in the page overlay, not on this screen)
   const g = c.createLinearGradient(cx - r, cy - r, cx + r, cy + r); g.addColorStop(0, P.em); g.addColorStop(1, P.sap);
   c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r, 0, 7); c.fill();
   c.fillStyle = P.screenBg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = font(r * .85, FONT.sans, '700'); c.fillText(initials(), cx, cy + r * .04);

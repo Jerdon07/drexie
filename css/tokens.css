@@ -14,7 +14,7 @@
    Switch with <html data-palette="warm"> or ?palette=warm in the URL. Add your own the same way.
 
    Deliberately NOT here: neutral real-world materials (mug, plush, glasses, pens, laptop aluminium, ID-card
-   hardware) and the university ID card's own brand green. They are not part of the site's theme.
+   hardware). They are not part of the site's theme.
    ============================================================================= */
 
 :root{
@@ -63,7 +63,6 @@
   --light-sky:#b8e6d4;  --light-ground:#0a1420;  --light-sun:#eafff6;
   --light-fill-a:#4fdcab;  --light-fill-b:#8fb4e6;  --light-glow:#c4f7e4;
   --lamp-bulb:#e9fff5;  --lamp-beam:#bff5e0;  --lamp-spot:#cff8e8;
-  --env-room:#1a2c44;  --env-key:#eafff6;  --env-fill:#9ec5ff;   /* reflections on the ID card */
 
   /* 7. BOOKS: shelf spines (book-1 is also the education book) and its cover art */
   --book-1:#24509a;  --book-2:#1f8f63;  --book-3:var(--navy);  --book-4:#8f2f2f;  --book-5:#4c6a8c;  --book-6:#5b7f6a;  --book-muted:#4a5663;
@@ -95,7 +94,6 @@
   --mat-trim:#5a3a22;  --mat-field:#3a2517;
   --light-sky:#d9b896;  --light-ground:#1c120b;  --light-sun:#ffe6c8;  --light-fill-a:#ffb27a;  --light-fill-b:#d9a066;  --light-glow:#ffcf9a;
   --lamp-bulb:#ffe2a8;  --lamp-beam:#ffd9a0;  --lamp-spot:#ffd9a0;
-  --env-room:#3a2a1e;  --env-key:#ffe6c8;
   --book-1:#1e4fa8;  --book-2:#0f6b4f;  --book-3:#2f3a48;  --book-4:#7a3b3b;  --book-5:#3b5f8a;  --book-6:#5a4630;
 }
 :root[data-palette='warm'][data-theme='light']{
