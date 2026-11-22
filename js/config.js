@@ -21,8 +21,12 @@ export const IMG_DIRS = ['images/', ''];
 export const IMAGES = {
   mother:  { file: 'mother.png',  get tint() { return hex('--ph-mother'); } },
   father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
+<<<<<<< HEAD
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
+=======
+  profile: { file: ['profile.png', 'profile.jpg'], get tint() { return hex('--em'); } }, // full-length cutout shown beside the desk (index.html #portrait). Use a TRANSPARENT PNG: a JPG cannot carry alpha, so it shows its background.
+>>>>>>> 53b59d06d56e2bb6532a896f30e4c09fa2ad1118
   // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
   // (landscape vs portrait) and the placeholder shown until the file exists. Add one: entry here + an item in content.js SECTIONS.folders.
   graduation: cert('graduation-recognition.jpg', 1.5),
@@ -54,7 +58,7 @@ export const ROUND = { box: .05, cyl: .03 };
 export const ENV = { intensity: .35 };
 // World units the home camera is raised so the desk renders lower on screen (clears the title block). Raise to push objects down.
 export const HOME_LIFT = -.15;
-// World units the home camera pans right so the desk sits left of centre and the ID overlay has room. Fades out below ~1.3 aspect (see camera.js).
+// World units the home camera pans right so the desk sits left of centre and the profile portrait has room. Fades out below ~1.3 aspect (see camera.js).
 export const HOME_SHIFT = 2.5;
 // Scene colours that blend with the lamp toggle: token name pairs, resolved lazily (scene/palette.js).
 export const SCENE_THEME = { bg: ['--scene-bg-dark', '--scene-bg-light'], desk: ['--scene-desk-dark', '--scene-desk-light'], pad: ['--scene-pad-dark', '--scene-pad-light'] };
