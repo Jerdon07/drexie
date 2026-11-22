@@ -53,7 +53,7 @@ export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
    real file images/uc.png; until it loads (or if it is missing) the generated emblem below (mountains + sun, NOT the university's seal) stands in. ---- */
 const UC = { green: '#14633d', dark: '#0c3f27', deep: '#0a2d1c', lite: '#1b7a4b', gold: '#c9a227', cream: '#f4efe3', mint: '#b9e4cf', ink: '#10301f' };
 const ID_W = 864, ID_H = 1728; // 1 : 2 profile card; keep in sync with CARD in js/idcard.js
-export const ID_PHOTO = { w: 864, h: 1152 }; // full-body portrait, full card width (3:4, matches public/images/profile.jpg), unframed and edge to edge. idcard.js sizes its source canvas from this, so they can't drift apart.
+export const ID_PHOTO = { w: 864, h: 1152 }; // full-body portrait, full card width (3:4, matches public/images/profile.png), unframed and edge to edge. idcard.js sizes its source canvas from this, so they can't drift apart.
 const spaced = (c, s, cx, y, gap) => { // canvas letter-spacing without relying on c.letterSpacing
   const ws = [...s].map(ch => c.measureText(ch).width), total = ws.reduce((a, b) => a + b, 0) + gap * (ws.length - 1);
   let x = cx - total / 2; [...s].forEach((ch, i) => { c.fillText(ch, x, y); x += ws[i] + gap; });
