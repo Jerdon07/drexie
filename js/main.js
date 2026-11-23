@@ -2,7 +2,6 @@
 import { SECTIONS, NAV, PROFILE, ACCENTS } from './content.js';
 import { $, esc, mountChips, mountPanel, mountNav, mountTooltip } from './ui.js';
 import { toggleTheme } from './theme.js';
-import { loadPortrait } from './images.js';
 
 let scene = null, current = null, chips = null; // chips is assigned after boot wiring; hover callbacks may fire earlier, so they use chips?.
 const action = id => SECTIONS[id].action;
@@ -19,6 +18,7 @@ async function boot() {
 
   // Start both downloads now; they used to run one after the other.
   const sceneMod = import('./scene/index.js');
+  const idMod = import('./idcard.js'); idMod.catch(() => {}); // handled below; stops an unhandled-rejection warning if the scene fails first
 
   try {
     if (!window.THREE) throw new Error('three.js did not load');
@@ -43,14 +43,15 @@ async function boot() {
   intro.querySelector('h1').innerHTML = `${esc(PROFILE.first)} <span>${esc(PROFILE.last)}</span>`;
   intro.querySelector('.tag').textContent = PROFILE.headline;
 
-  // The portrait is a plain <img>: load it AFTER the desk is visible, and show it only if the file exists (no placeholder for a cutout).
+  let idCard = null;
+  // The ID card builds a second WebGL context and big textures: do it AFTER the desk is visible, not before.
   if (scene) scene.ready.then(async () => {
-    const img = await loadPortrait('profile'), fig = $('#portrait');
-    if (img) { fig.querySelector('img').src = img.src; fig.classList.add('ready'); } else fig.hidden = true;
+    try { const { mountIdCard } = await idMod; idCard = mountIdCard($('#portrait')); idCard.setActive(!current); }
+    catch (err) { console.warn('School ID unavailable:', err); $('#portrait').hidden = true; }
     hideLoader();
   });
 
-  // Bottom nav: exactly NAV, in order. Coffee and lamp are 3D-only (not nav targets).
+  // Bottom nav: exactly NAV, in order. Coffee, lamp and the school ID are 3D-only (not nav targets).
   chips = mountChips(chipBox, NAV, activate, id => scene?.highlight(id));
   const panel = mountPanel($('#panel'), () => focus(null));
   const nav = mountNav({ onBack: () => focus(null), onFlip: d => scene?.bookOf(current)?.flip(d) });
@@ -66,6 +67,7 @@ async function boot() {
     const away = !!(scene && id);
     document.documentElement.classList.toggle('focused', away);
     intro.inert = chipBox.inert = away;
+    idCard?.setActive(!away); // the ID fades out on focus and must stop catching drags
     chips.setActive(id);
     id && !scene?.hasView(id) ? panel.show(id) : panel.hide(); // sections without a 3D "view" use the HTML panel
     nav.showBack(!!id);

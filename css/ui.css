@@ -41,12 +41,10 @@ html,body{height:100%;margin:0;overflow:hidden;color:var(--tx);font-family:var(-
 
 html:not(.no-3d).focused #intro,html:not(.no-3d).focused #chips{opacity:0;pointer-events:none}
 
-/* profile portrait: a full-length transparent cutout standing on the bottom-right edge. Never catches pointers, invisible until the image has
-   loaded, fades out while an object is focused, hidden in the no-3D fallback and on phones. Height is capped by BOTH the viewport height and a
-   third of its width (3:4 assumed), so it can never crowd the desk or run under the title. The shadow follows the cutout's alpha. */
-#portrait{right:max(28px,3vw);bottom:0;margin:0;pointer-events:none;opacity:0;transition:opacity .5s}
-#portrait.ready{opacity:1}
-#portrait img{display:block;height:min(86vh,calc(34vw / .75));max-width:34vw;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 14px 18px var(--shadow))}
+/* school ID overlay: a transparent full-viewport canvas (js/idcard.js). It never catches pointers itself (the script hit-tests the
+   card and strap), fades out while an object is focused, and is hidden in the no-3D fallback and on phones. */
+#portrait{inset:0;margin:0;pointer-events:none;transition:opacity .4s;filter:drop-shadow(0 10px 14px var(--shadow))}
+#portrait canvas{display:block;width:100%;height:100%}
 html.focused #portrait{opacity:0}
 .no-3d #portrait{display:none}
 
