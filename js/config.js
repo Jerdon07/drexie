@@ -19,8 +19,12 @@ export const BARS = [.5, .8, .6, .95, .7, .85];
 // Portrait images. Each file is probed in IMG_DIRS order; if none loads, a generated silhouette (tinted per person) is used instead.
 export const IMG_DIRS = ['images/', ''];
 export const IMAGES = {
-  mother:  { file: 'mother.png',  get tint() { return hex('--ph-mother'); } },
-  father:  { file: 'father.png',  get tint() { return hex('--ph-father'); } },
+  album1: photo('album-1.jpg'),
+  album2: photo('album-2.jpg'),
+  album3: photo('album-3.jpg'),
+  album4: photo('album-4.jpg'),
+  album5: photo('album-5.jpg'),
+  album6: photo('album-6.jpg'),
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
   // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
@@ -33,6 +37,7 @@ export const IMAGES = {
   drumlyre:   cert('drum-and-lyre.jpg', .667),       // portrait
   elementary: cert('elementary-recognitions.jpg', .667), // portrait. TODO: set the real width / height of the scans once they are in public/images
 };
+function photo(file) { return { file, kind: 'photo', get tint() { return hex('--acc-album'); } }; }
 function cert(file, ratio) { return { file, ratio, kind: 'cert', get tint() { return hex('--folio'); } }; }
 // Achievements sheet: ONE landscape page (all achievements visible at once). World size (it must stay clear of the laptop, glasses and the
 // shelf's open book: x -2.3 ± 1.8, z 1.7 ± 1), and texture width in px (height follows the aspect). 1.8:1 is close to a widescreen window, so
@@ -44,9 +49,11 @@ export const BENTO = { cols: 4, rows: 2, gap: 28, layout: {
   graduation: { c: 0, r: 0, cs: 2 }, movingup: { c: 2, r: 0 }, drumlyre: { c: 3, r: 0 },
   junior: { c: 0, r: 1 }, wika: { c: 1, r: 1 }, scimath: { c: 2, r: 1 }, elementary: { c: 3, r: 1 },
 } };
-// Education book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
-// (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk, so the pages you read are bigger. PX = texture px per world unit.
-export const EDU_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
+// Family & friends book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
+// (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk. PX = texture px per world unit.
+export const ALBUM_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
+// Screen px kept free above and below a focused object, so the Back button and previous/next buttons never cover it.
+export const FOCUS_GUTTER = 72;
 export const FOG = { near: 14, far: 34 };
 // Smoothness knobs. ROUND = edge radius (world units) for boxes/cylinders; ENV.intensity = how strongly the procedural
 // reflection environment lights materials (metals scale it up automatically). If everything looks washed out, lower it.

@@ -1,13 +1,11 @@
 import THREE from './three.js';
-import { HOME_LIFT, HOME_SHIFT } from '../config.js';
+import { HOME_LIFT, HOME_SHIFT, FOCUS_GUTTER } from '../config.js';
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MAX_YAW = .9, PITCH = [-.2, .4]; // ±~52° left/right; never reaches the back of the desk
-// Tall-sheet framing (view.top). VIS = visible height per unit of camera distance (fov 50° in scene/index.js); the pads keep the
-// sheet clear of the Back button (top) and the pager (bottom).
-const VIS = 2 * Math.tan(25 * Math.PI / 180), TOP_PAD = .09, BOTTOM_PAD = .1;
-// How much of the viewport a focused content object may fill (width / height). One place so every on-object view (laptop screen,
-// sheet) is framed the same way; the remainder keeps the Back button and rounded window corners clear.
-const FILL = { w: .96, h: .94 };
+const VIS = 2 * Math.tan(25 * Math.PI / 180); // visible height per unit of camera distance (fov 50° in scene/index.js)
+// How much of the viewport a focused content object may fill (width / height). One place so every on-object view is framed the same way.
+// Height is derived from FOCUS_GUTTER so the corner buttons stay clear on short windows too.
+const fillBox = () => ({ w: .96, h: Math.max(.6, 1 - 2 * FOCUS_GUTTER / innerHeight) });
 
 // Owns where the camera wants to be (aim), the user's orbit offset (rotate), and the easing (step).
 export function createCameraRig(camera) {
@@ -23,24 +21,20 @@ export function createCameraRig(camera) {
         pos.set(sx, 6.2 + k * .45 + HOME_LIFT, 10.8 + k); target.set(sx, (wide ? 1.3 : 2) + HOME_LIFT, 0); return;
       }
       orb.ty = orb.tp = 0;
+      const F = fillBox();
       if (v?.type === 'screen') { // face a screen head-on, along the screen's OWN front normal and up (so a yawed/tilted phone works too)
         v.mesh.updateWorldMatrix(true, false); v.mesh.getWorldPosition(c); v.mesh.getWorldQuaternion(q);
         const { width: sw, height: sh } = v.mesh.geometry.parameters; // the real screen size, not a hardcoded 2.8
-        const d = Math.max(sw / (VIS * FILL.w * aspect), sh / (VIS * FILL.h)); // as close as it gets without cropping either side
+        const d = Math.max(sw / (VIS * F.w * aspect), sh / (VIS * F.h)); // as close as it gets without cropping either side
         pos.copy(c).addScaledVector(nrm.set(0, 0, 1).applyQuaternion(q), d); target.copy(c); up.set(0, 1, 0).applyQuaternion(q); return;
       }
       const p = def.group.position;
       if (v?.type === 'flat') { // look straight down at a sheet or an open book. `v.node` (default: the object's group) gives its centre and yaw
-        const node = v.node || def.group, F = v.fill || FILL;
+        const node = v.node || def.group;
         node.updateWorldMatrix(true, false); node.getWorldPosition(c); node.getWorldQuaternion(q);
         nrm.set(0, 0, -1).applyQuaternion(q); const ux = nrm.x, uz = nrm.z, y = v.node ? c.y : v.y; // (ux, uz) = world direction of the sheet's top edge
-        let d = Math.max(v.h / (VIS * F.h), v.w / (VIS * F.w * aspect)), s = 0;
-        if (v.top) { // tall sheet: fit its WIDTH to the screen and frame only the top `v.top` units; the rest runs off the bottom.
-          d = Math.max(v.w / (VIS * F.w * aspect), v.top / (VIS * (1 - TOP_PAD - BOTTOM_PAD))); // wider than tall screens fall back to showing all of `top`
-          s = Math.max(0, v.h / 2 - VIS * d * (.5 - TOP_PAD)); // slide the view toward the top edge until the sheet starts TOP_PAD from the screen top
-          s = Math.max(s - (v.scroll || 0), Math.min(0, VIS * d / 2 - v.h / 2)); // view.scroll slides down the sheet, but never past its bottom edge (step() eases the move)
-        }
-        pos.set(c.x + ux * s, y + d, c.z + uz * s); target.set(c.x + ux * s, y, c.z + uz * s); up.set(ux, 0, uz); return;
+        const d = Math.max(v.h / (VIS * F.h), v.w / (VIS * F.w * aspect));
+        pos.set(c.x, y + d, c.z); target.set(c.x, y, c.z); up.set(ux, 0, uz); return;
       }
       const d = (def.dist || 4.6) * (wide ? 1 : 1.25), ox = wide ? d * .36 : 0; // default 3/4 orbit framing
       pos.set(p.x + ox, p.y + d * (def.rise ?? .55), p.z + d); target.set(p.x + ox, def.lookY ?? p.y + (wide ? .35 : -.5), p.z);

@@ -20,7 +20,14 @@ export const SECTIONS = {
     lead: 'Who I am, what I study and where I’m headed.',
     name: 'Drexie Jaira M. Litaoen',
     groups: [
-      { title: 'Personal', fields: [['Gender', 'Female'], ['Age', '18 years old'], ['Birthday', '04/14/08'], ['Status', 'Single'], ['Height', '149 cm'], ['Weight', '48 kg']] },
+      { title: 'Personal', fields: [ // [label, value, columns spanned of 4 on the laptop screen (default 1)]; each row should add up to 4
+        ['Gender', 'Female'], ['Age', '18 years old'], ['Birthday', '04/14/08'], ['Status', 'Single'],
+        ['Height', '149 cm'], ['Weight', '48 kg'], ['Blood type', 'AB'], ['Zodiac sign', 'Aries'],
+        ['Nationality', 'Filipino'], ['Personality type', 'INFP'], ['Religion', 'Jehovah’s Witnesses', 2],
+        ['Ethnicity', 'Ibaloi, Kalanguya', 2], ['Languages spoken', 'Ilokano, Tagalog, English, Ibaloi', 2],
+        ['Favorite color', 'Sage Green & Midnight Purple', 2], ['Favorite drink', 'Matcha & Coffee', 2],
+        ['Favorite food', 'Spaghetti, Grapes, Tonkatsu', 4],
+      ] },
       { title: 'Academics', fields: [['Program', 'B.S. in Information Technology'], ['College', 'CITCS department'], ['Year level', '1st year']] },
       { title: 'Contact', fields: [['Email', 'leedrexie@gmail.com'], ['Phone number', '09850883391'], ['Address', 'Sapsing, La Trinidad, Benguet']] },
     ],
@@ -32,16 +39,20 @@ export const SECTIONS = {
     screen: { windowTitle: 'personal-info — profile.json' },
   },
 
-  // Notebooks shelf = education. `entries` newest first (one book each on the top shelf, `todo` ones render muted);
-  // `coursework` = one book each on the bottom shelf. The HTML panel shows everything.
-  notebooks: {
-    label: 'Education', kicker: '03 · Education', title: 'Education', get accent() { return hex('--acc-notebooks'); },
-    lead: 'Where I’m studying and what I’m building on.',
-    entries: [
-      { tag: 'Current', title: 'BS in Information Technology', school: 'University of the Cordilleras', meta: '1st Year · Enterprise Resource Planning track' },
-      { tag: 'Previous', title: 'Senior High School', school: 'TODO: school name', meta: 'TODO: strand · years attended', todo: true },
+  // Bookshelf = family & friends: ONE open spread with every photo visible. `photos` order: first 3 = left page, last 3 = right page.
+  // `image` = an id from config.js IMAGES; a placeholder shows until the file exists. The page layout (textures.js) expects these shapes in this order.
+  album: {
+    label: 'Family & Friends', kicker: '03 · Family & friends', title: 'Family & Friends', get accent() { return hex('--acc-album'); },
+    lead: 'The people who matter most.',
+    shelfBooks: { top: ['Memories', 'Moments'], bottom: ['Family', 'Friends', 'Home', 'Trips', 'Birthdays', 'Holidays'] }, // decorative spines
+    photos: [
+      { image: 'album1', shape: 'portrait', text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
+      { image: 'album2', shape: 'portrait', text: 'Sed do eiusmod tempor incididunt ut labore et dolore.' },
+      { image: 'album3', shape: 'landscape', text: 'Ut enim ad minim veniam, quis nostrud exercitation.' },
+      { image: 'album4', shape: 'portrait', text: 'Duis aute irure dolor in reprehenderit in voluptate.' },
+      { image: 'album5', shape: 'landscape', text: 'Excepteur sint occaecat cupidatat non proident.' },
+      { image: 'album6', shape: 'landscape', text: 'Nemo enim ipsam voluptatem quia voluptas sit.' },
     ],
-    coursework: ['ERP fundamentals', 'SAP ecosystem', 'Business process analysis', 'Relational design', 'SQL', 'Normalization'],
   },
 
   // Folder = achievements: ONE landscape page, one column per item (certificate image + highlights), all visible at once. `title` is not drawn on the sheet (alt text only).
@@ -72,23 +83,12 @@ export const SECTIONS = {
 
   // Phone = contact. `contacts` is shown on the HTML panel and (first 4) on the phone screen.
   phone: {
-    label: 'Contact', kicker: '05 · Contact', title: 'Get in Touch', get accent() { return hex('--acc-phone'); },
+    label: 'Contact', kicker: '04 · Contact', title: 'Get in Touch', get accent() { return hex('--acc-phone'); },
     lead: 'Open to mentorship, collaboration and conversation.',
     contacts: [
       { label: 'Phone', icon: 'Ph', value: '09850883391', href: 'tel:09850883391' },
       { label: 'Email', icon: '@', value: 'leedrexie@gmail.com', href: 'mailto:leedrexie@gmail.com' },
       { label: 'Messenger', icon: 'Ms', value: 'Drexie Jaira Litaoen', href: 'https://m.me/jairalitaoen' },
-    ],
-  },
-
-  // Family: ONE object, two frames side by side (so both are in view when you click). Photo files: images/mother.png, images/father.png
-  // (a generated silhouette shows until they exist). One accent for the pair.
-  parents: {
-    label: 'Parents', kicker: '04 · Family', title: 'My Parents', get accent() { return hex('--acc-parents'); },
-    lead: 'The two people behind it all.',
-    people: [ // TODO: names + a few words each
-      { role: 'Mother', name: 'TODO: name', note: 'My mother. TODO: a few words.', photo: 'mother' },
-      { role: 'Father', name: 'TODO: name', note: 'My father. TODO: a few words.', photo: 'father' },
     ],
   },
 
@@ -98,16 +98,11 @@ export const SECTIONS = {
 };
 
 // Panel view of the laptop: name first, then every group field, then each list as a comma-joined value.
-SECTIONS.laptop.fields = [['Name', SECTIONS.laptop.name], ...SECTIONS.laptop.groups.flatMap(g => g.fields), ...SECTIONS.laptop.lists.map(l => [l.title, l.items.join(', ')])];
+SECTIONS.laptop.fields = [['Name', SECTIONS.laptop.name], ...SECTIONS.laptop.groups.flatMap(g => g.fields.map(([k, v]) => [k, v])), ...SECTIONS.laptop.lists.map(l => [l.title, l.items.join(', ')])];
 
 // Bottom nav: exactly these, in this order. Each id must match a 3D object id (js/scene/objects/*).
 // Adding a section = add it above + a file in js/scene/objects/ + an id here.
-export const NAV = ['laptop', 'folders', 'notebooks', 'parents', 'phone'];
-
-// Education book pages in reading order (textures.js draws them, objects/shelf.js counts them): title, one per entry, coursework.
-// Two pages per spread, so the pager has ceil(n / 2) positions. Adding an entry adds a page.
-export const EDU_PAGES = [{ kind: 'title' }, ...SECTIONS.notebooks.entries.map((e, i) => ({ kind: 'entry', e, n: i + 1 })), { kind: 'courses' }];
-
+export const NAV = ['laptop', 'folders', 'album', 'phone']; // also the previous/next order
 
 // id -> accent for every section that has one (consumed by main.js, ui.js and the scene).
 export const ACCENTS = {};

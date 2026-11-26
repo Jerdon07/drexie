@@ -37,7 +37,7 @@
   --sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 
   /* 3. SECTION ACCENTS: one hue per nav section (chip dot, glow ring, focus tint, screen/page bars) */
-  --acc-laptop:#60a5fa;  --acc-folders:#fbbf24;  --acc-notebooks:#a78bfa;  --acc-parents:#f472b6;  --acc-phone:var(--mint);
+  --acc-laptop:#60a5fa;  --acc-folders:#fbbf24;  --acc-album:#a78bfa;  --acc-phone:var(--mint);
 
   /* 4. CANVAS TEXTURES: dark screens (laptop, phone) and paper (sheet, book pages) */
   --em-soft:var(--mint-soft);  --pine:var(--mint-deep);  --cobalt:var(--sky-deep);
@@ -47,7 +47,7 @@
   --traffic-1:#ff5f57;  --traffic-2:#febc2e;  --traffic-3:#28c840;
   --phone-a:#1b3350;  --phone-b:#0f1f35;  --phone-c:#0a1424;   /* phone wallpaper gradient */
   --cert-bg:#fbfaf4;  --cert-ink:#6b6558;
-  --ph-mother:#d4789b;  --ph-father:#4f86d6;   /* silhouette tint until a photo file exists */
+
 
   /* 5. 3D ROOM: blended between -dark and -light by the lamp toggle */
   --scene-bg-dark:#0a1424;    --scene-bg-light:#cfe6dc;
@@ -66,7 +66,7 @@
   --env-room:#1a2c44;  --env-key:#eafff6;  --env-fill:#9ec5ff;   /* reflections on the ID card */
 
   /* 7. BOOKS: shelf spines (book-1 is also the education book) and its cover art */
-  --book-1:#24509a;  --book-2:#1f8f63;  --book-3:var(--navy);  --book-4:#8f2f2f;  --book-5:#4c6a8c;  --book-6:#5b7f6a;  --book-muted:#4a5663;
+  --book-1:#24509a;  --book-2:#1f8f63;  --book-3:var(--navy);  --book-4:#8f2f2f;  --book-5:#4c6a8c;  --book-6:#5b7f6a;
   --cover-a:#2a62c4;  --cover-b:#173f8a;  --gold:#d9b84a;  --cover-sub:#d6e2f7;  --endpaper:#efe6d2;  --weave:#1e4fa8;
   --page-edge:#e8e4d8;  --cover-in:#8a8478;
 }

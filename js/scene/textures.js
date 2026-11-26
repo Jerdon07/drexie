@@ -1,8 +1,8 @@
 // Canvas textures. All text comes from content.js; all colours from config.js.
 import { hex, rgba } from '../colors.js';
 import THREE from './three.js';
-import { SECTIONS, PROFILE, EDU_PAGES } from '../content.js';
-import { P, FONT, font, BARS, SHEET, BENTO, EDU_BOOK, IMAGES } from '../config.js';
+import { SECTIONS, PROFILE } from '../content.js';
+import { P, FONT, font, BARS, SHEET, BENTO, ALBUM_BOOK, IMAGES } from '../config.js';
 import { portraitCanvas, loadPortrait } from '../images.js';
 
 const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new THREE.CanvasTexture(c); };
@@ -39,13 +39,12 @@ let _blank;
 export const blank = () => _blank ||= tex(8, 8, c => { c.fillStyle = P.paper; c.fillRect(0, 0, 8, 8); });
 export const idleScreen = () => tex(512, 320, (c, w, h) => { c.fillStyle = P.screenBg; c.fillRect(0, 0, w, h); bars(c); });
 
-// Book spine for the notebooks shelf. Mapped to a thin upright face (w:h = 1:4), label reads bottom-to-top like a real spine.
-// `muted` greys out entries that are still TODO in content.js.
-export const spineTex = (label, col, muted) => sharp(tex(96, 384, (c, w, h) => {
+// Book spine for the bookshelf. Mapped to a thin upright face (w:h = 1:4), label reads bottom-to-top like a real spine.
+export const spineTex = (label, col) => sharp(tex(96, 384, (c, w, h) => {
   c.fillStyle = col; c.fillRect(0, 0, w, h);
   c.fillStyle = 'rgba(255,255,255,.22)'; c.fillRect(0, 28, w, 4); c.fillRect(0, h - 32, w, 4); // head/tail bands
   c.save(); c.translate(w / 2, h / 2); c.rotate(-Math.PI / 2);
-  c.fillStyle = muted ? 'rgba(255,255,255,.5)' : P.paper; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = P.paper; c.textAlign = 'center'; c.textBaseline = 'middle';
   fit(c, label, h - 100, 40, FONT.serif, '700'); c.fillText(label, 0, 0); c.restore();
 }));
 
@@ -215,21 +214,28 @@ export const laptopTex = () => { const s = SECTIONS.laptop, A = s.accent, flat =
     c.fillStyle = P.text; fit(c, v, SW - 72, 20, FONT.sans, '600'); c.fillText(v, 36, y + 26); y += 62;
   });
 
-  // main: section label + cards
-  const X0 = SW + 44, XW = w - X0 - 44, GAP = 14, label = (t, yy) => { c.fillStyle = P.mute; c.font = font(15, FONT.mono, '600'); c.fillText(t.toUpperCase(), X0, yy); };
+  // main: section label + cards. Personal = 4-column grid (each field says how many columns it spans); everything fits one 800 px screen.
+  const X0 = SW + 44, XW = w - X0 - 44, GAP = 10, CH = 52, COL = (XW - 3 * GAP) / 4, span = n => n * COL + (n - 1) * GAP;
+  const label = (t, yy) => { c.fillStyle = P.mute; c.font = font(15, FONT.mono, '600'); c.fillText(t.toUpperCase(), X0, yy); };
   const card = (k, v, x, yy, cw, accent) => {
-    c.fillStyle = P.panel; c.fillRect(x, yy, cw, 66); c.fillStyle = accent; c.fillRect(x, yy, 5, 66);
-    c.fillStyle = P.mute; c.font = font(14, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 20, yy + 24);
-    c.fillStyle = P.text; fit(c, v, cw - 40, 24, FONT.sans, '600'); c.fillText(v, x + 20, yy + 52);
+    c.fillStyle = P.panel; c.fillRect(x, yy, cw, CH); c.fillStyle = accent; c.fillRect(x, yy, 5, CH);
+    c.fillStyle = P.mute; c.font = font(13, FONT.mono, '600'); c.fillText(k.toUpperCase(), x + 18, yy + 20);
+    c.fillStyle = P.text; fit(c, v, cw - 30, 22, FONT.sans, '600'); c.fillText(v, x + 18, yy + 43);
   };
-  c.fillStyle = A; c.font = font(18, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), X0, 102);
-  c.fillStyle = P.text; c.font = font(40, FONT.sans, '700'); c.fillText(s.title, X0, 148);
+  c.fillStyle = A; c.font = font(18, FONT.mono, '600'); c.fillText(s.kicker.toUpperCase(), X0, 90);
+  c.fillStyle = P.text; c.font = font(36, FONT.sans, '700'); c.fillText(s.title, X0, 130);
 
-  const half = (XW - GAP) / 2, acd = flat(s.groups[1].fields);
-  const third = (XW - 2 * GAP) / 3; // 3 columns x 2 rows: the Personal group is sized for 6 cards; a 7th would collide with the Academics label below
-  label('Personal', 196); s.groups[0].fields.forEach(([k, v], i) => card(k, v, X0 + (i % 3) * (third + GAP), 208 + ((i / 3) | 0) * 80, third, A));
-  label('Academics', 384); card('Program', acd.Program, X0, 396, XW, A); card('College', acd.College, X0, 476, half, A); card('Year level', acd['Year level'], X0 + half + GAP, 476, half, A);
-  let ly = 590; s.lists.forEach(l => { label(l.title, ly); ly = pills(c, l.items, X0, ly + 40, w - 44, l.title === 'Skills' ? P.sap : P.emSoft, 20) + 12; });
+  label('Personal', 164);
+  let col = 0, cy = 176;
+  s.groups[0].fields.forEach(([k, v, n = 1]) => {
+    if (col + n > 4) { col = 0; cy += CH + 8; }
+    card(k, v, X0 + col * (COL + GAP), cy, span(n), A); col += n;
+  });
+  let y2 = cy + CH + 30; label('Academics', y2);
+  const acd = flat(s.groups[1].fields); y2 += 12;
+  card('Program', acd.Program, X0, y2, span(2), A); card('College', acd.College, X0 + span(2) + GAP, y2, span(1), A); card('Year level', acd['Year level'], X0 + span(3) + GAP, y2, span(1), A);
+  let ly = y2 + CH + 44;
+  s.lists.forEach(l => { label(l.title, ly); pills(c, l.items, X0 + 100, ly + 2, w - 24, l.title === 'Skills' ? P.sap : P.emSoft, 17); ly += 46; });
 }); };
 
 // Desk-distance laptop screen: same canvas size/aspect as laptopTex but ~2x type, no sidebar or cards, so it stays legible when small.
@@ -342,55 +348,60 @@ export const certSheetTex = () => {
   t.redraw(); return t;
 };
 
-/* ---- Education book (scene/tome.js, objects/shelf.js). Page faces are the top faces of the page-stack boxes, so flipY = false (row 0 = head of the page).
-   Portrait canvases sized from the grown page (EDU_BOOK), one per EDU_PAGES entry, in reading order: even index = left page, odd = right. ---- */
+/* ---- Family & friends book (scene/tome.js, objects/shelf.js). Page faces are the top faces of the page-stack boxes, so flipY = false (row 0 = head of the page).
+   One spread: [left page, right page], 3 photos each. Boxes are [x, y, w, h] in canvas px, listed in content.js photo order. ---- */
 const shade = (hex, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, '0')).join(''); // darker accent for text on paper
 const flat = t => (t.flipY = false, t);
-const BP = { w: Math.round((EDU_BOOK.w - .04) * EDU_BOOK.grow.x * EDU_BOOK.px), h: Math.round((EDU_BOOK.l - .06) * EDU_BOOK.grow.z * EDU_BOOK.px) }, MX = 100;
+const BP = { w: Math.round((ALBUM_BOOK.w - .04) * ALBUM_BOOK.grow.x * ALBUM_BOOK.px), h: Math.round((ALBUM_BOOK.l - .06) * ALBUM_BOOK.grow.z * ALBUM_BOOK.px) };
+const ALBUM_LAYOUT = [ // designed on a 990 x 1207 page
+  [ // left: portrait, portrait (captions below), landscape (caption beside)
+    { img: [90, 200, 375, 500], text: [90, 750, 375] },
+    { img: [525, 200, 375, 500], text: [525, 750, 375] },
+    { img: [90, 860, 420, 280], text: [545, 950, 355] },
+  ],
+  [ // right: portrait, landscape, landscape in three rows; captions alternate sides
+    { img: [90, 200, 225, 300], text: [360, 310, 530] },
+    { img: [450, 520, 450, 300], text: [90, 630, 320] },
+    { img: [90, 840, 450, 300], text: [580, 950, 320] },
+  ],
+];
 
-export const eduPageTexes = () => {
-  const s = SECTIONS.notebooks, A = shade(s.accent, .5), { w, h } = BP;
-  return EDU_PAGES.map((pg, i) => flat(sharp(tex(w, h, c => {
-    c.fillStyle = P.page; c.fillRect(0, 0, w, h);
-    const left = i % 2 === 0, g = c.createLinearGradient(left ? w : 0, 0, left ? w - 110 : 110, 0); // the page curls into the gutter
-    g.addColorStop(0, 'rgba(60,40,20,.2)'); g.addColorStop(1, 'rgba(60,40,20,0)'); c.fillStyle = g; c.fillRect(left ? w - 110 : 0, 0, 110, h);
-    c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-    const head = (txt, y = 150) => { c.fillStyle = A; c.font = font(32, FONT.mono, '600'); c.fillText(txt.toUpperCase(), MX, y); c.fillStyle = s.accent; c.fillRect(MX, y + 22, 170, 10); };
-    if (pg.kind === 'title') {
-      head(s.kicker);
-      c.fillStyle = P.ink; fit(c, s.title, w - 2 * MX, 150, FONT.serif, '700'); c.fillText(s.title, MX, 400);
-      c.fillStyle = P.body; c.font = font(52, FONT.serif, 'italic'); wrap(c, s.lead, MX, 540, w - 2 * MX, 72);
-      c.fillStyle = P.sub; c.font = font(34, FONT.mono, '600'); c.fillText(PROFILE.school, MX, h - 250); c.fillStyle = P.folio; c.fillText(PROFILE.program, MX, h - 200);
-    } else if (pg.kind === 'entry') {
-      const e = pg.e, ink = e.todo ? P.folio : P.ink;
-      c.globalAlpha = .06; c.fillStyle = P.ink; c.font = font(360, FONT.serif, '700'); c.textAlign = 'right'; c.fillText(String(pg.n).padStart(2, '0'), w - MX + 20, h - 130); c.globalAlpha = 1; c.textAlign = 'left'; // watermark: low and small so it never sits under the text
-      head(e.tag);
-      c.fillStyle = ink; c.font = font(92, FONT.serif, '700'); let y = wrap(c, e.title, MX, 320, w - 2 * MX, 110, 4);
-      c.fillStyle = e.todo ? P.folio : A; c.font = font(56, FONT.serif, '700'); y = wrap(c, e.school, MX, y + 50, w - 2 * MX, 70, 3);
-      c.fillStyle = e.todo ? P.folio : P.sub; c.font = font(44, FONT.sans); wrap(c, e.meta, MX, y + 40, w - 2 * MX, 62, 4);
-    } else {
-      head('Coursework & focus');
-      const list = s.coursework, pitch = Math.min(122, 800 / list.length);
-      list.forEach((t, k) => {
-        const y = 330 + k * pitch;
-        c.fillStyle = s.accent; c.fillRect(MX, y - 30, 22, 22);
-        c.fillStyle = P.folio; c.font = font(30, FONT.mono, '600'); c.fillText(String(k + 1).padStart(2, '0'), MX + 50, y - 6);
-        c.fillStyle = P.ink; fit(c, t, w - 2 * MX - 150, 58, FONT.serif, '700'); c.fillText(t, MX + 150, y + 8);
-        c.fillStyle = 'rgba(29,37,48,.13)'; c.fillRect(MX, y + 34, w - 2 * MX, 2);
+export const albumPageTexes = () => {
+  const s = SECTIONS.album, A = shade(s.accent, .5), { w, h } = BP;
+  return ALBUM_LAYOUT.map((slots, side) => {
+    const cv = Object.assign(document.createElement('canvas'), { width: w, height: h }), c = cv.getContext('2d'), t = flat(sharp(new THREE.CanvasTexture(cv)));
+    const cells = slots.map((slot, i) => {
+      const p = s.photos[side * 3 + i], [, , iw, ih] = slot.img, { canvas, ready } = portraitCanvas(p.image, iw, ih);
+      ready.then(ok => ok && draw()); return { ...slot, p, canvas };
+    });
+    function draw() {
+      c.save(); c.scale(w / 990, h / 1207);
+      c.fillStyle = P.page; c.fillRect(0, 0, 990, 1207);
+      const left = side === 0, g = c.createLinearGradient(left ? 990 : 0, 0, left ? 920 : 70, 0); // the page curls into the gutter
+      g.addColorStop(0, 'rgba(60,40,20,.2)'); g.addColorStop(1, 'rgba(60,40,20,0)'); c.fillStyle = g; c.fillRect(left ? 920 : 0, 0, 70, 1207);
+      c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+      c.fillStyle = P.ink; fit(c, left ? 'Family' : '& Friends', 800, 84, FONT.serif, '700'); c.fillText(left ? 'Family' : '& Friends', 90, 135);
+      c.fillStyle = s.accent; c.fillRect(90, 158, 150, 9);
+      cells.forEach(({ img: [x, y, iw, ih], text: [tx, ty, tw], p, canvas }) => {
+        c.fillStyle = 'rgba(29,37,48,.2)'; c.fillRect(x - 4, y - 2, iw + 16, ih + 18); // shadow
+        c.fillStyle = '#fff'; c.fillRect(x - 10, y - 10, iw + 20, ih + 20); // print border
+        c.imageSmoothingQuality = 'high'; c.drawImage(canvas, x, y, iw, ih);
+        c.fillStyle = A; c.font = font(31, FONT.serif, 'italic'); wrap(c, p.text, tx, ty, tw, 40, 4);
       });
+      c.restore(); t.needsUpdate = true;
     }
-    c.fillStyle = P.folio; c.font = font(30, FONT.mono); c.textAlign = 'center'; c.fillText(String(i + 1), w / 2, h - 64);
-  }))));
+    draw(); return t;
+  });
 };
 
-export const eduCoverTex = () => flat(sharp(tex(620, 950, (c, w, h) => {
+export const albumCoverTex = () => flat(sharp(tex(620, 950, (c, w, h) => {
   const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, hex('--cover-a')); g.addColorStop(1, hex('--cover-b')); c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.strokeStyle = hex('--gold'); c.lineWidth = 5; c.strokeRect(34, 34, w - 68, h - 68); c.lineWidth = 2; c.strokeRect(50, 50, w - 100, h - 100);
-  c.fillStyle = hex('--page'); c.textAlign = 'center'; c.font = font(78, FONT.serif, '700'); spaced(c, SECTIONS.notebooks.title.toUpperCase(), w / 2, 440, 10);
+  c.fillStyle = hex('--page'); c.textAlign = 'center'; fit(c, SECTIONS.album.title, w - 140, 78, FONT.serif, '700'); c.fillText(SECTIONS.album.title, w / 2, 440);
   c.fillStyle = hex('--gold'); c.fillRect(w / 2 - 70, 480, 140, 6);
-  c.fillStyle = hex('--cover-sub'); c.font = font(30, FONT.serif, 'italic'); wrap(c, PROFILE.school, w / 2, 560, w - 160, 40);
+  c.fillStyle = hex('--cover-sub'); c.font = font(30, FONT.serif, 'italic'); wrap(c, SECTIONS.album.lead, w / 2, 560, w - 160, 40);
 })));
-export const eduEndTex = () => flat(tex(620, 950, (c, w, h) => { // endpaper: warm paper with a fine diagonal weave
+export const albumEndTex = () => flat(tex(620, 950, (c, w, h) => { // endpaper: warm paper with a fine diagonal weave
   c.fillStyle = hex('--endpaper'); c.fillRect(0, 0, w, h); c.strokeStyle = rgba('--weave', .13); c.lineWidth = 2;
   for (let k = -h; k < w; k += 16) { c.beginPath(); c.moveTo(k, h); c.lineTo(k + h, 0); c.stroke(); }
   for (let k = 0; k < w + h; k += 16) { c.beginPath(); c.moveTo(k, h); c.lineTo(k - h, 0); c.stroke(); }

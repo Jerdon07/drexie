@@ -24,7 +24,7 @@ html,body{height:100%;margin:0;overflow:hidden;color:var(--tx);font-family:var(-
 .btn{font-family:inherit;font-size:.92rem;font-weight:600;padding:12px 24px;border-radius:999px;border:1px solid var(--bd);background:var(--glass);color:var(--tx);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px -8px var(--c);border-color:var(--c)}
 .btn:disabled{opacity:.35;cursor:default;pointer-events:none}
-#hback,#bnav .btn,.chip{backdrop-filter:blur(10px);background:var(--surf)}
+#hback,#onav .btn,.chip{backdrop-filter:blur(10px);background:var(--surf)}
 /* --c is set inline per chip (ui.js). The dot is always visible so the colour is learnable before any interaction. */
 .chip{--ct:color-mix(in srgb,var(--c) var(--ct-keep),#000);display:inline-flex;align-items:center;gap:8px;font:500 .9rem var(--mono);padding:10px 18px;border-radius:999px;border:1px solid var(--bd);color:var(--mu);cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s}
 .chip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c);flex:none;transition:transform .2s,box-shadow .2s}
@@ -51,9 +51,9 @@ html.focused #portrait{opacity:0}
 /* navigation */
 #hback{left:max(18px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 16px);opacity:0;pointer-events:none;transition:opacity .4s}
 #hback.on{opacity:1;pointer-events:auto;transition-delay:.5s}
-#bnav{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translateX(-50%);display:flex;align-items:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .4s}
-#bnav.on{opacity:1;pointer-events:auto;transition-delay:.7s}
-#pg{font:500 .85rem var(--mono);color:var(--mu);min-width:52px;text-align:center}
+#onav{right:max(18px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .4s}
+#onav.on{opacity:1;pointer-events:auto;transition-delay:.5s}
+#onav .btn{width:44px;height:44px;padding:0;font-size:1.5rem;line-height:1}
 #tip{position:fixed;z-index:3;pointer-events:none;padding:6px 12px;border-radius:8px;background:var(--surf);border:1px solid var(--tc,var(--em));font:500 .78rem var(--mono);color:var(--tc,var(--em));opacity:0;transform:translate(14px,14px);transition:opacity .15s}
 
 /* content panel */
@@ -71,11 +71,8 @@ html.focused #portrait{opacity:0}
 .lk .v{font-size:.92rem;text-align:right;overflow-wrap:anywhere}
 .pj{border:1px dashed var(--bd);border-radius:12px;padding:12px 14px;margin:0 0 10px}
 .pj b{display:block;color:var(--tx);font-size:.95rem}
-.pj strong{display:block;color:var(--badge-em);font-size:.85rem;margin:2px 0 4px}
 .pj span{color:var(--mu);font-size:.85rem}
 .pj em{display:block;font:600 .68rem var(--mono);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--ct);margin-bottom:4px}
-.pj.todo{opacity:.55}
-.eb.sub{margin:18px 0 0;color:var(--mu)}
 
 /* personal-info grid + portrait */
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
@@ -84,11 +81,9 @@ html.focused #portrait{opacity:0}
 .kv dd{margin:0;font-size:.9rem;color:var(--tx);overflow-wrap:anywhere}
 .ph{margin:0 0 16px;border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
 .ph img{display:block;width:100%;height:min(280px,30vh);object-fit:cover;object-position:center 20%}
-.pp{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--bd)}
-.pp h3{margin:6px 0 4px;font-size:1.3rem;letter-spacing:-.01em}
-.pp p{margin:0}
-.ph.person img{height:min(180px,22vh)}
-html:not(.no-3d) .ph.person{display:none} /* with 3D on, the two frames on the desk ARE the photos */
+.ph.album figcaption{padding:8px 12px;color:var(--mu);font-size:.85rem}
+.ph.album.portrait img{height:auto;aspect-ratio:3/4}
+.ph.album.landscape img{height:auto;aspect-ratio:3/2}
 .ph.cert{margin:0 0 10px}
 .ph.cert img{height:auto;aspect-ratio:7/5;object-fit:contain;background:var(--paper)} /* certificates are shown whole, never cropped */
 .ph.cert.port{background:var(--paper)}
@@ -106,7 +101,7 @@ html:not(.no-3d) .ph.person{display:none} /* with 3D on, the two frames on the d
 
 @media (max-width:760px){
   #portrait{display:none}
-  #panel{left:12px;right:12px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);max-height:46vh;transform:translateY(40px);padding:22px}
+  #panel{left:12px;right:12px;width:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);max-height:46vh;transform:translateY(40px);padding:22px}
   #panel.open{transform:none}
   #panel h2{font-size:1.7rem}
   .kv{grid-template-columns:1fr}

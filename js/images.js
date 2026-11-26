@@ -17,8 +17,9 @@ function silhouette(c, w, h, tint) {
   const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, tint); g.addColorStop(1, hex('--p-screen'));
   c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.fillStyle = 'rgba(255,255,255,.82)';
-  c.beginPath(); c.arc(w / 2, h * .38, w * .2, 0, 7); c.fill();                       // head
-  c.beginPath(); c.ellipse(w / 2, h * .98, w * .38, h * .3, 0, Math.PI, 0); c.fill(); // shoulders
+  const u = Math.min(w, h * .8); // size by the short side so landscape frames work too
+  c.beginPath(); c.arc(w / 2, h * .38, u * .2, 0, 7); c.fill();                       // head
+  c.beginPath(); c.ellipse(w / 2, h * .98, u * .38, h * .3, 0, Math.PI, 0); c.fill(); // shoulders
 }
 // Centre-crop (nudged up so faces survive) to fill w×h.
 function cover(c, img, w, h) {
@@ -50,6 +51,10 @@ export function portraitCanvas(id, w, h) {
   const canvas = Object.assign(document.createElement('canvas'), { width: w, height: h }), c = canvas.getContext('2d');
   const cert = IMAGES[id].kind === 'cert';
   (cert ? certPlaceholder : silhouette)(c, w, h, IMAGES[id].tint, id);
+  if (IMAGES[id].kind === 'photo') { // tell the owner which file to drop in
+    c.fillStyle = hex('--ink'); c.textAlign = 'center'; c.font = font(Math.round(Math.min(w, h) * .065), FONT.mono, '600');
+    c.fillText(`images/${IMAGES[id].file}`, w / 2, h * .94); c.textAlign = 'left';
+  }
   const ready = loadPortrait(id).then(img => { if (img) (cert ? contain : cover)(c, img, w, h); return !!img; });
   return { canvas, ready };
 }
