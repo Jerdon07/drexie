@@ -4,7 +4,7 @@ import { hex } from './colors.js';
 export const PROFILE = {
   first: 'Drexie Jaira', last: 'Litaoen',
   headline: '1st-Year BSIT Student | Future ERP & Oracle Database Engineer',
-  school: 'University of the Cordilleras', program: 'BSIT · ERP Track', // shown on the portrait frame's nameplate
+  school: 'University of the Cordilleras', program: 'BSIT · ERP Track',
 };
 
 const acc = text => ({ text, accent: true });

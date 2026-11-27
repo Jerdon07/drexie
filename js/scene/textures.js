@@ -63,12 +63,6 @@ export const frameWoodTex = () => { const t = tex(512, 512, (c, w, h) => {
   for (let i = 0; i < 700; i++) c.fillRect(rnd() * w, rnd() * h, 3 + rnd() * 9, 1);
   c.globalAlpha = 1;
 }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
-// Nameplate under the photo: transparent, so the paper mat shows through.
-export const plaqueTex = () => { const t = tex(1024, 160, (c, w, h) => {
-  c.textAlign = 'center'; c.fillStyle = hex('--frame-ink');
-  const name = `${PROFILE.first} ${PROFILE.last}`; fit(c, name, w - 40, 64, FONT.sans, '600'); c.fillText(name, w / 2, 72);
-  fit(c, PROFILE.program, w - 40, 38, FONT.sans); c.fillText(PROFILE.program, w / 2, 134);
-}); t.anisotropy = 8; return t; };
 // Braided cotton rope: interlocking chevrons. Repeats down the cord.
 export const ropeTex = () => { const t = tex(64, 128, (c, w, h) => {
   c.fillStyle = hex('--rope'); c.fillRect(0, 0, w, h);
