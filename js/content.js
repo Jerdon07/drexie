@@ -22,11 +22,11 @@ export const SECTIONS = {
     groups: [
       { title: 'Personal', fields: [ // [label, value, columns spanned of 4 on the laptop screen (default 1)]; each row should add up to 4
         ['Gender', 'Female'], ['Age', '18 years old'], ['Birthday', '04/14/08'], ['Status', 'Single'],
-        ['Height', '149 cm'], ['Weight', '48 kg'], ['Blood type', 'AB'], ['Zodiac sign', 'Aries'],
-        ['Nationality', 'Filipino'], ['Personality type', 'INFP'], ['Religion', 'Jehovah’s Witnesses', 2],
-        ['Ethnicity', 'Ibaloi, Kalanguya', 2], ['Languages spoken', 'Ilokano, Tagalog, English, Ibaloi', 2],
-        ['Favorite color', 'Sage Green & Midnight Purple', 2], ['Favorite drink', 'Matcha & Coffee', 2],
-        ['Favorite food', 'Spaghetti, Grapes, Tonkatsu', 4],
+        ['Height', '149 cm'], ['Weight', '48 kg'], ['Blood type', 'AB'], ['Nationality', 'Filipino'],
+        ['Eye color', 'Dark brown'], ['Hair color', 'Dark brown'], ['Personality type', 'INFP'], ['Hometown', 'Asin, Tuba'],
+        ['Birth place', 'Baguio General Hospital', 2], ['Religion', 'Jehovah’s Witnesses', 2],
+        ['Languages spoken', 'Ilokano, Tagalog, English, Ibaloi', 2], ['Favorite color', 'Sage Green & Midnight Purple', 2],
+        ['Favorite drink', 'Matcha & Coffee', 2], ['Favorite food', 'Spaghetti, Grapes, Tonkatsu', 2],
       ] },
       { title: 'Academics', fields: [['Program', 'B.S. in Information Technology'], ['College', 'CITCS department'], ['Year level', '1st year']] },
       { title: 'Contact', fields: [['Email', 'leedrexie@gmail.com'], ['Phone number', '09850883391'], ['Address', 'Sapsing, La Trinidad, Benguet']] },
