@@ -41,8 +41,8 @@ html,body{height:100%;margin:0;overflow:hidden;color:var(--tx);font-family:var(-
 
 html:not(.no-3d).focused #intro,html:not(.no-3d).focused #chips{opacity:0;pointer-events:none}
 
-/* school ID overlay: a transparent full-viewport canvas (js/idcard.js). It never catches pointers itself (the script hit-tests the
-   card and strap), fades out while an object is focused, and is hidden in the no-3D fallback and on phones. */
+/* portrait frame overlay: a transparent full-viewport canvas (js/frame.js). It never catches pointers itself (the script hit-tests the
+   frame and cord), fades out while an object is focused, and is hidden in the no-3D fallback and on phones. */
 #portrait{inset:0;margin:0;pointer-events:none;transition:opacity .4s;filter:drop-shadow(0 10px 14px var(--shadow))}
 #portrait canvas{display:block;width:100%;height:100%}
 html.focused #portrait{opacity:0}

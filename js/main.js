@@ -18,7 +18,7 @@ async function boot() {
 
   // Start both downloads now; they used to run one after the other.
   const sceneMod = import('./scene/index.js');
-  const idMod = import('./idcard.js'); idMod.catch(() => {}); // handled below; stops an unhandled-rejection warning if the scene fails first
+  const frameMod = import('./frame.js'); frameMod.catch(() => {}); // handled below; stops an unhandled-rejection warning if the scene fails first
 
   try {
     if (!window.THREE) throw new Error('three.js did not load');
@@ -43,15 +43,15 @@ async function boot() {
   intro.querySelector('h1').innerHTML = `${esc(PROFILE.first)} <span>${esc(PROFILE.last)}</span>`;
   intro.querySelector('.tag').textContent = PROFILE.headline;
 
-  let idCard = null;
-  // The ID card builds a second WebGL context and big textures: do it AFTER the desk is visible, not before.
+  let frame = null;
+  // The portrait frame builds a second WebGL context and big textures: do it AFTER the desk is visible, not before.
   if (scene) scene.ready.then(async () => {
-    try { const { mountIdCard } = await idMod; idCard = mountIdCard($('#portrait')); idCard.setActive(!current); }
-    catch (err) { console.warn('School ID unavailable:', err); $('#portrait').hidden = true; }
+    try { const { mountFrame } = await frameMod; frame = mountFrame($('#portrait')); frame.setActive(!current); }
+    catch (err) { console.warn('Portrait frame unavailable:', err); $('#portrait').hidden = true; }
     hideLoader();
   });
 
-  // Bottom nav: exactly NAV, in order. Coffee, lamp and the school ID are 3D-only (not nav targets).
+  // Bottom nav: exactly NAV, in order. Coffee, lamp and the portrait frame are 3D-only (not nav targets).
   chips = mountChips(chipBox, NAV, activate, id => scene?.highlight(id));
   const panel = mountPanel($('#panel'), () => focus(null));
   const nav = mountNav({ onBack: () => focus(null), onStep: d => step(d) });
@@ -68,7 +68,7 @@ async function boot() {
     const away = !!(scene && id);
     document.documentElement.classList.toggle('focused', away);
     intro.inert = chipBox.inert = away;
-    idCard?.setActive(!away); // the ID fades out on focus and must stop catching drags
+    frame?.setActive(!away); // the frame fades out on focus and must stop catching drags
     chips.setActive(id);
     id && !scene?.hasView(id) ? panel.show(id) : panel.hide(); // sections without a 3D "view" use the HTML panel
     nav.showBack(!!id);
