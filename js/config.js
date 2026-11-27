@@ -51,7 +51,7 @@ export const BENTO = { cols: 4, rows: 2, gap: 28, layout: {
 } };
 // Family & friends book on the shelf (scene/tome.js, objects/shelf.js, textures.js). w = page width, l = page length, t = thickness of the CLOSED book
 // (a shelf miniature); `grow` scales it (along the book's own axes) on its way to the desk. PX = texture px per world unit.
-export const ALBUM_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1040 };
+export const ALBUM_BOOK = { w: .6, l: .92, t: .42, grow: { x: 1.7, y: .9, z: 1.35 }, px: 1800 };
 // Screen px kept free above and below a focused object, so the Back button and previous/next buttons never cover it.
 export const FOCUS_GUTTER = 72;
 export const FOG = { near: 14, far: 34 };

@@ -387,7 +387,7 @@ export const albumPageTexes = () => {
   return ALBUM_LAYOUT.map(({ slots, shared }, side) => {
     const cv = Object.assign(document.createElement('canvas'), { width: w, height: h }), c = cv.getContext('2d'), t = flat(sharp(new THREE.CanvasTexture(cv)));
     const cells = slots.map((slot, i) => {
-      const p = s.photos[side * 3 + i], [, , iw, ih] = slot.img, { canvas, ready } = portraitCanvas(p.image, iw, ih);
+      const p = s.photos[side * 3 + i], [, , iw, ih] = slot.img, { canvas, ready } = portraitCanvas(p.image, Math.round(iw * w / 990), Math.round(ih * h / 1207)); // photo at final texture resolution, not upscaled
       ready.then(ok => ok && draw()); return { ...slot, p, canvas };
     });
     function draw() {

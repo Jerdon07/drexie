@@ -55,7 +55,7 @@ export default function shelf() {
   const g = BK.grow;
 
   // Camera anchor = the centre of the open spread, in the shelf's frame but square to the world (so the page's top is screen-up).
-  const anchor = new THREE.Object3D(); anchor.position.set(sx, rest + .2, sz); anchor.rotation.y = -SHELF.ry; group.add(anchor);
+  const anchor = new THREE.Object3D(); anchor.position.set(sx, rest, sz); anchor.rotation.y = -SHELF.ry; group.add(anchor);
 
   let Tm = 0, goal = 0, built = false; // Tm = timeline position (0 = on the shelf, TOTAL = open on the desk)
   function pose() {
@@ -74,7 +74,8 @@ export default function shelf() {
 
   return {
     id: 'album', group, x: SHELF.x, z: SHELF.z, ry: SHELF.ry,
-    view: { type: 'flat', node: anchor, w: 2 * BK.w * g.x, h: BK.l * g.z },
+    // Centred and narrower than a widescreen window, so the corner buttons sit beside it: no need for the vertical gutter.
+    view: { type: 'flat', node: anchor, w: 2 * BK.w * g.x, h: (BK.l - .06) * g.z, fill: { w: .98, h: .95 } },
     paper: tome.paper,
     onFocus() { ensure(); move(TOTAL); },
     onBlur() { move(0); },

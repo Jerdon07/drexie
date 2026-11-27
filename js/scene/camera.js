@@ -21,7 +21,7 @@ export function createCameraRig(camera) {
         pos.set(sx, 6.2 + k * .45 + HOME_LIFT, 10.8 + k); target.set(sx, (wide ? 1.3 : 2) + HOME_LIFT, 0); return;
       }
       orb.ty = orb.tp = 0;
-      const F = fillBox();
+      const F = v?.fill || fillBox(); // a view may override the default framing
       if (v?.type === 'screen') { // face a screen head-on, along the screen's OWN front normal and up (so a yawed/tilted phone works too)
         v.mesh.updateWorldMatrix(true, false); v.mesh.getWorldPosition(c); v.mesh.getWorldQuaternion(q);
         const { width: sw, height: sh } = v.mesh.geometry.parameters; // the real screen size, not a hardcoded 2.8
