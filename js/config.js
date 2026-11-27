@@ -19,12 +19,12 @@ export const BARS = [.5, .8, .6, .95, .7, .85];
 // Portrait images. Each file is probed in IMG_DIRS order; if none loads, a generated silhouette (tinted per person) is used instead.
 export const IMG_DIRS = ['images/', ''];
 export const IMAGES = {
-  album1: photo('album-1.jpg'),
-  album2: photo('album-2.jpg'),
-  album3: photo('album-3.jpg'),
-  album4: photo('album-4.jpg'),
-  album5: photo('album-5.jpg'),
-  album6: photo('album-6.jpg'),
+  mother:   photo('mother.jpeg'),
+  father:   photo('father.jpeg'),
+  siblings: photo('siblings.jpeg'),
+  friends1: photo('friends1.jpeg'),
+  friends2: photo('friends2.jpeg'),
+  friends3: photo('friends3.jpeg'),
   profile: { file: 'profile.png', get tint() { return hex('--em'); } },
   uc:      { file: 'uc.png',      get tint() { return hex('--em'); } }, // university logo on the school ID (textures.js idFrontTex); the generated emblem shows until the file exists
   // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet

@@ -82,7 +82,7 @@ html.focused #portrait{opacity:0}
 .ph{margin:0 0 16px;border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
 .ph img{display:block;width:100%;height:min(280px,30vh);object-fit:cover;object-position:center 20%}
 .ph.album figcaption{padding:8px 12px;color:var(--mu);font-size:.85rem}
-.ph.album.portrait img{height:auto;aspect-ratio:3/4}
+.ph.album.portrait img{height:auto;aspect-ratio:2/3}
 .ph.album.landscape img{height:auto;aspect-ratio:3/2}
 .ph.cert{margin:0 0 10px}
 .ph.cert img{height:auto;aspect-ratio:7/5;object-fit:contain;background:var(--paper)} /* certificates are shown whole, never cropped */

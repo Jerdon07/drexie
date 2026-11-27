@@ -353,22 +353,38 @@ export const certSheetTex = () => {
 const shade = (hex, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * k).toString(16).padStart(2, '0')).join(''); // darker accent for text on paper
 const flat = t => (t.flipY = false, t);
 const BP = { w: Math.round((ALBUM_BOOK.w - .04) * ALBUM_BOOK.grow.x * ALBUM_BOOK.px), h: Math.round((ALBUM_BOOK.l - .06) * ALBUM_BOOK.grow.z * ALBUM_BOOK.px) };
-const ALBUM_LAYOUT = [ // designed on a 990 x 1207 page
-  [ // left: portrait, portrait (captions below), landscape (caption beside)
-    { img: [90, 200, 375, 500], text: [90, 750, 375] },
-    { img: [525, 200, 375, 500], text: [525, 750, 375] },
-    { img: [90, 860, 420, 280], text: [545, 950, 355] },
-  ],
-  [ // right: portrait, landscape, landscape in three rows; captions alternate sides
-    { img: [90, 200, 225, 300], text: [360, 310, 530] },
-    { img: [450, 520, 450, 300], text: [90, 630, 320] },
-    { img: [90, 840, 450, 300], text: [580, 950, 320] },
-  ],
+const ALBUM_LAYOUT = [ // designed on a 990 x 1207 page; boxes are [x, y, w, h]
+  { slots: [ // left: two 2:3 portraits (captions below), landscape (caption beside)
+    { img: [90, 200, 330, 495], text: [90, 725, 330, 155] },
+    { img: [540, 200, 330, 495], text: [540, 725, 330, 155] },
+    { img: [90, 900, 420, 280], text: [545, 960, 325, 180] },
+  ] },
+  { slots: [ // right: two stacked landscapes + one tall portrait
+    { img: [90, 200, 402, 268] },
+    { img: [523, 200, 377, 566] },
+    { img: [90, 498, 402, 268] },
+  ], shared: [115, 840, 760, 300] },
 ];
+
+// Draws a caption at the largest size that fits its box. Never truncates; warns if even `min` is too big.
+function caption(c, text, [x, y, w, h], { max = 31, min = 22, center = false } = {}) {
+  let size = max, ls, lh, height;
+  for (;;) {
+    c.font = font(size, FONT.serif, 'italic');
+    ls = lines(c, text, w); lh = Math.round(size * 1.32); height = size + (ls.length - 1) * lh;
+    if (height <= h || size <= min) break;
+    size--;
+  }
+  if (height > h) console.warn(`[album] caption too long for its box: "${text.slice(0, 30)}…"`);
+  const tx = center ? x + w / 2 : x, top = center ? y + Math.max(0, (h - height) / 2) : y;
+  c.textAlign = center ? 'center' : 'left';
+  ls.forEach((s, k) => c.fillText(s, tx, top + size + k * lh));
+  c.textAlign = 'left';
+}
 
 export const albumPageTexes = () => {
   const s = SECTIONS.album, A = shade(s.accent, .5), { w, h } = BP;
-  return ALBUM_LAYOUT.map((slots, side) => {
+  return ALBUM_LAYOUT.map(({ slots, shared }, side) => {
     const cv = Object.assign(document.createElement('canvas'), { width: w, height: h }), c = cv.getContext('2d'), t = flat(sharp(new THREE.CanvasTexture(cv)));
     const cells = slots.map((slot, i) => {
       const p = s.photos[side * 3 + i], [, , iw, ih] = slot.img, { canvas, ready } = portraitCanvas(p.image, iw, ih);
@@ -382,18 +398,21 @@ export const albumPageTexes = () => {
       c.textBaseline = 'alphabetic'; c.textAlign = 'left';
       c.fillStyle = P.ink; fit(c, left ? 'Family' : '& Friends', 800, 84, FONT.serif, '700'); c.fillText(left ? 'Family' : '& Friends', 90, 135);
       c.fillStyle = s.accent; c.fillRect(90, 158, 150, 9);
-      cells.forEach(({ img: [x, y, iw, ih], text: [tx, ty, tw], p, canvas }) => {
+      cells.forEach(({ img: [x, y, iw, ih], text, p, canvas }) => {
         c.fillStyle = 'rgba(29,37,48,.2)'; c.fillRect(x - 4, y - 2, iw + 16, ih + 18); // shadow
         c.fillStyle = '#fff'; c.fillRect(x - 10, y - 10, iw + 20, ih + 20); // print border
         c.imageSmoothingQuality = 'high'; c.drawImage(canvas, x, y, iw, ih);
-        c.fillStyle = A; c.font = font(31, FONT.serif, 'italic'); wrap(c, p.text, tx, ty, tw, 40, 4);
+        if (text && p.text) { c.fillStyle = A; caption(c, p.text, text); }
       });
+      if (shared) {
+        c.fillStyle = s.accent; c.fillRect(435, 812, 120, 4); // divider, centred under the photo group
+        c.fillStyle = A; caption(c, s.sharedCaption, shared, { max: 36, center: true });
+      }
       c.restore(); t.needsUpdate = true;
     }
     draw(); return t;
   });
 };
-
 export const albumCoverTex = () => flat(sharp(tex(620, 950, (c, w, h) => {
   const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, hex('--cover-a')); g.addColorStop(1, hex('--cover-b')); c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.strokeStyle = hex('--gold'); c.lineWidth = 5; c.strokeRect(34, 34, w - 68, h - 68); c.lineWidth = 2; c.strokeRect(50, 50, w - 100, h - 100);

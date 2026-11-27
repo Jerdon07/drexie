@@ -40,19 +40,21 @@ export const SECTIONS = {
   },
 
   // Bookshelf = family & friends: ONE open spread with every photo visible. `photos` order: first 3 = left page, last 3 = right page.
+  // `text` = individual caption; `alt` = description when there isn't one. `sharedCaption` covers the right page.
   // `image` = an id from config.js IMAGES; a placeholder shows until the file exists. The page layout (textures.js) expects these shapes in this order.
   album: {
     label: 'Family & Friends', kicker: '03 · Family & friends', title: 'Family & Friends', get accent() { return hex('--acc-album'); },
     lead: 'The people who matter most.',
     shelfBooks: { top: ['Memories', 'Moments'], bottom: ['Family', 'Friends', 'Home', 'Trips', 'Birthdays', 'Holidays'] }, // decorative spines
     photos: [
-      { image: 'album1', shape: 'portrait', text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
-      { image: 'album2', shape: 'portrait', text: 'Sed do eiusmod tempor incididunt ut labore et dolore.' },
-      { image: 'album3', shape: 'landscape', text: 'Ut enim ad minim veniam, quis nostrud exercitation.' },
-      { image: 'album4', shape: 'portrait', text: 'Duis aute irure dolor in reprehenderit in voluptate.' },
-      { image: 'album5', shape: 'landscape', text: 'Excepteur sint occaecat cupidatat non proident.' },
-      { image: 'album6', shape: 'landscape', text: 'Nemo enim ipsam voluptatem quia voluptas sit.' },
+      { image: 'mother', shape: 'portrait', text: 'No matter how old I grow or how far I go, her arms will always be my safest home.' },
+      { image: 'father', shape: 'portrait', text: 'Our quiet protector, our unshakable foundation, and the reason we always feel safe coming home.' },
+      { image: 'siblings', shape: 'landscape', text: 'What they gave in silence, I will honor for a lifetime—my brothers.' },
+      { image: 'friends1', shape: 'landscape', alt: 'Friends, photo 1' },
+      { image: 'friends2', shape: 'portrait', alt: 'Friends, photo 2' },
+      { image: 'friends3', shape: 'landscape', alt: 'Friends, photo 3' },
     ],
+    sharedCaption: 'We belong to different timelines, speak from different temperaments, and hold memories from completely different worlds—yet every moment they chose to share with me became the exact grace that made my days brighter.',
   },
 
   // Folder = achievements: ONE landscape page, one column per item (certificate image + highlights), all visible at once. `title` is not drawn on the sheet (alt text only).
