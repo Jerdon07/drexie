@@ -1,27 +1,27 @@
-// Hanging portrait frame (right side of the screen): a bevelled wooden frame on a twine hanger that drops from above the top edge.
+// Hanging portrait frame (right side of the screen): a slim light-oak frame on a braided rope hanger that drops from above the top edge.
 // It has its own small transparent WebGL canvas, so it gets its own lighting without touching the desk scene.
 // Pull the frame or the cord: ONLY the cord gives (js/scene/lanyard.js). The frame + hanger are one rigid pose: they are moved
 // and tilted, never scaled or bent.
 import THREE from './scene/three.js';
 import { REDUCED_MOTION } from './config.js';
 import { portraitSrc } from './images.js';
-import { frameWoodTex, twineTex, plaqueTex, FRAME_PHOTO } from './scene/textures.js';
+import { frameWoodTex, ropeTex, plaqueTex, FRAME_PHOTO } from './scene/textures.js';
 import { createLanyard } from './scene/lanyard.js';
 import { makeStudioEnv } from './scene/env.js';
 
 // World units. `border` = moulding width, `mat` = paper margin; the photo opening is 4:5 and `foot` is the extra mat below it for the nameplate.
-const FRAME = { w: .5, border: .048, mat: .032, foot: .07, depth: .036 };
+const FRAME = { w: .5, border: .026, mat: .046, foot: .07, depth: .032 };
 const OPEN_W = FRAME.w - 2 * FRAME.border, PHOTO_W = OPEN_W - 2 * FRAME.mat, PHOTO_H = PHOTO_W * FRAME_PHOTO.h / FRAME_PHOTO.w;
 FRAME.h = PHOTO_H + 2 * FRAME.border + FRAME.mat + FRAME.foot;
 const HW = .15;                                    // cord end (the ring) → top edge of the frame
 const HOOK_X = FRAME.w * .34;                      // where the two hanger cords meet the top edge
-const WIDTH = .012;                                // cord thickness
+const WIDTH = .014;                                // cord thickness
 const RIGID = HW + FRAME.h / 2;                    // cord end → frame centre
 const TOP_Y = .46, CARD_Y = -.05;                  // anchor reference height; frame centre at rest (a little below screen centre, to show the hanger)
 const MAX_H_FRAC = .7, MAX_W_FRAC = .28, NARROW_W_FRAC = .23; // share of viewport height / width the frame may take; narrow = aspect < 1.5, where the desk fills the width
 const ANCHOR = new THREE.Vector3(0, TOP_Y + 1.1, 0); // hidden above the top edge: the cord's visible part is just its lower end
 const DROP = (ANCHOR.y - (CARD_Y + RIGID)) / 1.03; // rest length (it sits ~3% stretched under the frame's weight)
-const TILE = .08;                                  // cord length per texture repeat
+const TILE = .06;                                  // cord length per texture repeat
 const FOV = 20, RIGHT_PX = 28;                     // RIGHT_PX: gap between the frame and the right edge
 const LIGHT = { ambient: .62, key: .55, env: .2, metal: .75 }; // tune here if the frame reads too dark / too hot
 
@@ -40,10 +40,10 @@ function buildFrame(photoMap, plaqueMap, grain) {
   const wood = (map, color) => new THREE.MeshStandardMaterial({ map, color, roughness: .55, metalness: 0, envMapIntensity: LIGHT.env });
   const add = (o, z, y = 0) => { o.position.set(0, y, z); g.add(o); return o; };
   const flat = (pw, ph, m) => new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), m);
-  add(moulding(w, h, border, depth, .01, wood(grain, 0xffffff)), 0);
-  add(moulding(w - 2 * border + .012, h - 2 * border + .012, .016, depth * .55, .004, wood(grain, 0x8a6a50)), .002); // darker inner lip
-  add(new THREE.Mesh(new THREE.BoxGeometry(w - border, h - border, .008), wood(grain, 0x6b513d)), -depth / 2 + .006); // backing board
-  add(flat(w - 2 * border, h - 2 * border, new THREE.MeshStandardMaterial({ color: 0xf1e9da, roughness: .95 })), -.004);  // paper mat
+  add(moulding(w, h, border, depth, .004, wood(grain, 0xffffff)), 0);
+  add(moulding(w - 2 * border + .012, h - 2 * border + .012, .01, depth * .55, .002, wood(grain, 0xd8c3a6)), .002); // slightly shaded inner lip
+  add(new THREE.Mesh(new THREE.BoxGeometry(w - border, h - border, .008), wood(grain, 0xb09676)), -depth / 2 + .006); // backing board
+  add(flat(w - 2 * border, h - 2 * border, new THREE.MeshStandardMaterial({ color: 0xf6f4ef, roughness: .95 })), -.004);  // paper mat
   const photoY = h / 2 - border - mat - PHOTO_H / 2;
   add(flat(PHOTO_W, PHOTO_H, new THREE.MeshBasicMaterial({ map: photoMap })), -.002, photoY); // unlit: the photo keeps its true colours
   add(flat(PHOTO_W * .8, foot * .62, new THREE.MeshBasicMaterial({ map: plaqueMap, transparent: true })), -.002, -h / 2 + border + foot / 2);
@@ -56,10 +56,10 @@ function rod(a, b, r, material) {
   o.position.copy(a).addScaledVector(d, .5); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); return o;
 }
 
-// Ring at the cord end, two cords down to the top edge, and a brass eyelet at each. Origin = cord end, +y up.
+// Ring at the cord end, two cords down to the top edge, and a brushed-silver eyelet at each. Origin = cord end, +y up.
 function buildHanger(cord) {
-  const g = new THREE.Group(), brass = new THREE.MeshStandardMaterial({ color: 0xc9a45c, metalness: 1, roughness: .35, envMapIntensity: LIGHT.metal });
-  const torus = (r, t, x, y) => { const o = new THREE.Mesh(new THREE.TorusGeometry(r, t, 10, 28), brass); o.position.set(x, y, 0); g.add(o); };
+  const g = new THREE.Group(), metal = new THREE.MeshStandardMaterial({ color: 0xd5d8dc, metalness: 1, roughness: .42, envMapIntensity: LIGHT.metal });
+  const torus = (r, t, x, y) => { const o = new THREE.Mesh(new THREE.TorusGeometry(r, t, 10, 28), metal); o.position.set(x, y, 0); g.add(o); };
   torus(.018, .005, 0, -.012);
   for (const s of [-1, 1]) { g.add(rod(new THREE.Vector3(0, -.026, 0), new THREE.Vector3(s * HOOK_X, -HW + .008, 0), WIDTH * .32, cord)); torus(.009, .0035, s * HOOK_X, -HW + .006); }
   return g;
@@ -70,8 +70,8 @@ export function createFrameModel(photoSrc) {
   // The existing profile photo: portraitSrc() resolves to the real file, or the generated silhouette if it is missing.
   const photo = Object.assign(document.createElement('canvas'), { width: FRAME_PHOTO.w, height: FRAME_PHOTO.h }), pc = photo.getContext('2d');
   const photoMap = new THREE.CanvasTexture(photo); photoMap.anisotropy = 8;
-  const grain = frameWoodTex(), plaque = plaqueTex(), twine = twineTex();
-  [photoMap, grain, plaque, twine].forEach(t => { t.encoding = THREE.sRGBEncoding; });
+  const grain = frameWoodTex(), plaque = plaqueTex(), rope = ropeTex();
+  [photoMap, grain, plaque, rope].forEach(t => { t.encoding = THREE.sRGBEncoding; });
   grain.repeat.set(1.6, 1.6); // extrude UVs are in world units
   Promise.resolve(photoSrc).then(src => new Promise(ok => { const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(null); img.src = src; })).then(img => {
     if (!img) return; const k = Math.max(FRAME_PHOTO.w / img.width, FRAME_PHOTO.h / img.height), w = img.width * k, h = img.height * k;
@@ -79,7 +79,7 @@ export function createFrameModel(photoSrc) {
     model.onPhoto?.();
   });
 
-  const cord = new THREE.MeshStandardMaterial({ map: twine, roughness: .95, metalness: 0 });
+  const cord = new THREE.MeshStandardMaterial({ map: rope, roughness: .9, metalness: 0 });
   const lanyard = createLanyard({ anchor: ANCHOR, length: DROP, width: WIDTH, tile: TILE, material: cord, rigid: RIGID, damp: REDUCED_MOTION ? .95 : .988 });
   const rigid = new THREE.Group(), frame = buildFrame(photoMap, plaque, grain); frame.position.y = -RIGID;
   rigid.add(buildHanger(cord), frame); group.add(lanyard.ribbon, rigid);

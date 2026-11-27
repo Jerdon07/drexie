@@ -54,7 +54,8 @@
   --scene-desk-dark:#b4c4d8;  --scene-desk-light:#ffffff;   /* tint multiplied onto the wood grain */
   --scene-pad-dark:#00311d;   --scene-pad-light:#3d5f7a;
   --wood-1:#754b2b;  --wood-2:#80522f;  --wood-3:#885732;  --wood-4:#8f5c34;   /* the four desk planks */
-  --frame-wood:#8a5a34;  --frame-grain:#3b2312;  --frame-shine:#c48a55;  --twine:#c9a97a;   /* hanging portrait frame */
+  --frame-wood:#d9bd94;  --frame-grain:#a88459;  --frame-shine:#f0dcbc;   /* hanging portrait frame: pale oak */
+  --frame-ink:#2f2a24;  --rope:#ece7dd;  --rope-shade:#a9a398;   /* nameplate text; braided cotton rope */
   --wood-grain-dark:#040c1a;  --wood-grain-light:#96cdf5;  --wood-seam:#030914;
   --desk-leg:#754b2b;  --desk-pad:#1e7d76;  --wood:rgb(101, 65, 38);  --wood-deep:#162b47;  --stand:#1e3453;  --chair:#0c150e;
   --mat-trim:#2c4a66;  --mat-field:#17304a;   /* round floor mat under the desk (scene/decor/floormat.js) */

@@ -50,29 +50,33 @@ export const spineTex = (label, col) => sharp(tex(96, 384, (c, w, h) => {
 
 /* ---- Hanging portrait frame (js/frame.js) ---- */
 export const FRAME_PHOTO = { w: 800, h: 1000 }; // photo opening (4:5). frame.js derives the frame's proportions from this.
-// Wood grain: wavy horizontal streaks over a warm base, from a fixed seed so every load looks the same.
+// Pale oak: fine, nearly straight grain plus short pores, from a fixed seed so every load looks the same.
 export const frameWoodTex = () => { const t = tex(512, 512, (c, w, h) => {
   let s = 7; const rnd = () => (s = s * 16807 % 2147483647) / 2147483647;
   c.fillStyle = hex('--frame-wood'); c.fillRect(0, 0, w, h);
-  for (let i = 0; i < 150; i++) {
-    const y = rnd() * h, amp = 2 + rnd() * 7, ph = rnd() * 6.28;
-    c.strokeStyle = hex(i % 3 ? '--frame-grain' : '--frame-shine'); c.globalAlpha = .12 + rnd() * .38; c.lineWidth = 1 + rnd() * 4;
+  for (let i = 0; i < 120; i++) {
+    const y = rnd() * h, amp = rnd() * 2.5, ph = rnd() * 6.28;
+    c.strokeStyle = hex(i % 3 ? '--frame-grain' : '--frame-shine'); c.globalAlpha = .1 + rnd() * .22; c.lineWidth = .6 + rnd() * 1.8;
     c.beginPath(); for (let x = 0; x <= w; x += 16) c.lineTo(x, y + Math.sin(x / w * 6.28 + ph) * amp); c.stroke(); // whole periods, so it tiles
   }
+  c.fillStyle = hex('--frame-grain'); c.globalAlpha = .22;
+  for (let i = 0; i < 700; i++) c.fillRect(rnd() * w, rnd() * h, 3 + rnd() * 9, 1);
   c.globalAlpha = 1;
 }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
 // Nameplate under the photo: transparent, so the paper mat shows through.
 export const plaqueTex = () => { const t = tex(1024, 160, (c, w, h) => {
-  c.textAlign = 'center'; c.fillStyle = hex('--frame-grain');
-  const name = `${PROFILE.first} ${PROFILE.last}`; fit(c, name, w - 40, 68, FONT.serif, '700'); c.fillText(name, w / 2, 72);
-  fit(c, PROFILE.program, w - 40, 40, FONT.serif, 'italic'); c.fillText(PROFILE.program, w / 2, 134);
+  c.textAlign = 'center'; c.fillStyle = hex('--frame-ink');
+  const name = `${PROFILE.first} ${PROFILE.last}`; fit(c, name, w - 40, 64, FONT.sans, '600'); c.fillText(name, w / 2, 72);
+  fit(c, PROFILE.program, w - 40, 38, FONT.sans); c.fillText(PROFILE.program, w / 2, 134);
 }); t.anisotropy = 8; return t; };
-// Twisted twine for the hanging cord.
-export const twineTex = () => { const t = tex(32, 128, (c, w, h) => {
-  c.fillStyle = hex('--twine'); c.fillRect(0, 0, w, h);
-  c.strokeStyle = hex('--frame-grain'); c.globalAlpha = .4; c.lineWidth = 5;
-  for (let y = -32; y < h + 32; y += 16) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y + 16); c.stroke(); }
-}); t.wrapT = THREE.RepeatWrapping; return t; };
+// Braided cotton rope: interlocking chevrons. Repeats down the cord.
+export const ropeTex = () => { const t = tex(64, 128, (c, w, h) => {
+  c.fillStyle = hex('--rope'); c.fillRect(0, 0, w, h);
+  c.strokeStyle = hex('--rope-shade'); c.globalAlpha = .75; c.lineWidth = 3; c.lineCap = 'round';
+  for (let y = -32; y < h + 32; y += 16) { c.beginPath(); c.moveTo(0, y); c.lineTo(w / 2, y + 18); c.lineTo(w, y); c.stroke(); }
+  c.globalAlpha = .5; c.fillStyle = hex('--rope-shade'); c.fillRect(w / 2 - 1, 0, 2, h);
+  c.globalAlpha = 1;
+}); t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
 /* ---- Phone. Focused: a real "contacts" screen (header + tappable rows). Desk distance: a lock screen with a big clock. ----
    PHONE is shared with objects/phone.js so the hit-test and the drawing use the SAME row rectangles (canvas px). */
 export const PHONE = { w: 540, h: 1156, rows: 4, row: i => ({ x: 34, y: 508 + i * 150, w: 472, h: 126 }) }; // aspect = the .7 x 1.5 screen
