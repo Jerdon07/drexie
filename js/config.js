@@ -25,7 +25,7 @@ export const IMAGES = {
   friends1: photo('friends1.jpg'),
   friends2: photo('friends2.jpg'),
   friends3: photo('friends3.jpg'),
-  profile: { file: 'profile.png', get tint() { return hex('--em'); } },
+  profile: { file: 'profile.jpg', get tint() { return hex('--em'); } },
   // Certificates (Achievements sheet): drop the JPGs into public/images/. `ratio` = width / height of the scan; it sizes the frame on the sheet
   // (landscape vs portrait) and the placeholder shown until the file exists. Add one: entry here + an item in content.js SECTIONS.folders.
   graduation: cert('graduation-recognition.jpg', 1.5),
