@@ -185,9 +185,10 @@ export const laptopPreviewTex = () => { const s = SECTIONS.laptop, A = s.accent;
 /* ---- Achievements sheet: ONE landscape page laid out as a BENTO grid (config.js BENTO): one tile per achievement (medal + title, certificate, highlights),
    all visible at once. The cover is what you see at desk distance. Both go on the sheet box's top face (objects/folders.js). ---- */
 const SHEET_H = Math.round(SHEET.px * SHEET.h / SHEET.w);
-const GRID = { pad: 64, top: 200, bottom: 56 }; // px on the sheet; top = space for the header
-const TILE = { pad: 24, head: 84, share: .45 }; // head = title strip; share = most of a tile's width a side-by-side certificate may take
-const BULLET = { indent: 30, max: 30, min: 16 };
+const GRID = { pad: 48, top: 232, bottom: 32 }; // px on the sheet; top = space for the header
+const TILE = { pad: 24, head: 84, share: .39 }; // head = title strip; share = most of a tile's width a side-by-side certificate may take
+const BULLET = { indent: 30, max: 40, min: 16 };
+const EDU = { x: 600, y: 28, h: 176, gap: 20 }; // education cards in the header, from x to the right padding
 // The sheet's top is the box's -z edge, but roundedBoxGeo runs v along +z: don't flip, so canvas row 0 lands at -z (top of the sheet).
 const sheetFace = t => (t.flipY = false, sharp(t));
 
@@ -249,6 +250,21 @@ export const certCoverTex = () => sheetFace(tex(SHEET.px, SHEET_H, (c, w, h) => 
   pills(c, ['Click to open'], 90, h - 90, w - 60, A, 50);
 }));
 
+// Education cards filling the header to the right of the title: level, school (up to two lines), grades.
+function education(c, items, gold, ink) {
+  const { x, y, h, gap } = EDU, w = (SHEET.px - GRID.pad - x - (items.length - 1) * gap) / items.length, tw = w - 48;
+  items.forEach((e, i) => {
+    const cx = x + i * (w + gap);
+    c.fillStyle = 'rgba(29,37,48,.06)'; rr(c, cx, y, w, h, 18); c.fill(); c.strokeStyle = 'rgba(29,37,48,.2)'; c.lineWidth = 2; c.stroke();
+    c.fillStyle = gold; c.fillRect(cx, y + 18, 6, h - 36);
+    c.fillStyle = ink; fit(c, e.level.toUpperCase(), tw, 24, FONT.mono, '700'); c.fillText(e.level.toUpperCase(), cx + 28, y + 40);
+    let s = 36; c.font = font(s, FONT.serif, '700');
+    while (s > 20 && (lines(c, e.school, tw).length > 2 || lines(c, e.school, tw).some(l => c.measureText(l).width > tw))) c.font = font(s -= 2, FONT.serif, '700');
+    c.fillStyle = P.ink; wrap(c, e.school, cx + 28, y + 84, tw, s * 1.15);
+    c.font = font(28, FONT.sans, '600'); c.fillText(e.grades, cx + 28, y + h - 18);
+  });
+}
+
 // Focused face: header, then the bento grid (numbered medal + title, certificate, highlights per tile). Repainted whenever
 // an image file finishes loading (frames show the generated placeholder until then).
 export const certSheetTex = () => {
@@ -261,8 +277,9 @@ export const certSheetTex = () => {
     c.imageSmoothingQuality = 'high'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
     c.fillStyle = P.page; c.fillRect(0, 0, W, SHEET_H); c.fillStyle = s.accent; c.fillRect(0, 0, 18, SHEET_H);
     c.fillStyle = A; c.font = font(28, FONT.mono, '600'); c.fillText('RECOGNITIONS', G.pad, 62);
-    c.fillStyle = P.ink; fit(c, s.title, W - 2 * G.pad, 84, FONT.serif, '700'); c.fillText(s.title, G.pad, 140);
-    c.fillStyle = 'rgba(29,37,48,.14)'; c.fillRect(G.pad, 168, W - 2 * G.pad, 2); c.fillStyle = s.accent; c.fillRect(G.pad, 165, 160, 8);
+    c.fillStyle = P.ink; fit(c, s.title, EDU.x - G.pad - 32, 96, FONT.serif, '700'); c.fillText(s.title, G.pad, 150);
+    c.fillStyle = s.accent; c.fillRect(G.pad, 176, 160, 8);
+    education(c, s.education, s.accent, A);
     const size = bulletSize(c, cells.map(k => ({ items: k.it.highlights, w: k.txt.w, h: k.txt.h })));
     cells.forEach(({ it, r, img: [fx, fy, fw, fh], txt }, i) => {
       c.fillStyle = 'rgba(29,37,48,.06)'; rr(c, r.x, r.y, r.w, r.h, 22); c.fill(); c.strokeStyle = 'rgba(29,37,48,.2)'; c.lineWidth = 2; c.stroke(); // tile card

@@ -11,7 +11,8 @@ export default function folders() {
   const T = .04, edge = mat(hex('--page-edge'), { roughness: .9 }), face = new THREE.MeshBasicMaterial({ map: blank() });
   const group = new THREE.Group();
   group.add(box(SHEET.w, T, SHEET.h, [edge, edge, face, edge, edge, edge], 0, T / 2, 0)); // face order: +x, -x, +y (top), -y, +z, -z
-  const view = { type: 'flat', w: SHEET.w, h: SHEET.h, y: T };
+  // Tighter framing than the default fillBox(): the sheet is dense text, and the corner buttons only overlap its blank padding.
+  const view = { type: 'flat', w: SHEET.w, h: SHEET.h, y: T, fill: { w: .98, h: .97 } };
   return { id: 'folders', group, x: -2.3, z: 1.7, ry: .08, dist: 5, view, paper: [face],
     surfaces: [{ material: face, rest: face.map, preview: certCoverTex, full: certSheetTex }] };
 }

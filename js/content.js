@@ -62,6 +62,12 @@ export const SECTIONS = {
   folders: {
     label: 'Achievements', kicker: '02 · Achievements', title: 'Achievements', get accent() { return hex('--acc-folders'); },
     lead: 'Honors, awards and recognitions earned in school.',
+    // Newest first. Drawn as one card each in the sheet header: text only, no image. The header fits about 3; more would get cramped.
+    education: [
+      { level: 'Secondary education', school: 'Eastern La Trinidad National Highschool', grades: 'Grade 7 – Grade 12' },
+      { level: 'Primary education', school: 'Beckel Elementary School', grades: 'Grade 3 – Grade 6' },
+      { level: 'Primary education', school: 'Nangalisan Elementary School', grades: 'Kinder – Grade 2' },
+    ],
     items: [ // one block on the sheet each; `image` = an id from config.js IMAGES; `highlights` auto-fit their block, so keep them short
       { title: 'Graduation Recognition', image: 'graduation', highlights: [
         'With honors', 'Best in Research Defense', 'Best in Work Immersion', 'Best TVL student',
